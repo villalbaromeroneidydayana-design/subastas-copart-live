@@ -1028,8 +1028,8 @@ app.post('/api/budget-authorizations/:id/respond', (req, res) => {
   }
 
   // Validar criptográficamente identidad del comprador
-  if (hashToken(buyerToken) !== auth.buyer_token_hash) {
-    return res.status(403).json({ error: 'Token de comprador no válido. Solo el comprador asignado puede autorizar esta solicitud.' });
+  if (!buyerToken || hashToken(buyerToken) !== auth.buyer_token_hash) {
+    return res.status(403).json({ error: 'Token de comprador no válido o ausente. Solo el comprador asignado puede autorizar esta solicitud.' });
   }
 
   const newStatus = decision === 'approve' ? 'approved' : 'rejected';
