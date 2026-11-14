@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { store } from '../../services/store';
 import { AuctionSession } from '../../types';
+import { sounds } from '../../lib/soundEffects';
 import {
   Gavel,
   Play,
@@ -183,12 +184,26 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       return;
     }
 
+    const targetId = session.id || 'ses-live-001';
+
+    // Optimistic UI feedback instantáneo: actualiza el panel inmediatamente sin esperar la red
+    setSession((prev) => ({
+      ...prev,
+      status: 'open',
+      current_price: amount,
+      currentPrice: amount,
+      current_winner_paddle: selectedPaddle,
+      currentWinnerPaddle: selectedPaddle,
+      time_remaining_seconds: 10,
+    }));
+    try { sounds.playBidPing(); } catch {}
+
     setIsSubmittingBid(true);
     // Si la sala no estaba abierta, aseguramos su apertura inmediata
     if (session.status !== 'open') {
-      await store.serverStartAuction(session.id);
+      await store.serverStartAuction(targetId);
     }
-    const res = await store.submitManualBid(session.id, selectedPaddle, amount);
+    const res = await store.submitManualBid(targetId, selectedPaddle, amount);
     setIsSubmittingBid(false);
 
     if (res.success) {
@@ -659,9 +674,12 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 <button
                   type="button"
                   onClick={async () => {
-                    await store.serverStartAuction(session.id);
+                    const targetId = session.id || 'ses-live-001';
+                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
+                    try { sounds.playCountdownTick(1.2); } catch {}
                     showFeedback('🟢 SALA ABIERTA EN VIVO — Subasta iniciada');
-                    syncSessionData();
+                    await store.serverStartAuction(targetId);
+                    await syncSessionData();
                   }}
                   className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow transition active:scale-95"
                 >
@@ -678,8 +696,15 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => store.serverStartAuction(session.id)}
-                  className="bg-emerald-700 hover:bg-emerald-600 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow"
+                  onClick={async () => {
+                    const targetId = session.id || 'ses-live-001';
+                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
+                    try { sounds.playCountdownTick(1.2); } catch {}
+                    showFeedback('🟢 Subasta iniciada en vivo');
+                    await store.serverStartAuction(targetId);
+                    await syncSessionData();
+                  }}
+                  className="bg-emerald-700 hover:bg-emerald-600 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95"
                 >
                   <Play className="w-4 h-4" />
                   <span>Abrir / Iniciar</span>
@@ -688,8 +713,14 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 {session.status === 'paused' ? (
                   <button
                     type="button"
-                    onClick={() => store.serverResumeAuction(session.id)}
-                    className="bg-amber-600 hover:bg-amber-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow"
+                    onClick={async () => {
+                      const targetId = session.id || 'ses-live-001';
+                      setSession((prev) => ({ ...prev, status: 'bidding' }));
+                      showFeedback('▶ Subasta reanudada');
+                      await store.serverResumeAuction(targetId);
+                      await syncSessionData();
+                    }}
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95"
                   >
                     <Play className="w-4 h-4" />
                     <span>Reanudar</span>
@@ -697,8 +728,14 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 ) : (
                   <button
                     type="button"
-                    onClick={() => store.serverPauseAuction(session.id)}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow"
+                    onClick={async () => {
+                      const targetId = session.id || 'ses-live-001';
+                      setSession((prev) => ({ ...prev, status: 'paused' }));
+                      showFeedback('⏸ Subasta en pausa');
+                      await store.serverPauseAuction(targetId);
+                      await syncSessionData();
+                    }}
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95"
                   >
                     <Pause className="w-4 h-4" />
                     <span>Pausar</span>

@@ -220,14 +220,14 @@ export function App() {
   }
 
   // 5. PANTALLA 2: CONSOLA PRIVADA DEL SUBASTADOR (Centro de Mando Exclusivo)
-  const fallbackSession = consoleSession || store.getSessions()[0] || ({
+  const fallbackSession = consoleSession || ({
     id: 'ses-live-001',
-    title: 'Subasta Oficial en Vivo',
-    lot_number: '48291032',
+    title: '1971 Ford Mustang Mach 1 Fastback',
+    lot_number: '88192003',
     brand: 'Ford',
-    model: 'Mustang GT',
-    year: 2023,
-    status: 'prepared',
+    model: 'Mustang Mach 1 Fastback',
+    year: 1971,
+    status: 'open',
     starting_price: 5000,
     current_price: 5000,
     bid_increment: 250,

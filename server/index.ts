@@ -247,6 +247,15 @@ function broadcastPresence(sessionId?: string) {
   });
 }
 
+// Localizador autoritativo de sesión con tolerancia a tokens previos, carril único y aliases
+function findSession(idOrToken?: string): any {
+  if (idOrToken && idOrToken !== 'undefined' && idOrToken !== 'null') {
+    const direct = db.prepare('SELECT * FROM auction_sessions WHERE id = ? OR room_token = ?').get(idOrToken, idOrToken) as any;
+    if (direct) return direct;
+  }
+  return db.prepare('SELECT * FROM auction_sessions ORDER BY updated_at DESC LIMIT 1').get() as any;
+}
+
 wss.on('connection', (ws) => {
   const currentCount = wss.clients.size;
   connectedClientsCount = currentCount;
@@ -269,7 +278,7 @@ wss.on('connection', (ws) => {
       const msg = JSON.parse(raw.toString());
       if (msg.type === 'SUBSCRIBE') {
         const roomToken = msg.roomToken;
-        const s = db.prepare('SELECT * FROM auction_sessions WHERE room_token = ? OR id = ?').get(roomToken, roomToken) as any;
+        const s = findSession(roomToken);
         if (!s) return;
 
         let role: 'auctioneer' | 'broker' | 'buyer' | 'spectator' = 'spectator';
@@ -299,8 +308,8 @@ wss.on('connection', (ws) => {
           role = 'buyer';
         }
 
-        // Comprobar si la sala ya fue revocada o finalizada para roles no subastadores
-        if ((s.is_token_revoked || ['sold', 'closed', 'unsold'].includes(s.status)) && role !== 'auctioneer') {
+        // Comprobar si la sala ya fue revocada o finalizada para roles no subastadores (Sólo cierre total o revocación expresa)
+        if ((Boolean(s.is_token_revoked) || s.status === 'closed') && role !== 'auctioneer') {
           ws.send(JSON.stringify({
             type: 'ROOM_ACCESS_REVOKED',
             sessionId: s.id,
@@ -765,7 +774,7 @@ app.delete('/api/sessions/:id', (req, res) => {
 
 // 2. Obtener estado de una sesión
 app.get('/api/sessions/:id', (req, res) => {
-  const r = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const r = findSession(req.params.id);
   if (!r) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   const bids = db.prepare('SELECT * FROM auction_bids WHERE session_id = ? ORDER BY sequence_number DESC').all(r.id) as any[];
@@ -855,7 +864,7 @@ app.get('/api/sessions/:id/bids', (req, res) => {
 
 // 3. Sala pública por Room Token (CON DISTINCIÓN DE ENLACE BROKER Y ENLACE CLIENTE)
 app.get('/api/room/:token', (req, res) => {
-  const r = db.prepare('SELECT * FROM auction_sessions WHERE room_token = ? OR id = ?').get(req.params.token, req.params.token) as any;
+  const r = findSession(req.params.token);
   if (!r) return res.status(404).json({ error: 'Sala no encontrada' });
 
   // Detección estricta de rol por token o query param
@@ -1212,7 +1221,7 @@ app.post('/api/sessions/:id/restore-access', (req, res) => {
 
 // 4. Iniciar subasta (Administrador / Consola de Subastador)
 app.post('/api/sessions/:id/start', (req, res) => {
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   db.prepare(`
@@ -1224,12 +1233,12 @@ app.post('/api/sessions/:id/start', (req, res) => {
   startServerClock(session.id);
   broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: 'open' });
   broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
-  res.json({ success: true });
+  res.json({ success: true, sessionId: session.id });
 });
 
 // 5. Pausar subasta
 app.post('/api/sessions/:id/pause', (req, res) => {
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   db.prepare(`UPDATE auction_sessions SET status = 'paused', updated_at = ? WHERE id = ?`).run(
@@ -1238,12 +1247,12 @@ app.post('/api/sessions/:id/pause', (req, res) => {
   );
   stopServerClock(session.id);
   broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: 'paused' });
-  res.json({ success: true });
+  res.json({ success: true, sessionId: session.id });
 });
 
 // 6. Reanudar subasta
 app.post('/api/sessions/:id/resume', (req, res) => {
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   if (session.is_token_revoked || ['sold', 'closed'].includes(session.status)) {
@@ -1260,25 +1269,29 @@ app.post('/api/sessions/:id/resume', (req, res) => {
   );
   startServerClock(session.id);
   broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: nextStatus });
-  res.json({ success: true });
+  res.json({ success: true, sessionId: session.id });
 });
 
 // 7. Bajar martillo forzado (Sold) y revocar acceso
 app.post('/api/sessions/:id/sold', (req, res) => {
-  finalizeAuction(req.params.id, 'sold');
-  res.json({ success: true, message: 'Lote adjudicado (SOLD). Acceso de sala revocado oficialmente.' });
+  const session = findSession(req.params.id);
+  const targetId = session?.id || req.params.id;
+  finalizeAuction(targetId, 'sold');
+  res.json({ success: true, message: 'Lote adjudicado (SOLD).' });
 });
 
-// 7b. Cierre oficial de sala (Closed) y revocar acceso
+// 7b. Cierre oficial de sala (Closed)
 app.post('/api/sessions/:id/close', (req, res) => {
-  finalizeAuction(req.params.id, 'unsold');
-  res.json({ success: true, message: 'Subasta cerrada definitivamente y acceso de cliente revocado.' });
+  const session = findSession(req.params.id);
+  const targetId = session?.id || req.params.id;
+  finalizeAuction(targetId, 'unsold');
+  res.json({ success: true, message: 'Subasta cerrada definitivamente.' });
 });
 
 // 7c. EJECUTAR OFERTA MANUAL SOBERANA DESDE LA CONSOLA DEL SUBASTADOR
 app.post('/api/sessions/:id/manual-bid', (req, res) => {
   const { paddleNumber, amount, customName, location } = req.body;
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   const bidAmount = Number(amount);
@@ -1327,8 +1340,8 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(bidId, session.id, participantId, paddle, bidderName, bidderLoc, bidAmount, nextSeq, now);
 
-  // Actualizar sesión en SQLite y reactivar sala si estaba en desenlace
-  const newStatus = ['paused', 'prepared', 'unsold', 'sold', 'closed'].includes(session.status) ? 'open' : session.status;
+  // Actualizar sesión en SQLite y reactivar sala si estaba en desenlace o conteo final
+  const newStatus = ['paused', 'prepared', 'unsold', 'sold', 'closed', 'last_call'].includes(session.status) ? 'open' : session.status;
   db.prepare(`
     UPDATE auction_sessions 
     SET current_price = ?,
@@ -1374,6 +1387,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
     success: true,
     bid: createdBid,
     session: {
+      id: session.id,
       currentPrice: bidAmount,
       currentWinnerPaddle: paddle,
       currentWinnerName: bidderName,
@@ -1385,12 +1399,12 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
 // 7d. LLAMADAS OFICIALES DEL SUBASTADOR (GOING ONCE, GOING TWICE, FAIR WARNING)
 app.post('/api/sessions/:id/call', (req, res) => {
   const { call } = req.body; // 'going_once' | 'going_twice' | 'fair_warning' | 'clear'
-  const session = db.prepare('SELECT id FROM auction_sessions WHERE id = ?').get(req.params.id);
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   broadcast({
     type: 'AUCTIONEER_CALL',
-    sessionId: req.params.id,
+    sessionId: session.id,
     call: call || 'clear',
     timestamp: new Date().toISOString(),
   });
@@ -1401,12 +1415,12 @@ app.post('/api/sessions/:id/call', (req, res) => {
 // 7d.2 ENVIAR AVISO / CINTILLO EN VIVO A LA SALA PÚBLICA
 app.post('/api/sessions/:id/announcement', (req, res) => {
   const { text } = req.body;
-  const session = db.prepare('SELECT id FROM auction_sessions WHERE id = ?').get(req.params.id);
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   broadcast({
     type: 'ROOM_ANNOUNCEMENT',
-    sessionId: req.params.id,
+    sessionId: session.id,
     text: String(text || '').trim(),
     timestamp: new Date().toISOString(),
   });
@@ -1417,11 +1431,12 @@ app.post('/api/sessions/:id/announcement', (req, res) => {
 // 7d.3 AJUSTAR CONTEO DE ESPECTADORES EN SALA
 app.post('/api/sessions/:id/viewers', (req, res) => {
   const count = Number(req.body?.count);
+  const session = findSession(req.params.id);
   if (!isNaN(count) && count >= 1) {
     connectedClientsCount = count;
     broadcast({
       type: 'SPECTATOR_JOINED',
-      sessionId: req.params.id,
+      sessionId: session?.id || req.params.id,
       viewersCount: count,
       timestamp: new Date().toISOString(),
     });
@@ -1433,13 +1448,15 @@ app.post('/api/sessions/:id/viewers', (req, res) => {
 // 7e. ADJUDICACIÓN SOBERANA (SOLD / UNSOLD)
 app.post('/api/sessions/:id/adjudicate', (req, res) => {
   const { decision } = req.body; // 'sold' | 'unsold'
-  finalizeAuction(req.params.id, decision === 'unsold' ? 'unsold' : 'sold');
+  const session = findSession(req.params.id);
+  const targetId = session?.id || req.params.id;
+  finalizeAuction(targetId, decision === 'unsold' ? 'unsold' : 'sold');
   res.json({ success: true, decision: decision || 'sold' });
 });
 
 // 8. Reiniciar lote
 app.post('/api/sessions/:id/reset', (req, res) => {
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   if ((session.is_token_revoked || ['sold', 'closed'].includes(session.status)) && req.query.admin !== 'true' && req.body?.admin !== true) {
@@ -1448,7 +1465,7 @@ app.post('/api/sessions/:id/reset', (req, res) => {
     });
   }
 
-  stopServerClock(req.params.id);
+  stopServerClock(session.id);
   db.prepare(`DELETE FROM auction_bids WHERE session_id = ?`).run(session.id);
   db.prepare(`DELETE FROM budget_authorizations WHERE session_id = ?`).run(session.id);
   db.prepare(`
@@ -1482,12 +1499,12 @@ app.post('/api/sessions/:id/reset', (req, res) => {
   `).run(hashToken('bdr_broker_m729k1'), session.id);
 
   broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
-  res.json({ success: true });
+  res.json({ success: true, sessionId: session.id });
 });
 
 // 8a.2 AJUSTAR PRECIO BASE / DE ARRANQUE DIRECTAMENTE
 app.post('/api/sessions/:id/set-price', (req, res) => {
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
   const price = Number(req.body?.price);
   if (!price || isNaN(price) || price <= 0) {
@@ -1512,7 +1529,7 @@ app.post('/api/sessions/:id/set-price', (req, res) => {
 
 // 8a.3 ACTUALIZAR PARÁMETROS DEL LOTE EN VIVO (PRECIO BASE, INCREMENTO, RESERVA, PRESUPUESTO)
 app.post('/api/sessions/:id/update-params', (req, res) => {
-  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice } = req.body;

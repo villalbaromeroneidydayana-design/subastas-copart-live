@@ -233,7 +233,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
 
 export const INITIAL_SESSIONS: AuctionSession[] = [
   {
-    id: 'ses-001',
+    id: 'ses-live-001',
     client_id: 'cli-001',
     vehicle_id: 'veh-001',
     title: 'Subasta Privada - 2023 Ford Mustang GT',

@@ -600,7 +600,8 @@ class RealAuctionStore {
 
   public async serverStartAuction(sessionId: string) {
     try {
-      await fetch(`${SERVER_URL}/api/sessions/${sessionId}/start`, { method: 'POST' });
+      const target = sessionId || 'ses-live-001';
+      await fetch(`${SERVER_URL}/api/sessions/${target}/start`, { method: 'POST' });
     } catch {
       // fallback
     }
@@ -608,7 +609,8 @@ class RealAuctionStore {
 
   public async serverPauseAuction(sessionId: string) {
     try {
-      await fetch(`${SERVER_URL}/api/sessions/${sessionId}/pause`, { method: 'POST' });
+      const target = sessionId || 'ses-live-001';
+      await fetch(`${SERVER_URL}/api/sessions/${target}/pause`, { method: 'POST' });
     } catch {
       // fallback
     }
@@ -616,7 +618,8 @@ class RealAuctionStore {
 
   public async serverResumeAuction(sessionId: string) {
     try {
-      await fetch(`${SERVER_URL}/api/sessions/${sessionId}/resume`, { method: 'POST' });
+      const target = sessionId || 'ses-live-001';
+      await fetch(`${SERVER_URL}/api/sessions/${target}/resume`, { method: 'POST' });
     } catch {
       // fallback
     }
@@ -624,7 +627,8 @@ class RealAuctionStore {
 
   public async submitManualBid(sessionId: string, paddleNumber: string, amount: number): Promise<{ success: boolean; bid?: any; session?: any; error?: string }> {
     try {
-      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/manual-bid`, {
+      const target = sessionId || 'ses-live-001';
+      const res = await fetch(`${SERVER_URL}/api/sessions/${target}/manual-bid`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paddleNumber, amount })
@@ -641,7 +645,8 @@ class RealAuctionStore {
 
   public async sendAuctioneerCall(sessionId: string, call: 'going_once' | 'going_twice' | 'fair_warning' | 'clear'): Promise<boolean> {
     try {
-      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/call`, {
+      const target = sessionId || 'ses-live-001';
+      const res = await fetch(`${SERVER_URL}/api/sessions/${target}/call`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ call })
@@ -654,7 +659,8 @@ class RealAuctionStore {
 
   public async adjudicateAuction(sessionId: string, decision: 'sold' | 'unsold'): Promise<boolean> {
     try {
-      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/adjudicate`, {
+      const target = sessionId || 'ses-live-001';
+      const res = await fetch(`${SERVER_URL}/api/sessions/${target}/adjudicate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision })
@@ -667,7 +673,8 @@ class RealAuctionStore {
 
   public async serverSoldAuction(sessionId: string) {
     try {
-      await fetch(`${SERVER_URL}/api/sessions/${sessionId}/sold`, { method: 'POST' });
+      const target = sessionId || 'ses-live-001';
+      await fetch(`${SERVER_URL}/api/sessions/${target}/sold`, { method: 'POST' });
     } catch {
       // fallback
     }
@@ -675,7 +682,8 @@ class RealAuctionStore {
 
   public async serverCloseAuction(sessionId: string) {
     try {
-      await fetch(`${SERVER_URL}/api/sessions/${sessionId}/close`, { method: 'POST' });
+      const target = sessionId || 'ses-live-001';
+      await fetch(`${SERVER_URL}/api/sessions/${target}/close`, { method: 'POST' });
     } catch {
       // fallback
     }
@@ -683,7 +691,8 @@ class RealAuctionStore {
 
   public async serverResetAuction(sessionId: string) {
     try {
-      await fetch(`${SERVER_URL}/api/sessions/${sessionId}/reset?admin=true`, { method: 'POST' });
+      const target = sessionId || 'ses-live-001';
+      await fetch(`${SERVER_URL}/api/sessions/${target}/reset?admin=true`, { method: 'POST' });
     } catch {
       // fallback
     }
