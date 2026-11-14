@@ -132,7 +132,14 @@ export function App() {
 
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    const unsub = store.subscribe(() => {
+      // Re-verificar si la sala fue reabierta o reactivada
+      handleHashChange();
+    });
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      unsub();
+    };
   }, []);
 
   const handleOpenRoomAsAdmin = (session: AuctionSession) => {

@@ -837,6 +837,25 @@ class RealAuctionStore {
     }
   }
 
+  public async updateLotParameters(sessionId: string, params: {
+    startingPrice?: number;
+    minIncrement?: number;
+    reservePrice?: number;
+    clientMaxBudget?: number;
+    currentPrice?: number;
+  }) {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/update-params`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+
   public getResults(): AuctionResult[] {
     const raw = localStorage.getItem('copart_results_v1');
     if (!raw) return [];

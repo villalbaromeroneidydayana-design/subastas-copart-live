@@ -20,9 +20,15 @@ import {
   Clock,
   Radio,
   Sparkles,
-  Edit3
+  Edit3,
+  Car,
+  Settings,
+  Sliders,
+  X
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
+import { CopartLogo } from '../common/CopartLogo';
+import { VehiclesView } from './VehiclesView';
 
 interface AuctioneerPrivateConsoleProps {
   session: AuctionSession;
@@ -58,6 +64,14 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [activeCall, setActiveCall] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isNextLotModalOpen, setIsNextLotModalOpen] = useState<boolean>(false);
+  const [isVehiclesModalOpen, setIsVehiclesModalOpen] = useState<boolean>(false);
+  const [isParamsModalOpen, setIsParamsModalOpen] = useState<boolean>(false);
+  const [brokerOnline, setBrokerOnline] = useState<boolean>(false);
+  const [buyerOnline, setBuyerOnline] = useState<boolean>(false);
+  const [lotStartingPrice, setLotStartingPrice] = useState<number>(5000);
+  const [lotMinIncrement, setLotMinIncrement] = useState<number>(250);
+  const [lotReservePrice, setLotReservePrice] = useState<number>(12000);
+  const [lotClientBudget, setLotClientBudget] = useState<number>(7500);
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [isEditingBasePrice, setIsEditingBasePrice] = useState<boolean>(false);
@@ -75,6 +89,14 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           starting_price: Number(data.session.starting_price ?? data.session.startingPrice ?? 5000),
           client_max_budget: Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500),
         }));
+        setLotStartingPrice(Number(data.session.starting_price ?? data.session.startingPrice ?? 5000));
+        setLotMinIncrement(Number(data.session.min_increment ?? data.session.minIncrement ?? 250));
+        setLotReservePrice(Number(data.session.reserve_price ?? data.session.reservePrice ?? 12000));
+        setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500));
+      }
+      if (data && data.presence) {
+        setBrokerOnline(Boolean(data.presence.brokerConnected));
+        setBuyerOnline(Boolean(data.presence.buyerConnected));
       }
       if (data && data.bids) {
         setBids(data.bids);
@@ -120,6 +142,23 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       await syncSessionData();
     } else {
       showFeedback(res.error || 'Error al actualizar precio', 'error');
+    }
+  };
+
+  // Guardar todos los parámetros del lote (Base, Incremento, Reserva, Presupuesto)
+  const handleSaveLotParameters = async () => {
+    const res = await store.updateLotParameters(session.id, {
+      startingPrice: Number(lotStartingPrice),
+      minIncrement: Number(lotMinIncrement),
+      reservePrice: Number(lotReservePrice),
+      clientMaxBudget: Number(lotClientBudget),
+    });
+    if (res.success) {
+      showFeedback('✓ Parámetros del lote actualizados inmediatamente en sala');
+      setIsParamsModalOpen(false);
+      await syncSessionData();
+    } else {
+      showFeedback(res.error || 'Error al actualizar parámetros', 'error');
     }
   };
 
@@ -200,14 +239,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       {/* ========================================================================= */}
       {/* 1. BARRA SUPERIOR EJECUTIVA (HEADER ERGONÓMICO) */}
       {/* ========================================================================= */}
-      <header className="bg-[#081224] border-b border-amber-500/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+      <header className="bg-[#081224] border-b border-amber-500/40 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-3 shadow-xl">
         <div className="flex items-center gap-3">
+          <CopartLogo size="sm" showSubtitle={false} className="hidden md:inline-flex" />
+
           <div className="flex items-center gap-2 bg-amber-500 text-slate-950 px-2.5 py-1 rounded font-black text-xs uppercase tracking-wider shadow">
             <Gavel className="w-4 h-4" />
-            <span>PANTALLA 2 • CONSOLA PRIVADA DEL SUBASTADOR</span>
+            <span>PANTALLA 2 • CONSOLA PRIVADA</span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="hidden lg:flex items-center gap-2 text-xs">
             <span className="text-slate-400">LOTE #{(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}</span>
             <span className="text-slate-600">•</span>
             <span className="text-white font-bold truncate max-w-xs">
@@ -216,9 +257,47 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
         </div>
 
-        {/* Estado en vivo + Indicadores de Red */}
-        <div className="flex items-center gap-3">
-          {/* Indicador de conexión con Backend */}
+        {/* Presencia de Participantes Reales */}
+        <div className="flex items-center gap-2 text-[11px] font-mono">
+          <div className={`px-2 py-0.5 rounded border flex items-center gap-1.5 ${
+            brokerOnline ? 'bg-emerald-950/60 text-emerald-300 border-emerald-600/50' : 'bg-slate-900/60 text-slate-400 border-slate-800'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${brokerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+            <span>Broker #101: {brokerOnline ? 'En sala' : 'Offline'}</span>
+          </div>
+          <div className={`px-2 py-0.5 rounded border flex items-center gap-1.5 ${
+            buyerOnline ? 'bg-emerald-950/60 text-emerald-300 border-emerald-600/50' : 'bg-slate-900/60 text-slate-400 border-slate-800'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${buyerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+            <span>Cliente: {buyerOnline ? 'En sala' : 'Offline'}</span>
+          </div>
+        </div>
+
+        {/* Acciones de Cabecera: Vehículos, Parámetros y Ver Sala */}
+        <div className="flex items-center gap-2">
+          {/* Botón Administración Completa de Vehículos y Fotos */}
+          <button
+            type="button"
+            onClick={() => setIsVehiclesModalOpen(true)}
+            className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
+            title="Subir vehículos nuevos, fotos y editar catálogo"
+          >
+            <Car className="w-3.5 h-3.5" />
+            <span>Vehículos y Fotos</span>
+          </button>
+
+          {/* Botón Parámetros del Lote */}
+          <button
+            type="button"
+            onClick={() => setIsParamsModalOpen(true)}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 border border-slate-700 transition"
+            title="Editar valores de referencia, precio base, incrementos y presupuesto"
+          >
+            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <span>Parámetros</span>
+          </button>
+
+          {/* Estado de conexión con Backend */}
           <button
             type="button"
             onClick={() => {
@@ -229,13 +308,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               }
             }}
             title="Clic para ver o cambiar la URL del servidor backend"
-            className="flex items-center gap-1.5 text-[10px] font-mono font-bold bg-[#060b17] hover:bg-slate-800 px-2.5 py-1 rounded border border-emerald-500/40 text-emerald-300 transition"
+            className="flex items-center gap-1.5 text-[10px] font-mono font-bold bg-[#060b17] hover:bg-slate-800 px-2 py-1.5 rounded border border-emerald-500/40 text-emerald-300 transition"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>BACKEND EN LÍNEA</span>
+            <span className="hidden sm:inline">CONECTADO</span>
           </button>
 
-          <span className={`px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${
+          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
             session.status === 'open' || session.status === 'bidding'
               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500 animate-pulse'
               : session.status === 'paused'
@@ -244,10 +323,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               ? 'bg-blue-500/20 text-blue-300 border border-blue-500'
               : 'bg-slate-800 text-slate-400 border border-slate-700'
           }`}>
-            ESTADO: {session.status}
+            {session.status}
           </span>
 
-          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-[#060b17] px-2.5 py-1 rounded border border-slate-800">
+          <div className="flex items-center gap-1 text-xs text-slate-300 bg-[#060b17] px-2 py-1 rounded border border-slate-800">
             <Clock className="w-3.5 h-3.5 text-amber-400" />
             <span className="font-mono font-bold text-amber-300 text-sm">
               {session.time_remaining_seconds ?? 10}s
@@ -259,10 +338,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             href={publicRoomUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1 transition shadow"
           >
-            <span>Ver Sala en Vivo (Pública)</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Ver Sala</span>
+            <ExternalLink className="w-3 h-3" />
           </a>
         </div>
       </header>
@@ -732,6 +811,133 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             syncSessionData();
           }}
         />
+      )}
+
+      {/* MODAL PARA PARÁMETROS DEL LOTE EN VIVO */}
+      {isParamsModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+          <div className="bg-[#0b1323] border border-amber-500/50 rounded-2xl max-w-lg w-full p-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-black text-white">PARÁMETROS DEL LOTE EN VIVO</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsParamsModalOpen(false)}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Precio Inicial / Base ($ USD):</label>
+                <input
+                  type="number"
+                  step="100"
+                  value={lotStartingPrice}
+                  onChange={(e) => setLotStartingPrice(Number(e.target.value) || 0)}
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-emerald-400 font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Incremento Mínimo ($ USD):</label>
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  {[100, 250, 500, 1000].map((inc) => (
+                    <button
+                      key={inc}
+                      type="button"
+                      onClick={() => setLotMinIncrement(inc)}
+                      className={`py-1.5 rounded font-mono font-bold border transition ${
+                        lotMinIncrement === inc ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800/80 text-slate-300 border-slate-700'
+                      }`}
+                    >
+                      +${inc}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  step="50"
+                  value={lotMinIncrement}
+                  onChange={(e) => setLotMinIncrement(Number(e.target.value) || 0)}
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Precio de Reserva ($ USD):</label>
+                <input
+                  type="number"
+                  step="500"
+                  value={lotReservePrice}
+                  onChange={(e) => setLotReservePrice(Number(e.target.value) || 0)}
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-amber-300"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Presupuesto Máximo Autorizado del Cliente ($ USD):</label>
+                <input
+                  type="number"
+                  step="250"
+                  value={lotClientBudget}
+                  onChange={(e) => setLotClientBudget(Number(e.target.value) || 0)}
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-blue-300 font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsParamsModalOpen(false)}
+                className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveLotParameters}
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-black transition shadow"
+              >
+                Aplicar Cambios a Sala en Vivo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA ADMINISTRACIÓN DE VEHÍCULOS Y SUBIDA DE FOTOS */}
+      {isVehiclesModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fadeIn">
+          <div className="bg-[#0b1323] border border-amber-500/50 rounded-2xl max-w-6xl w-full h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-[#0e1828]">
+              <div className="flex items-center gap-2.5">
+                <Car className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-black text-white uppercase tracking-wide">
+                  ADMINISTRACIÓN COMPLETA DE VEHÍCULOS, FOTOGRAFÍAS Y CATÁLOGO
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsVehiclesModalOpen(false);
+                  syncSessionData();
+                }}
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5">
+              <VehiclesView />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

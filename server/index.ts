@@ -382,7 +382,8 @@ function startServerClock(sessionId: string) {
         viewersCount: connectedClientsCount,
       });
     } else {
-      finalizeAuction(sessionId);
+      // El reloj llegó a 0s: se mantiene a la espera soberana del subastador (llamadas GOING ONCE/TWICE o Martillo).
+      // NO auto-finaliza para preservar el control operativo manual total del subastador.
     }
   }, 1000);
 
@@ -1193,26 +1194,20 @@ app.post('/api/sessions/:id/restore-access', (req, res) => {
   res.json({ success: true, target, restored: true });
 });
 
-// 4. Iniciar subasta (Administrador)
+// 4. Iniciar subasta (Administrador / Consola de Subastador)
 app.post('/api/sessions/:id/start', (req, res) => {
   const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-  // REGLA: No permite reactivar una subasta finalizada mediante el mismo enlace (a menos que sea el administrador/subastador reiniciando)
-  if ((session.is_token_revoked || ['sold', 'closed'].includes(session.status)) && req.query.admin !== 'true' && req.body?.admin !== true) {
-    return res.status(400).json({
-      error: 'No se permite reactivar una subasta finalizada mediante el mismo enlace. Debe crear un nuevo lote.'
-    });
-  }
-
   db.prepare(`
     UPDATE auction_sessions 
-    SET status = 'open', time_remaining_seconds = total_duration_seconds, updated_at = ? 
+    SET status = 'open', is_token_revoked = 0, time_remaining_seconds = total_duration_seconds, updated_at = ? 
     WHERE id = ?
   `).run(new Date().toISOString(), session.id);
 
   startServerClock(session.id);
   broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: 'open' });
+  broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
   res.json({ success: true });
 });
 
@@ -1316,8 +1311,8 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(bidId, session.id, participantId, paddle, bidderName, bidderLoc, bidAmount, nextSeq, now);
 
-  // Actualizar sesión en SQLite
-  const newStatus = ['paused', 'prepared'].includes(session.status) ? 'open' : session.status;
+  // Actualizar sesión en SQLite y reactivar sala si estaba en desenlace
+  const newStatus = ['paused', 'prepared', 'unsold', 'sold', 'closed'].includes(session.status) ? 'open' : session.status;
   db.prepare(`
     UPDATE auction_sessions 
     SET current_price = ?,
@@ -1327,6 +1322,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
         bid_count = bid_count + 1,
         time_remaining_seconds = 10,
         status = ?,
+        is_token_revoked = 0,
         updated_at = ?
     WHERE id = ?
   `).run(bidAmount, paddle, bidderName, participantId, newStatus, now, session.id);
@@ -1464,6 +1460,61 @@ app.post('/api/sessions/:id/set-price', (req, res) => {
   });
 
   return res.json({ success: true, price });
+});
+
+// 8a.3 ACTUALIZAR PARÁMETROS DEL LOTE EN VIVO (PRECIO BASE, INCREMENTO, RESERVA, PRESUPUESTO)
+app.post('/api/sessions/:id/update-params', (req, res) => {
+  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice } = req.body;
+
+  const newStartingPrice = startingPrice !== undefined && !isNaN(Number(startingPrice)) ? Number(startingPrice) : session.starting_price;
+  const newIncrement = minIncrement !== undefined && !isNaN(Number(minIncrement)) ? Number(minIncrement) : session.min_increment;
+  const newReserve = reservePrice !== undefined && !isNaN(Number(reservePrice)) ? Number(reservePrice) : session.reserve_price;
+  const newBudget = clientMaxBudget !== undefined && !isNaN(Number(clientMaxBudget)) ? Number(clientMaxBudget) : session.client_max_budget;
+  const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : session.current_price;
+
+  db.prepare(`
+    UPDATE auction_sessions
+    SET 
+      starting_price = ?,
+      min_increment = ?,
+      reserve_price = ?,
+      client_max_budget = ?,
+      current_price = ?,
+      updated_at = ?
+    WHERE id = ?
+  `).run(
+    newStartingPrice,
+    newIncrement,
+    newReserve,
+    newBudget,
+    newCurrentPrice,
+    new Date().toISOString(),
+    session.id
+  );
+
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    startingPrice: newStartingPrice,
+    minIncrement: newIncrement,
+    reservePrice: newReserve,
+    clientMaxBudget: newBudget,
+    currentPrice: newCurrentPrice
+  });
+
+  return res.json({
+    success: true,
+    params: {
+      startingPrice: newStartingPrice,
+      minIncrement: newIncrement,
+      reservePrice: newReserve,
+      clientMaxBudget: newBudget,
+      currentPrice: newCurrentPrice
+    }
+  });
 });
 
 // 8b. CARGAR SIGUIENTE LOTE Y NUEVO CLIENTE EN LA MISMA SALA
