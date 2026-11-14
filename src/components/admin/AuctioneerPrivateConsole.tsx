@@ -393,19 +393,19 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         {/* ----------------------------------------------------------------------- */}
         {/* COLUMNA 1: SELECTOR DE LAS 7 PALETAS DISPONIBLES (4 COLSPAN) */}
         {/* ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-4 bg-[#081224] rounded-xl border border-slate-800 p-3 flex flex-col justify-between shadow-2xl">
+        <div className="lg:col-span-4 bg-[#081224] rounded-xl border border-slate-800 p-3 sm:p-4 flex flex-col justify-between shadow-2xl">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2.5">
-              <div className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-amber-400" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-amber-400" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-slate-100">
                   1. SELECCIONAR PALETA ({OFFICIAL_PADDLES.length})
                 </h2>
               </div>
-              <span className="text-[10px] text-slate-400">Clic para activar postor</span>
+              <span className="text-xs text-slate-400 font-medium">Clic para activar postor</span>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {OFFICIAL_PADDLES.map((p) => {
                 const isSelected = selectedPaddle === p.number;
                 const isLeading = (session as any).currentWinnerPaddle === p.number;
@@ -415,40 +415,40 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     key={p.number}
                     type="button"
                     onClick={() => setSelectedPaddle(p.number)}
-                    className={`w-full text-left p-2.5 rounded-lg border transition flex items-center justify-between ${
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between ${
                       isSelected
-                        ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/50 shadow-lg'
+                        ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/50 shadow-xl'
                         : isLeading
-                        ? 'bg-emerald-950/40 border-emerald-500/60 hover:border-emerald-400'
-                        : 'bg-[#050a16] border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700'
+                        ? 'bg-emerald-950/50 border-emerald-500/70 hover:border-emerald-400'
+                        : 'bg-[#050a16] border-slate-800 hover:bg-slate-800/70 hover:border-slate-700'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center border ${
                         isSelected ? 'bg-amber-400 border-amber-300' : 'border-slate-600 bg-transparent'
                       }`}>
-                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                        {isSelected && <div className="w-2 h-2 rounded-full bg-slate-950" />}
                       </div>
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className={`font-mono font-black text-sm ${isSelected ? 'text-amber-300' : 'text-white'}`}>
+                          <span className={`font-mono font-black text-base sm:text-lg ${isSelected ? 'text-amber-300' : 'text-white'}`}>
                             {p.number}
                           </span>
                           {p.isBroker && (
-                            <span className="bg-blue-600/30 text-blue-300 border border-blue-500/40 text-[9px] px-1.5 py-0.2 rounded font-black uppercase">
+                            <span className="bg-blue-600/40 text-blue-300 border border-blue-400/50 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wide">
                               BROKER REAL
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-400 truncate">{p.name}</p>
+                        <p className="text-xs sm:text-sm text-slate-300 font-medium truncate mt-0.5">{p.name}</p>
                       </div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
-                      <span className="text-[10px] text-slate-500 font-mono block">{p.location}</span>
+                      <span className="text-xs text-slate-400 font-mono block">{p.location}</span>
                       {isLeading && (
-                        <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">
+                        <span className="text-[10px] bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-black px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-0.5">
                           ★ LÍDER
                         </span>
                       )}
@@ -460,68 +460,68 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
 
           {/* Resumen del postor seleccionado */}
-          <div className="mt-3 bg-[#050a16] p-2.5 rounded-lg border border-amber-500/30 text-xs flex items-center justify-between">
-            <span className="text-slate-400">Postor activo para la próxima oferta:</span>
-            <span className="font-mono font-black text-amber-400">{selectedPaddle}</span>
+          <div className="mt-3.5 bg-[#050a16] p-3 rounded-xl border border-amber-500/40 text-sm flex items-center justify-between shadow">
+            <span className="text-slate-300 font-medium">Postor activo para la próxima oferta:</span>
+            <span className="font-mono font-black text-amber-300 text-base">{selectedPaddle}</span>
           </div>
         </div>
 
         {/* ----------------------------------------------------------------------- */}
         {/* COLUMNA 2: IMPORTE LIBRE, INCREMENTOS Y BOTÓN DE DISPARO (4 COLSPAN) */}
         {/* ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-4 bg-[#081224] rounded-xl border border-slate-800 p-3 flex flex-col justify-between shadow-2xl">
+        <div className="lg:col-span-4 bg-[#081224] rounded-xl border border-slate-800 p-3 sm:p-4 flex flex-col justify-between shadow-2xl">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2.5">
-              <div className="flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-emerald-400" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-slate-100">
                   2. IMPORTE LIBRE Y ENVÍO DE OFERTA
                 </h2>
               </div>
-              <span className="text-[10px] text-slate-400">Tú defines el número exacto</span>
+              <span className="text-xs text-slate-400 font-medium">Tú defines el número exacto</span>
             </div>
 
             {/* PRECIO ACTUAL Y LÍDER ACTUAL */}
-            <div className="bg-[#050a16] p-3 rounded-lg border border-slate-800 text-center mb-3">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+            <div className="bg-[#050a16] p-3.5 rounded-xl border border-slate-800 text-center mb-3.5 shadow-lg">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">
                   PRECIO VIGENTE EN SALA PÚBLICA
                 </span>
-                <span className="text-[10px] text-amber-400 font-mono">
+                <span className="text-xs text-amber-400 font-mono font-bold">
                   {isEditingBasePrice ? 'Modo edición' : 'En vivo'}
                 </span>
               </div>
 
               {isEditingBasePrice ? (
-                <div className="flex items-center justify-center gap-2 my-1">
-                  <span className="text-2xl font-black font-mono text-amber-400">$</span>
+                <div className="flex items-center justify-center gap-2 my-1.5">
+                  <span className="text-3xl font-black font-mono text-amber-400">$</span>
                   <input
                     type="number"
                     value={directPriceInput}
                     onChange={(e) => setDirectPriceInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveDirectPrice()}
                     autoFocus
-                    className="w-36 bg-[#030712] border-2 border-amber-400 text-white font-mono font-black text-2xl py-1 px-2 rounded-lg text-center focus:outline-none"
+                    className="w-44 bg-[#030712] border-2 border-amber-400 text-white font-mono font-black text-3xl py-1 px-3 rounded-lg text-center focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleSaveDirectPrice}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded text-xs transition"
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded text-xs uppercase tracking-wide transition shadow"
                   >
                     Guardar
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsEditingBasePrice(false)}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-2 py-1.5 rounded text-xs transition"
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-2 rounded text-xs transition"
                   >
                     ✕
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2 my-0.5">
-                  <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400">
-                    ${currentPrice.toLocaleString()} <span className="text-sm font-bold text-slate-500">USD</span>
+                <div className="flex items-center justify-center gap-2 my-1">
+                  <div className="text-4xl sm:text-5xl font-black font-mono text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                    ${currentPrice.toLocaleString()} <span className="text-base font-bold text-slate-400">USD</span>
                   </div>
                   <button
                     type="button"
@@ -530,81 +530,81 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                       setIsEditingBasePrice(true);
                     }}
                     title="Hacer clic para editar directamente el precio base"
-                    className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-slate-400 transition"
+                    className="p-2 rounded-lg bg-slate-800/90 hover:bg-amber-500 hover:text-slate-950 text-slate-300 transition shadow"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 className="w-4 h-4" />
                   </button>
                 </div>
               )}
 
-              <div className="text-xs text-slate-300 flex items-center justify-center gap-1.5">
-                <span className="text-slate-500">Líder actual:</span>
-                <strong className="text-amber-300 font-mono">{currentLeader}</strong>
+              <div className="text-sm text-slate-300 flex items-center justify-center gap-2 mt-1">
+                <span className="text-slate-400">Líder actual:</span>
+                <strong className="text-amber-300 font-mono text-base font-black">{currentLeader}</strong>
               </div>
             </div>
 
             {/* CAMPO DE IMPORTE LIBRE */}
-            <div className="mb-3">
-              <label className="text-[11px] text-slate-300 font-bold uppercase block mb-1">
+            <div className="mb-3.5">
+              <label className="text-xs sm:text-sm text-slate-200 font-black uppercase tracking-wide block mb-1.5">
                 Escribe cualquier cantidad a ofertar:
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-emerald-400 font-bold text-lg">$</span>
+                <span className="absolute left-3.5 top-2.5 text-emerald-400 font-black text-2xl">$</span>
                 <input
                   type="number"
                   value={bidAmountInput}
                   onChange={(e) => setBidAmountInput(e.target.value)}
                   placeholder="Ej. 5250"
-                  className="w-full bg-[#050a16] border-2 border-emerald-500 focus:border-emerald-400 text-white font-mono font-black text-2xl pl-8 pr-3 py-2 rounded-lg focus:outline-none shadow-inner"
+                  className="w-full bg-[#050a16] border-2 border-emerald-500 focus:border-emerald-400 text-white font-mono font-black text-3xl sm:text-4xl pl-10 pr-4 py-2.5 rounded-xl focus:outline-none shadow-inner"
                 />
               </div>
             </div>
 
             {/* BOTONES DE INCREMENTOS RÁPIDOS COMPLEMENTARIOS */}
             <div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold block mb-2">
                 Sumar incrementos rápidos:
               </span>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => applyIncrement(50)}
-                  className="bg-[#050a16] hover:bg-slate-800 text-slate-200 font-bold py-2 rounded border border-slate-700 text-xs transition active:scale-95"
+                  className="bg-[#050a16] hover:bg-slate-800 text-slate-100 font-black py-2.5 sm:py-3 rounded-xl border border-slate-700 text-sm sm:text-base transition active:scale-95 shadow"
                 >
                   +$50
                 </button>
                 <button
                   type="button"
                   onClick={() => applyIncrement(100)}
-                  className="bg-[#050a16] hover:bg-slate-800 text-slate-200 font-bold py-2 rounded border border-slate-700 text-xs transition active:scale-95"
+                  className="bg-[#050a16] hover:bg-slate-800 text-slate-100 font-black py-2.5 sm:py-3 rounded-xl border border-slate-700 text-sm sm:text-base transition active:scale-95 shadow"
                 >
                   +$100
                 </button>
                 <button
                   type="button"
                   onClick={() => applyIncrement(250)}
-                  className="bg-[#050a16] hover:bg-slate-800 text-emerald-300 font-bold py-2 rounded border border-slate-700 text-xs transition active:scale-95"
+                  className="bg-[#050a16] hover:bg-slate-800 text-emerald-300 font-black py-2.5 sm:py-3 rounded-xl border border-slate-700 text-sm sm:text-base transition active:scale-95 shadow"
                 >
                   +$250
                 </button>
                 <button
                   type="button"
                   onClick={() => applyIncrement(500)}
-                  className="bg-[#050a16] hover:bg-slate-800 text-amber-300 font-bold py-2 rounded border border-slate-700 text-xs transition active:scale-95"
+                  className="bg-[#050a16] hover:bg-slate-800 text-amber-300 font-black py-2.5 sm:py-3 rounded-xl border border-slate-700 text-sm sm:text-base transition active:scale-95 shadow"
                 >
                   +$500
                 </button>
                 <button
                   type="button"
                   onClick={() => applyIncrement(1000)}
-                  className="bg-[#050a16] hover:bg-slate-800 text-amber-400 font-bold py-2 rounded border border-slate-700 text-xs transition active:scale-95"
+                  className="bg-[#050a16] hover:bg-slate-800 text-amber-400 font-black py-2.5 sm:py-3 rounded-xl border border-slate-700 text-sm sm:text-base transition active:scale-95 shadow"
                 >
                   +$1,000
                 </button>
                 <button
                   type="button"
                   onClick={() => applyIncrement(5000)}
-                  className="bg-[#050a16] hover:bg-slate-800 text-rose-300 font-bold py-2 rounded border border-slate-700 text-xs transition active:scale-95"
+                  className="bg-[#050a16] hover:bg-slate-800 text-rose-300 font-black py-2.5 sm:py-3 rounded-xl border border-slate-700 text-sm sm:text-base transition active:scale-95 shadow"
                 >
                   +$5,000
                 </button>
@@ -613,18 +613,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
 
           {/* BOTÓN GIGANTE [ENVIAR OFERTA] */}
-          <div className="mt-4 pt-3 border-t border-slate-800">
+          <div className="mt-4 pt-3.5 border-t border-slate-800">
             <button
               type="button"
               onClick={handleSendManualBid}
               disabled={isSubmittingBid}
-              className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-black py-4 px-4 rounded-xl shadow-2xl text-base sm:text-lg flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-emerald-800"
+              className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-black py-5 px-4 rounded-2xl shadow-2xl text-lg sm:text-xl flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-emerald-800"
             >
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-slate-950" />
+              <div className="flex items-center gap-2.5">
+                <Flame className="w-6 h-6 text-slate-950" />
                 <span>ENVIAR OFERTA A SALA EN VIVO</span>
               </div>
-              <span className="text-xs font-mono font-black text-slate-950/80 mt-0.5">
+              <span className="text-sm font-mono font-black text-slate-950/85 mt-1">
                 ${Number(bidAmountInput || 0).toLocaleString()} USD • con {selectedPaddle}
               </span>
             </button>
@@ -634,27 +634,27 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         {/* ----------------------------------------------------------------------- */}
         {/* COLUMNA 3: RITMO, LLAMADAS DEL MARTILLO Y CIERRE SOBERANO (4 COLSPAN) */}
         {/* ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-4 bg-[#081224] rounded-xl border border-slate-800 p-3 flex flex-col justify-between shadow-2xl">
+        <div className="lg:col-span-4 bg-[#081224] rounded-xl border border-slate-800 p-3 sm:p-4 flex flex-col justify-between shadow-2xl">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2.5">
-              <div className="flex items-center gap-1.5">
-                <Gavel className="w-4 h-4 text-amber-400" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <Gavel className="w-5 h-5 text-amber-400" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-slate-100">
                   3. RITMO, AVISOS Y MARTILLO
                 </h2>
               </div>
-              <span className="text-[10px] text-slate-400">Control de dirección</span>
+              <span className="text-xs text-slate-400 font-medium">Control de dirección</span>
             </div>
 
             {/* AVISO DE SALA EN ESPERA Y BOTÓN DE APERTURA RÁPIDA */}
             {session.status !== 'open' && (
-              <div className="bg-emerald-950/70 border border-emerald-500/60 p-2.5 rounded-lg mb-3 shadow flex items-center justify-between gap-2">
+              <div className="bg-emerald-950/70 border border-emerald-500/60 p-3 rounded-xl mb-3.5 shadow-lg flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <div className="text-sm font-black text-emerald-300 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span>SALA EN ESPERA DE APERTURA</span>
                   </div>
-                  <div className="text-[10px] text-slate-300">Los clientes ven el lote en preparación</div>
+                  <div className="text-xs text-slate-300 mt-0.5">Los clientes ven el lote en preparación</div>
                 </div>
                 <button
                   type="button"
@@ -663,7 +663,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     showFeedback('🟢 SALA ABIERTA EN VIVO — Subasta iniciada');
                     syncSessionData();
                   }}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-3 py-1.5 rounded text-xs uppercase tracking-wide shadow transition active:scale-95"
+                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow transition active:scale-95"
                 >
                   Abrir Sala
                 </button>
@@ -671,17 +671,17 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             )}
 
             {/* SECCIÓN A: RITMO DE LA SALA */}
-            <div className="space-y-1.5 mb-3">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
+            <div className="space-y-2 mb-3.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold block">
                 Ritmo y Conteo:
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => store.serverStartAuction(session.id)}
-                  className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow"
+                  className="bg-emerald-700 hover:bg-emerald-600 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow"
                 >
-                  <Play className="w-3.5 h-3.5" />
+                  <Play className="w-4 h-4" />
                   <span>Abrir / Iniciar</span>
                 </button>
 
@@ -689,18 +689,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   <button
                     type="button"
                     onClick={() => store.serverResumeAuction(session.id)}
-                    className="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow"
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow"
                   >
-                    <Play className="w-3.5 h-3.5" />
+                    <Play className="w-4 h-4" />
                     <span>Reanudar</span>
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => store.serverPauseAuction(session.id)}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow"
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow"
                   >
-                    <Pause className="w-3.5 h-3.5" />
+                    <Pause className="w-4 h-4" />
                     <span>Pausar</span>
                   </button>
                 )}
@@ -708,15 +708,15 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </div>
 
             {/* SECCIÓN B: LLAMADAS DEL SUBASTADOR (SECUENCIA DE CIERRE) */}
-            <div className="space-y-1.5 mb-3">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
+            <div className="space-y-2 mb-3.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold block">
                 Llamadas Oficiales del Martillo:
               </span>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => handleAuctioneerCall('going_once')}
-                  className={`py-2 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
+                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center border shadow ${
                     activeCall === 'going_once'
                       ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-300'
                       : 'bg-[#050a16] text-amber-300 border-amber-600/50 hover:bg-amber-950/40'
@@ -727,7 +727,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 <button
                   type="button"
                   onClick={() => handleAuctioneerCall('going_twice')}
-                  className={`py-2 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
+                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center border shadow ${
                     activeCall === 'going_twice'
                       ? 'bg-orange-500 text-slate-950 border-orange-400 ring-2 ring-orange-300'
                       : 'bg-[#050a16] text-orange-400 border-orange-600/50 hover:bg-orange-950/40'
@@ -738,7 +738,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 <button
                   type="button"
                   onClick={() => handleAuctioneerCall('fair_warning')}
-                  className={`py-2 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
+                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center border shadow ${
                     activeCall === 'fair_warning'
                       ? 'bg-rose-500 text-white border-rose-400 ring-2 ring-rose-300'
                       : 'bg-[#050a16] text-rose-400 border-rose-600/50 hover:bg-rose-950/40'
@@ -750,21 +750,21 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </div>
 
             {/* SECCIÓN C: MARTILLAZO DEFINITIVO SOBERANO */}
-            <div className="space-y-1.5 mb-3">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
+            <div className="space-y-2 mb-3.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold block">
                 Resolución del Lote (Tú decides el desenlace):
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => handleAdjudicate('sold')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-3 rounded-xl text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-emerald-800"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 px-3 rounded-xl text-sm flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-emerald-800"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <Gavel className="w-4 h-4" />
+                  <div className="flex items-center gap-2">
+                    <Gavel className="w-5 h-5" />
                     <span>SOLD / MARTILLO</span>
                   </div>
-                  <span className="text-[9.5px] font-normal opacity-90 truncate max-w-[140px]">
+                  <span className="text-xs font-normal opacity-90 truncate max-w-[160px]">
                     Vender a: {currentLeader}
                   </span>
                 </button>
@@ -772,13 +772,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 <button
                   type="button"
                   onClick={() => handleAdjudicate('unsold')}
-                  className="bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold py-3 px-3 rounded-xl text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-rose-950"
+                  className="bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold py-4 px-3 rounded-xl text-sm flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-rose-950"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4" />
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
                     <span>UNSOLD / NO VENDIDO</span>
                   </div>
-                  <span className="text-[9.5px] font-normal opacity-80">
+                  <span className="text-xs font-normal opacity-80">
                     Retirar por reserva
                   </span>
                 </button>
@@ -786,26 +786,26 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </div>
 
             {/* SECCIÓN D: ESPECTADORES Y CINTILLO DE AVISOS EN VIVO */}
-            <div className="space-y-2 mb-3 pt-2.5 border-t border-slate-800">
+            <div className="space-y-2.5 mb-3.5 pt-3 border-t border-slate-800">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-xs text-slate-300 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-blue-400" />
                   <span>Espectadores en Sala ({viewersCount}):</span>
                 </span>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => handleUpdateViewers(viewersCount - 1)}
-                    className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold flex items-center justify-center transition"
+                    className="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-md text-sm font-black flex items-center justify-center transition shadow"
                     title="-1 espectador"
                   >
                     -
                   </button>
-                  <span className="font-mono text-xs font-bold text-blue-400 px-1">{viewersCount}</span>
+                  <span className="font-mono text-sm font-black text-blue-400 px-1">{viewersCount}</span>
                   <button
                     type="button"
                     onClick={() => handleUpdateViewers(viewersCount + 1)}
-                    className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold flex items-center justify-center transition"
+                    className="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-md text-sm font-black flex items-center justify-center transition shadow"
                     title="+1 espectador"
                   >
                     +
@@ -814,16 +814,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               </div>
 
               {/* Botones de Presets de Espectadores */}
-              <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
+              <div className="grid grid-cols-4 gap-1.5 text-xs font-mono">
                 {[8, 15, 28, 45].map((cnt) => (
                   <button
                     key={cnt}
                     type="button"
                     onClick={() => handleUpdateViewers(cnt)}
-                    className={`py-1 rounded border transition ${
+                    className={`py-1.5 rounded-lg border transition ${
                       viewersCount === cnt
-                        ? 'bg-blue-600 text-white border-blue-400 font-bold'
-                        : 'bg-[#050a16] text-slate-300 border-slate-800 hover:bg-slate-800'
+                        ? 'bg-blue-600 text-white border-blue-400 font-black shadow'
+                        : 'bg-[#050a16] text-slate-300 border-slate-800 hover:bg-slate-800 font-bold'
                     }`}
                   >
                     {cnt} en sala
@@ -833,50 +833,50 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
               {/* Cintillo de Avisos en Vivo */}
               <div className="pt-2">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1 flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-amber-400" />
+                <span className="text-xs text-slate-300 uppercase tracking-wider font-bold block mb-1.5 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-amber-400" />
                   <span>Cintillo de Avisos en Sala:</span>
                 </span>
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={announcementText}
                     onChange={(e) => setAnnouncementText(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSendAnnouncement(); }}
                     placeholder="Ej. La subasta comenzará en breve..."
-                    className="flex-1 bg-[#050a16] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono"
+                    className="flex-1 bg-[#050a16] border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500 font-mono shadow-inner"
                   />
                   <button
                     type="button"
                     disabled={isSendingAnnouncement}
                     onClick={() => handleSendAnnouncement()}
-                    className="bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-slate-950 font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow"
+                    className="bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-slate-950 font-black px-3 py-2 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 transition shadow"
                     title="Emitir aviso al cintillo de la sala pública"
                   >
-                    <Send className="w-3 h-3" />
+                    <Send className="w-3.5 h-3.5" />
                     <span>Enviar</span>
                   </button>
                 </div>
                 {/* Presets de avisos rápidos */}
-                <div className="flex flex-wrap gap-1 mt-1.5">
+                <div className="flex flex-wrap gap-1.5 mt-2">
                   <button
                     type="button"
                     onClick={() => handleSendAnnouncement('🔴 La subasta comenzará en breve • Lane A Live')}
-                    className="text-[9px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-1.5 py-0.5 rounded transition"
+                    className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-2 py-1 rounded-md transition font-medium"
                   >
                     Comenzará en breve
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSendAnnouncement('🚗 Inspección de lote abierta • Unidad verificada')}
-                    className="text-[9px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-1.5 py-0.5 rounded transition"
+                    className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-2 py-1 rounded-md transition font-medium"
                   >
                     Inspección abierta
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSendAnnouncement('⏳ Últimos llamados • Oferte ahora o el lote será adjudicado')}
-                    className="text-[9px] bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-900/40 px-1.5 py-0.5 rounded transition"
+                    className="text-xs bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-900/40 px-2 py-1 rounded-md transition font-bold"
                   >
                     Últimos llamados
                   </button>

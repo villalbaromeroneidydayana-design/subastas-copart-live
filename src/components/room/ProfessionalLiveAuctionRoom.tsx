@@ -676,26 +676,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
 
             {/* Pista e Identificación de Lote */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3 py-1 rounded text-xs">
+            <div className="hidden sm:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-extrabold text-white tracking-wide">{t('laneTitle')}</span>
+              <span className="font-black text-white tracking-wide">{t('laneTitle')}</span>
               <span className="text-slate-400">•</span>
-              <span className="text-amber-400 font-mono font-semibold">{vehicle?.location || 'Atlanta East Yard 12'}</span>
+              <span className="text-amber-300 font-mono font-bold">{vehicle?.location || 'Atlanta East Yard 12'}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-[#0c192c] border border-slate-700/80 px-2.5 py-1 rounded text-xs">
-              <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{t('lotPrefix')}</span>
-              <span className="font-mono font-black text-amber-400">
+            <div className="flex items-center gap-2 bg-[#0c192c] border border-slate-700/80 px-3 py-1.5 rounded-lg text-xs sm:text-sm">
+              <span className="text-slate-300 text-xs font-bold uppercase tracking-wider">{t('lotPrefix')}</span>
+              <span className="font-mono font-black text-amber-400 text-sm sm:text-base">
                 #{vehicle?.lot_number || '48291032'}
               </span>
             </div>
 
             {/* Conteo y Movimiento de Espectadores Conectados en Tiempo Real */}
-            <div className="hidden md:flex items-center gap-2 text-[11px] text-cyan-300 bg-cyan-950/40 border border-cyan-800/50 px-2.5 py-1 rounded font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="hidden md:flex items-center gap-2 text-xs sm:text-sm text-cyan-300 bg-cyan-950/50 border border-cyan-800/60 px-3 py-1.5 rounded-lg font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>{viewersCount} {t('viewersInLane')}</span>
               {latestSpectatorEvent && (
-                <span className="text-[10px] text-amber-300 font-mono animate-fadeIn pl-1.5 border-l border-cyan-700/60 font-normal">
+                <span className="text-xs text-amber-300 font-mono animate-fadeIn pl-2 border-l border-cyan-700/60 font-medium">
                   {latestSpectatorEvent}
                 </span>
               )}
@@ -704,17 +704,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
           <div className="flex items-center gap-2 sm:gap-3">
             {/* HORARIO REAL DE ESTADOS UNIDOS (USA / EST) */}
-            <div className="hidden sm:flex items-center gap-1.5 bg-[#07111e] border border-blue-900/60 px-2.5 py-1 rounded text-xs font-mono font-bold text-amber-300 shadow-inner">
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <div className="hidden sm:flex items-center gap-2 bg-[#07111e] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono font-black text-amber-300 shadow-inner">
+              <Clock className="w-4 h-4 text-amber-400" />
               <span>{usTime || '12:00:00 PM EST'}</span>
             </div>
             
             {/* SELECTOR BILINGÜE EN / ES */}
-            <div className="flex items-center bg-[#07111e] border border-slate-700/80 rounded-md p-0.5 text-xs font-bold shadow-inner">
+            <div className="flex items-center bg-[#07111e] border border-slate-700/80 rounded-lg p-0.5 text-xs font-bold shadow-inner">
               <button
                 type="button"
                 onClick={() => setLang('en')}
-                className={`px-2 py-0.5 rounded text-[11px] font-extrabold transition ${
+                className={`px-2.5 py-1 rounded text-xs font-black transition ${
                   lang === 'en'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
@@ -726,7 +726,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <button
                 type="button"
                 onClick={() => setLang('es')}
-                className={`px-2 py-0.5 rounded text-[11px] font-extrabold transition ${
+                className={`px-2.5 py-1 rounded text-xs font-black transition ${
                   lang === 'es'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
@@ -739,9 +739,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* Si es Broker: selector de su paleta */}
             {isBroker ? (
-              <div className="flex items-center gap-1.5 bg-[#080d18] border border-emerald-500/70 px-2.5 py-1 rounded text-xs">
-                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-300 font-bold hidden md:inline text-[11px]">{t('brokerRole')}</span>
+              <div className="flex items-center gap-2 bg-[#080d18] border border-emerald-500/70 px-3 py-1.5 rounded-lg text-xs sm:text-sm">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-300 font-bold hidden md:inline text-xs">{t('brokerRole')}</span>
                 <select
                   value={activeParticipant?.token || ''}
                   onChange={(e) => {
@@ -976,127 +976,127 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           </div>
 
           {/* FICHA TÉCNICA PROFESIONAL DE INVENTARIO */}
-          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3.5 sm:p-4 shadow-xl text-xs">
-            <div className="border-b border-slate-800 pb-3 mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3.5 sm:p-5 shadow-xl text-xs sm:text-sm">
+            <div className="border-b border-slate-800 pb-3.5 mb-3.5 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-white tracking-wide">
+                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide">
                   {vehicle?.year} {vehicle?.brand} {vehicle?.model}
                 </h1>
-                <p className="text-xs text-amber-400 font-semibold mt-0.5">{vehicle?.version || 'Equipamiento Original de Fábrica'}</p>
+                <p className="text-sm sm:text-base text-amber-400 font-bold mt-1">{vehicle?.version || 'Equipamiento Original de Fábrica'}</p>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">{t('estRetailValue')}</span>
-                <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                <span className="text-xs text-slate-400 block font-bold uppercase tracking-wider">{t('estRetailValue')}</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
                   ${(vehicle?.est_retail_value || 42000).toLocaleString()} USD
                 </span>
               </div>
             </div>
 
             {/* Cuadrícula de Especificaciones Completas */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               
               {/* Odómetro con Switch MI / KM */}
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('odometerLabel')}</span>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('odometerLabel')}</span>
                   <button
                     onClick={() => setOdometerUnit(odometerUnit === 'mi' ? 'km' : 'mi')}
-                    className="text-[9px] bg-slate-800 text-amber-400 hover:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold"
+                    className="text-[10px] bg-slate-800 text-amber-400 hover:bg-slate-700 px-1.5 py-0.5 rounded font-mono font-bold"
                     title="Toggle MI / KM"
                   >
                     {odometerUnit === 'mi' ? 'A KM' : 'A MI'}
                   </button>
                 </div>
-                <span className="font-mono font-bold text-white text-sm">
+                <span className="font-mono font-black text-white text-base sm:text-lg block mt-0.5">
                   {displayedOdometer}
                 </span>
               </div>
 
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
-                <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('primaryDamage')}</span>
-                <span className="font-bold text-amber-300 text-xs sm:text-sm">{vehicle?.primary_damage || 'Impacto Frontal'}</span>
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
+                <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('primaryDamage')}</span>
+                <span className="font-bold text-amber-300 text-sm sm:text-base block mt-0.5">{vehicle?.primary_damage || 'Impacto Frontal'}</span>
               </div>
 
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
-                <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('secondaryDamage')}</span>
-                <span className="font-medium text-slate-300 text-xs">{vehicle?.secondary_damage || 'Ninguno'}</span>
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
+                <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('secondaryDamage')}</span>
+                <span className="font-semibold text-slate-200 text-sm sm:text-base block mt-0.5">{vehicle?.secondary_damage || 'Ninguno'}</span>
               </div>
 
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
-                <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('keysLabel')}</span>
-                <span className="font-bold text-emerald-400 flex items-center gap-1">
-                  <Key className="w-3.5 h-3.5" />
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
+                <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('keysLabel')}</span>
+                <span className="font-black text-emerald-400 text-sm sm:text-base flex items-center gap-1.5 mt-0.5">
+                  <Key className="w-4 h-4" />
                   {vehicle?.has_keys ? (lang === 'en' ? 'YES (PRESENT)' : 'SÍ (PRESENTES)') : (lang === 'en' ? 'NO' : 'NO')}
                 </span>
               </div>
 
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
-                <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('engineLabel')}</span>
-                <span className="font-semibold text-slate-200">{vehicle?.engine || '5.0L V8 Coyote 32V'}</span>
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
+                <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('engineLabel')}</span>
+                <span className="font-bold text-slate-100 text-sm sm:text-base block mt-0.5">{vehicle?.engine || '5.0L V8 Coyote 32V'}</span>
               </div>
 
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
-                <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('transmissionLabel')}</span>
-                <span className="font-semibold text-slate-200">{vehicle?.transmission || 'Automática'}</span>
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
+                <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('transmissionLabel')}</span>
+                <span className="font-bold text-slate-100 text-sm sm:text-base block mt-0.5">{vehicle?.transmission || 'Automática'}</span>
               </div>
 
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80">
-                <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('drivetrainLabel')}</span>
-                <span className="font-semibold text-slate-200">{vehicle?.drivetrain || 'RWD'}</span>
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
+                <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('drivetrainLabel')}</span>
+                <span className="font-bold text-slate-100 text-sm sm:text-base block mt-0.5">{vehicle?.drivetrain || 'RWD'}</span>
               </div>
 
               {/* VIN Completo o Enmascarado con Toggle */}
-              <div className="bg-[#050912] p-2.5 rounded border border-slate-800/80 relative">
+              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 relative shadow">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 block text-[9.5px] uppercase font-bold">{t('vinLabel')}</span>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('vinLabel')}</span>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setIsVinMasked(!isVinMasked)}
                       className="text-slate-400 hover:text-amber-400 p-0.5"
                       title={isVinMasked ? t('unmaskVin') : t('maskVin')}
                     >
-                      {isVinMasked ? <EyeOff className="w-3 h-3 text-amber-400" /> : <Eye className="w-3 h-3" />}
+                      {isVinMasked ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       onClick={handleCopyVin}
                       className="text-slate-400 hover:text-amber-400 p-0.5"
                       title={t('copyVin')}
                     >
-                      {copiedVin ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      {copiedVin ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
-                <span className="font-mono font-semibold text-slate-300 truncate block mt-0.5" title={rawVin}>
+                <span className="font-mono font-bold text-slate-200 text-sm sm:text-base truncate block mt-0.5" title={rawVin}>
                   {displayedVin}
                 </span>
               </div>
             </div>
 
             {vehicle?.notes && (
-              <div className="mt-2.5 bg-[#050912] p-2.5 rounded border border-slate-800/80 text-slate-300">
-                <span className="text-slate-500 font-bold block text-[10px] uppercase mb-0.5">{t('vehicleNotes')}:</span>
-                <p className="text-[11px] leading-relaxed">{vehicle.notes}</p>
+              <div className="mt-3 bg-[#050912] p-3 rounded-lg border border-slate-800/80 text-slate-200">
+                <span className="text-slate-400 font-bold block text-xs uppercase mb-1">{t('vehicleNotes')}:</span>
+                <p className="text-xs sm:text-sm leading-relaxed">{vehicle.notes}</p>
               </div>
             )}
           </div>
 
           {/* TABLERO DE PARTICIPANTES Y PALETAS AUTORIZADAS (COPART PADDLES BOARD) */}
-          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3 sm:p-4 shadow-xl text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2.5">
+          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3.5 sm:p-5 shadow-xl text-xs sm:text-sm">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-amber-400" />
-                <h3 className="font-black text-white text-xs uppercase tracking-wider">
+                <Users className="w-5 h-5 text-amber-400" />
+                <h3 className="font-black text-white text-sm uppercase tracking-wider">
                   {lang === 'en' ? 'OFFICIAL BIDDING PADDLES (LANE A)' : 'TABLERO DE PALETAS AUTORIZADAS (LANE A)'}
                 </h3>
               </div>
-              <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs text-emerald-400 font-mono font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 7 {lang === 'en' ? 'ACTIVE PADDLES' : 'POSTORES ACTIVOS'}
               </span>
             </div>
 
             {/* Grid de las 7 paletas oficiales */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {[
                 { paddle: 'Paleta #101', name: 'Carlos Mendoza', role: 'Broker Rep.', loc: 'Miami, FL', isBuyer: true },
                 { paddle: 'Paleta #108', name: 'Marcus Vance', role: 'AutoExport Direct', loc: 'Houston, TX' },
@@ -1110,28 +1110,28 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 return (
                   <div
                     key={p.paddle}
-                    className={`p-2 rounded border transition ${
+                    className={`p-3 rounded-xl border transition ${
                       isCurrentWinner
-                        ? 'bg-emerald-950/80 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400'
+                        ? 'bg-emerald-950/90 border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.35)] ring-2 ring-emerald-400'
                         : p.isBuyer
-                        ? 'bg-[#061124] border-blue-600/60'
-                        : 'bg-[#050912] border-slate-800/80'
+                        ? 'bg-[#061124] border-blue-600/70 shadow'
+                        : 'bg-[#050912] border-slate-800 shadow-sm'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`font-mono font-black text-xs ${isCurrentWinner ? 'text-emerald-300' : p.isBuyer ? 'text-blue-300' : 'text-amber-400'}`}>
+                      <span className={`font-mono font-black text-sm sm:text-base ${isCurrentWinner ? 'text-emerald-300' : p.isBuyer ? 'text-blue-300' : 'text-amber-400'}`}>
                         {p.paddle}
                       </span>
                       {isCurrentWinner && (
-                        <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1 py-0.2 rounded uppercase">
+                        <span className="text-[10px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
                           LÍDER
                         </span>
                       )}
                     </div>
-                    <span className="text-white font-bold text-[11px] block truncate mt-0.5">{p.name}</span>
-                    <div className="flex items-center justify-between text-[9.5px] text-slate-400 mt-0.5">
+                    <span className="text-white font-bold text-xs sm:text-sm block truncate mt-1">{p.name}</span>
+                    <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
                       <span>{p.loc}</span>
-                      <span className="text-slate-500 font-mono">{p.role}</span>
+                      <span className="text-slate-500 font-mono text-[11px]">{p.role}</span>
                     </div>
                   </div>
                 );
@@ -1140,17 +1140,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           </div>
 
           {/* DATOS DE SUBASTA Y GARANTÍA COPART */}
-          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3 shadow-xl text-xs flex flex-wrap items-center justify-between gap-3 text-slate-400">
+          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3.5 shadow-xl text-xs sm:text-sm flex flex-wrap items-center justify-between gap-3 text-slate-300">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="text-[11px]">
-                <strong className="text-white">Copart Title Hub Guarantee:</strong> {lang === 'en' ? 'Verified Title & Lien Free' : 'Título Limpio Verificado Libre de Gravamen'}
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <span>
+                <strong className="text-white font-black">Copart Title Hub Guarantee:</strong> {lang === 'en' ? 'Verified Title & Lien Free' : 'Título Limpio Verificado Libre de Gravamen'}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-[11px] font-mono">
-              <span>YARD: <strong className="text-slate-200">Yard 12 (Atlanta East)</strong></span>
-              <span>GRID: <strong className="text-slate-200">Row 14 • B-08</strong></span>
-              <span>SALE TYPE: <strong className="text-amber-400">Pure Sale</strong></span>
+            <div className="flex items-center gap-3 text-xs sm:text-sm font-mono">
+              <span>YARD: <strong className="text-slate-100 font-bold">Yard 12 (Atlanta East)</strong></span>
+              <span>GRID: <strong className="text-slate-100 font-bold">Row 14 • B-08</strong></span>
+              <span>SALE TYPE: <strong className="text-amber-400 font-bold">Pure Sale</strong></span>
             </div>
           </div>
         </div>
@@ -1158,17 +1158,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         {/* COLUMNA DERECHA (5 COLUMNAS): TERMINAL DE OFERTAS EN DIRECTO */}
         <div className="lg:col-span-5 flex flex-col gap-3">
           
-          <div className={`bg-[#09101c] border-2 rounded-lg p-4 shadow-2xl transition-all duration-300 ${
+          <div className={`bg-[#09101c] border-2 rounded-lg p-4 sm:p-5 shadow-2xl transition-all duration-300 ${
             bidFlash ? 'border-emerald-400 bg-emerald-950/20' : 'border-[#1b2b44]'
           }`}>
             
             {/* Header del bloque con Estado y Contador */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
                   {lang === 'en' ? 'LIVE AUCTION STATUS' : 'ESTADO EN VIVO'}
                 </span>
-                <span className={`text-xs px-2.5 py-1 rounded inline-block border ${statusInfo.style}`}>
+                <span className={`text-xs sm:text-sm font-black px-3 py-1.5 rounded-lg inline-block border ${statusInfo.style}`}>
                   {statusInfo.label}
                 </span>
               </div>
@@ -1184,26 +1184,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
 
             {/* PRECIO ACTUAL EN GRANDE */}
-            <div className="my-3 text-center bg-[#050912] p-4 rounded-lg border border-[#1b2b44] relative overflow-hidden">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+            <div className="my-3.5 text-center bg-[#050912] p-4 sm:p-5 rounded-xl border border-[#1b2b44] relative overflow-hidden shadow-inner">
+              <span className="text-xs sm:text-sm font-black text-slate-300 uppercase tracking-widest block mb-1">
                 {lang === 'en' ? 'CURRENT BID' : 'PRECIO VIGENTE DE SUBASTA (CURRENT BID)'}
               </span>
               
-              <div className="flex items-center justify-center gap-1.5">
-                <span className="text-2xl font-black text-emerald-500">$</span>
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-3xl sm:text-4xl font-black text-emerald-500">$</span>
+                <span className="text-5xl sm:text-6xl font-black font-mono tracking-tight text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.35)]">
                   {(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()}
                 </span>
-                <span className="text-sm font-bold text-slate-400 self-end mb-2">USD</span>
+                <span className="text-base sm:text-lg font-bold text-slate-400 self-end mb-2">USD</span>
               </div>
 
               {/* Indicador de Postor Vigente */}
-              <div className="mt-2 flex items-center justify-center">
+              <div className="mt-2.5 flex items-center justify-center">
                 {(session as any).currentWinnerPaddle || session.current_bidder_name ? (
-                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold ${
                     isBrokerWinning
-                      ? 'bg-emerald-950/90 border border-emerald-400 text-emerald-300 animate-pulse'
-                      : 'bg-rose-950/90 border border-rose-600/80 text-rose-300'
+                      ? 'bg-emerald-950/90 border border-emerald-400 text-emerald-300 animate-pulse shadow'
+                      : 'bg-rose-950/90 border border-rose-600/80 text-rose-300 shadow'
                   }`}>
                     {isBrokerWinning ? (
                       <>
