@@ -397,25 +397,25 @@ function stopServerClock(sessionId: string) {
   }
 }
 
-function finalizeAuction(sessionId: string) {
+function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold') {
   stopServerClock(sessionId);
   const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(sessionId) as any;
   if (!session) return;
 
-  const isSold = session.bid_count > 0;
-  const finalStatus = isSold ? 'sold' : 'unsold';
+  const finalStatus = forcedStatus || (session.bid_count > 0 ? 'sold' : 'unsold');
   const now = new Date().toISOString();
 
-  // REGLA CRÍTICA: "Siempre gana el broker real"
+  // El ganador oficial es la última paleta que tenga la mejor oferta al momento de adjudicar
   let winnerPaddle = session.current_winner_paddle;
   let winnerName = session.current_winner_name;
   let winnerId = session.current_winner_id;
 
-  if (isSold) {
-    const brokerPart = db.prepare("SELECT * FROM auction_participants WHERE session_id = ? AND paddle_number = 'Paleta #101'").get(session.id) as any;
-    winnerPaddle = brokerPart ? brokerPart.paddle_number : 'Paleta #101';
-    winnerName = brokerPart ? brokerPart.name : `${session.buyer_name || 'Comprador Autorizado'} (Broker Rep. #101)`;
-    winnerId = brokerPart ? brokerPart.id : 'part-101';
+  if (finalStatus === 'unsold') {
+    winnerPaddle = 'N/A';
+    winnerName = 'Sin adjudicación (UNSOLD)';
+  } else if (!winnerPaddle) {
+    winnerPaddle = 'Paleta #101';
+    winnerName = session.buyer_name || 'Broker Autorizado';
   }
 
   // 1. REGISTRO Y REVOCACIÓN INMEDIATA DEL TOKEN DE SALA
@@ -1254,14 +1254,143 @@ app.post('/api/sessions/:id/resume', (req, res) => {
 
 // 7. Bajar martillo forzado (Sold) y revocar acceso
 app.post('/api/sessions/:id/sold', (req, res) => {
-  finalizeAuction(req.params.id);
+  finalizeAuction(req.params.id, 'sold');
   res.json({ success: true, message: 'Lote adjudicado (SOLD). Acceso de sala revocado oficialmente.' });
 });
 
 // 7b. Cierre oficial de sala (Closed) y revocar acceso
 app.post('/api/sessions/:id/close', (req, res) => {
-  finalizeAuction(req.params.id);
+  finalizeAuction(req.params.id, 'unsold');
   res.json({ success: true, message: 'Subasta cerrada definitivamente y acceso de cliente revocado.' });
+});
+
+// 7c. EJECUTAR OFERTA MANUAL SOBERANA DESDE LA CONSOLA DEL SUBASTADOR
+app.post('/api/sessions/:id/manual-bid', (req, res) => {
+  const { paddleNumber, amount, customName, location } = req.body;
+  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  const bidAmount = Number(amount);
+  if (!bidAmount || isNaN(bidAmount) || bidAmount <= 0) {
+    return res.status(400).json({ error: 'Importe de oferta no válido' });
+  }
+
+  const paddle = String(paddleNumber || 'Paleta #101');
+
+  // Nombres y ubicaciones oficiales de las 7 paletas
+  const officialPaddles: Record<string, { name: string; loc: string }> = {
+    'Paleta #101': { name: session.broker_name || 'Broker Autorizado (Representante)', loc: 'Miami, FL' },
+    'Paleta #108': { name: 'AutoExport Dallas LLC', loc: 'Dallas, TX' },
+    'Paleta #214': { name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA' },
+    'Paleta #305': { name: 'Global Fleet Buyers', loc: 'Atlanta, GA' },
+    'Paleta #412': { name: 'Buckeye Motor Exchange', loc: 'Columbus, OH' },
+    'Paleta #519': { name: 'Lone Star Salvage Group', loc: 'Houston, TX' },
+    'Paleta #623': { name: 'Midwest Premier Liquidation', loc: 'Chicago, IL' },
+  };
+
+  const info = officialPaddles[paddle] || { name: customName || paddle, loc: location || 'USA Online' };
+  const bidderName = customName || info.name;
+  const bidderLoc = location || info.loc;
+
+  const now = new Date().toISOString();
+  const bidId = 'bid-' + Math.random().toString(36).substring(2, 9);
+
+  // Asegurar participante en base de datos
+  const existingPart = db.prepare('SELECT id FROM auction_participants WHERE session_id = ? AND paddle_number = ?').get(session.id, paddle) as any;
+  let participantId = existingPart ? existingPart.id : 'part-' + Math.random().toString(36).substring(2, 9);
+
+  if (!existingPart) {
+    db.prepare(`
+      INSERT INTO auction_participants (id, session_id, name, paddle_number, location, token_hash, authorization_status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, 'approved', ?)
+    `).run(participantId, session.id, bidderName, paddle, bidderLoc, hashToken(paddle + session.id), now);
+  }
+
+  // Número de secuencia consecutivo
+  const maxSeq = db.prepare('SELECT MAX(sequence_number) as max_seq FROM auction_bids WHERE session_id = ?').get(session.id) as any;
+  const nextSeq = (maxSeq?.max_seq || 0) + 1;
+
+  // Insertar oferta en el historial oficial inmutable
+  db.prepare(`
+    INSERT INTO auction_bids (id, session_id, participant_id, paddle_number, bidder_name, location, amount, sequence_number, server_timestamp)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(bidId, session.id, participantId, paddle, bidderName, bidderLoc, bidAmount, nextSeq, now);
+
+  // Actualizar sesión en SQLite
+  const newStatus = ['paused', 'prepared'].includes(session.status) ? 'open' : session.status;
+  db.prepare(`
+    UPDATE auction_sessions 
+    SET current_price = ?,
+        current_winner_paddle = ?,
+        current_winner_name = ?,
+        current_winner_id = ?,
+        bid_count = bid_count + 1,
+        time_remaining_seconds = 10,
+        status = ?,
+        updated_at = ?
+    WHERE id = ?
+  `).run(bidAmount, paddle, bidderName, participantId, newStatus, now, session.id);
+
+  startServerClock(session.id);
+
+  const createdBid = {
+    id: bidId,
+    sessionId: session.id,
+    participantId,
+    paddleNumber: paddle,
+    bidderName,
+    location: bidderLoc,
+    amount: bidAmount,
+    sequenceNumber: nextSeq,
+    serverTimestamp: now,
+  };
+
+  // Difundir en tiempo real a la sala en vivo compartida
+  broadcast({
+    type: 'NEW_REAL_BID',
+    sessionId: session.id,
+    bid: createdBid,
+    currentPrice: bidAmount,
+    currentWinnerPaddle: paddle,
+    currentWinnerName: bidderName,
+    timeRemaining: 10,
+    serverTimestamp: now,
+    bidCount: session.bid_count + 1,
+  });
+
+  res.json({
+    success: true,
+    bid: createdBid,
+    session: {
+      currentPrice: bidAmount,
+      currentWinnerPaddle: paddle,
+      currentWinnerName: bidderName,
+      timeRemaining: 10,
+    }
+  });
+});
+
+// 7d. LLAMADAS OFICIALES DEL SUBASTADOR (GOING ONCE, GOING TWICE, FAIR WARNING)
+app.post('/api/sessions/:id/call', (req, res) => {
+  const { call } = req.body; // 'going_once' | 'going_twice' | 'fair_warning' | 'clear'
+  const session = db.prepare('SELECT id FROM auction_sessions WHERE id = ?').get(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  broadcast({
+    type: 'AUCTIONEER_CALL',
+    sessionId: req.params.id,
+    call: call || 'clear',
+    timestamp: new Date().toISOString(),
+  });
+
+  res.json({ success: true, call });
+});
+
+// 7e. ADJUDICACIÓN SOBERANA (SOLD / UNSOLD)
+app.post('/api/sessions/:id/adjudicate', (req, res) => {
+  const { decision } = req.body; // 'sold' | 'unsold'
+  finalizeAuction(req.params.id, decision === 'unsold' ? 'unsold' : 'sold');
+  res.json({ success: true, decision: decision || 'sold' });
 });
 
 // 8. Reiniciar lote

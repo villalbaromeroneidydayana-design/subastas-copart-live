@@ -602,6 +602,49 @@ class RealAuctionStore {
     }
   }
 
+  public async submitManualBid(sessionId: string, paddleNumber: string, amount: number): Promise<{ success: boolean; bid?: any; session?: any; error?: string }> {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/manual-bid`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paddleNumber, amount })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Error al enviar oferta manual' };
+      }
+      return { success: true, bid: data.bid, session: data.session };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Error de conexión' };
+    }
+  }
+
+  public async sendAuctioneerCall(sessionId: string, call: 'going_once' | 'going_twice' | 'fair_warning' | 'clear'): Promise<boolean> {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ call })
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  public async adjudicateAuction(sessionId: string, decision: 'sold' | 'unsold'): Promise<boolean> {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/adjudicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision })
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
   public async serverSoldAuction(sessionId: string) {
     try {
       await fetch(`${SERVER_URL}/api/sessions/${sessionId}/sold`, { method: 'POST' });

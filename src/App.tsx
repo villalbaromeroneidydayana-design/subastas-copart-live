@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { store } from './services/store';
 import { AuctionSession } from './types';
-import { AdminLayout } from './components/admin/AdminLayout';
 import { CopartLiveRoom } from './components/room/CopartLiveRoom';
 import { RoomAccessExpiredView } from './components/room/RoomAccessExpiredView';
 import { DocumentView } from './components/documents/DocumentView';
+import { AuctioneerPrivateConsole } from './components/admin/AuctioneerPrivateConsole';
 import { CopartLogo } from './components/common/CopartLogo';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export function App() {
   const [activeSession, setActiveSession] = useState<AuctionSession | null>(null);
+  const [consoleSession, setConsoleSession] = useState<AuctionSession | null>(null);
   const [isAdminMode, setIsAdminMode] = useState<boolean>(true);
   const [currentRole, setCurrentRole] = useState<'auctioneer' | 'broker' | 'buyer' | 'spectator'>('auctioneer');
   const [currentUserToken, setCurrentUserToken] = useState<string | undefined>(undefined);
@@ -18,6 +19,25 @@ export function App() {
   const [isRoomExpired, setIsRoomExpired] = useState<boolean>(false);
   const [expiredLotNumber, setExpiredLotNumber] = useState<string>('48291032');
   const [activeDocumentToken, setActiveDocumentToken] = useState<string | null>(null);
+
+  // Cargar sesión inicial para la consola privada del subastador
+  useEffect(() => {
+    const loadDefaultSession = async () => {
+      try {
+        const sessions = await store.fetchServerSessions();
+        if (sessions && sessions.length > 0) {
+          setConsoleSession(sessions[0]);
+        } else {
+          const locals = store.getSessions();
+          if (locals.length > 0) setConsoleSession(locals[0]);
+        }
+      } catch {
+        const locals = store.getSessions();
+        if (locals.length > 0) setConsoleSession(locals[0]);
+      }
+    };
+    loadDefaultSession();
+  }, []);
 
   // Router basado en hash para: #/sala/:token, #/documento/:doc_token
   useEffect(() => {
@@ -169,12 +189,12 @@ export function App() {
     );
   }
 
-  // 4. Vista de Sala Gemela Copart VB3 en Vivo (Subastador, Broker o Comprador)
+  // 4. PANTALLA 1: SALA DE SUBASTA EN VIVO (Terminal Compartida para Broker y Comprador)
   if (activeSession) {
     return (
       <CopartLiveRoom
         session={activeSession}
-        isAdmin={isAdminMode}
+        isAdmin={false} // Sala pública 100% limpia de controles administrativos
         role={currentRole}
         userToken={currentUserToken}
         initialRoomData={serverRoomData}
@@ -183,8 +203,31 @@ export function App() {
     );
   }
 
-  // 5. Panel Administrativo Principal
-  return <AdminLayout onOpenLiveRoom={handleOpenRoomAsAdmin} />;
+  // 5. PANTALLA 2: CONSOLA PRIVADA DEL SUBASTADOR (Centro de Mando Exclusivo)
+  const fallbackSession = consoleSession || store.getSessions()[0] || ({
+    id: 'ses-live-001',
+    title: 'Subasta Oficial en Vivo',
+    lot_number: '48291032',
+    brand: 'Ford',
+    model: 'Mustang GT',
+    year: 2023,
+    status: 'prepared',
+    starting_price: 5000,
+    current_price: 5000,
+    bid_increment: 250,
+    client_max_budget: 7500,
+    room_token: 'copart-live-m729k1',
+    broker_access_token: 'bdr_broker_m729k1',
+    buyer_access_token: 'bdr_buyer_m729k1',
+  } as unknown as AuctionSession);
+
+  return (
+    <AuctioneerPrivateConsole
+      session={fallbackSession}
+      onOpenLiveRoom={handleOpenRoomAsAdmin}
+      onExit={handleExitRoom}
+    />
+  );
 }
 
 export default App;

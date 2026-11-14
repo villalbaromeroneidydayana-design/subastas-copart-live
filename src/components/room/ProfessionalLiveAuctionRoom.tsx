@@ -128,6 +128,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     title: string;
   } | null>(null);
   const [copiedNextKey, setCopiedNextKey] = useState<string | null>(null);
+  const [liveAuctioneerCall, setLiveAuctioneerCall] = useState<string | null>(null);
 
   const isAuctioneer = role === 'auctioneer';
   const isBroker = role === 'broker' || role === 'auctioneer';
@@ -320,6 +321,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           } else if (msg.target === 'buyer' && role === 'buyer') {
             setIsRoomAccessExpired(false);
           }
+        } else if (msg.type === 'AUCTIONEER_CALL') {
+          setLiveAuctioneerCall(msg.call === 'clear' ? null : msg.call);
+          if (msg.call && msg.call !== 'clear') {
+            try { sounds.playBidPing(); } catch {}
+          }
+        } else if (msg.type === 'NEW_REAL_BID') {
+          setLiveAuctioneerCall(null);
+          try { sounds.playBidPing(); } catch {}
+          fetchStateFromServer();
         } else if (msg.type === 'ROOM_ACCESS_REVOKED') {
           if (!isBroker) {
             setIsRoomAccessExpired(true);
@@ -757,114 +767,22 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       </header>
 
-      {/* PANEL DE CONTROL DE ENLACES Y PRESENCIA DEL SUBASTADOR PRINCIPAL */}
+      {/* AVISO DISCRETO PARA EL DIRECTOR DE SALA (PANTALLA 1) */}
       {isAuctioneer && (
-        <div className="bg-[#081220] border-b border-[#1b3152] px-3 sm:px-6 py-2 shadow-lg">
-          <div className="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase tracking-wider flex items-center gap-1">
-                <Gavel className="w-3 h-3" />
-                {t('auctioneerRole')}
-              </span>
-              <span className="text-slate-300 font-bold text-xs hidden sm:inline">
-                {t('auctioneerSubtitle')}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {/* LINK BROKER */}
-              <div className="flex items-center gap-2 bg-[#050912] border border-blue-900/80 px-2.5 py-1 rounded-lg">
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${brokerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                  <span className="font-bold text-blue-300 text-[11px]">{t('brokerLinkHeader')}</span>
-                  <span className={`text-[10px] font-semibold font-mono ${brokerOnline ? 'text-emerald-400' : 'text-slate-400'}`}>
-                    {brokerOnline ? `🟢 ${t('online')}` : `⚪ ${t('offline')}`}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => {
-                    const link = brokerLink || `${window.location.origin}${window.location.pathname}#/sala/${session.room_token}?broker=bdr_broker_m729k1`;
-                    navigator.clipboard.writeText(link);
-                    setCopiedBrokerLink(true);
-                    setTimeout(() => setCopiedBrokerLink(false), 2000);
-                  }}
-                  className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-2 py-0.5 rounded flex items-center gap-1 transition"
-                  title="Copy broker exclusive access link"
-                >
-                  {copiedBrokerLink ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedBrokerLink ? t('copied') : t('copyLink')}</span>
-                </button>
-
-                <button
-                  onClick={async () => {
-                    if (brokerRevoked) {
-                      await store.restoreParticipantAccess(session.id, 'broker');
-                      setBrokerRevoked(false);
-                    } else {
-                      if (confirm(lang === 'en' ? 'Revoke Broker access to this lane?' : '¿Revocar el acceso del Broker a esta sala?')) {
-                        await store.revokeParticipantAccess(session.id, 'broker');
-                        setBrokerRevoked(true);
-                      }
-                    }
-                  }}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded transition border ${
-                    brokerRevoked
-                      ? 'bg-emerald-950/90 text-emerald-300 border-emerald-600'
-                      : 'bg-rose-950/90 text-rose-300 border-rose-700'
-                  }`}
-                >
-                  {brokerRevoked ? t('restoreAccess') : t('revokeAccess')}
-                </button>
-              </div>
-
-              {/* LINK CLIENTE (COMPRADOR) */}
-              <div className="flex items-center gap-2 bg-[#050912] border border-amber-900/60 px-2.5 py-1 rounded-lg">
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${buyerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                  <span className="font-bold text-amber-300 text-[11px]">{t('buyerLinkHeader')}</span>
-                  <span className={`text-[10px] font-semibold font-mono ${buyerOnline ? 'text-emerald-400' : 'text-slate-400'}`}>
-                    {buyerOnline ? `🟢 ${t('online')}` : `⚪ ${t('offline')}`}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => {
-                    const link = buyerLink || `${window.location.origin}${window.location.pathname}#/sala/${session.room_token}?cliente=bdr_buyer_m729k1`;
-                    navigator.clipboard.writeText(link);
-                    setCopiedBuyerLink(true);
-                    setTimeout(() => setCopiedBuyerLink(false), 2000);
-                  }}
-                  className="text-[10px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded flex items-center gap-1 transition"
-                  title="Copy buyer spectator & authorization link"
-                >
-                  {copiedBuyerLink ? <Check className="w-3 h-3 text-slate-950" /> : <Copy className="w-3 h-3 text-slate-950" />}
-                  <span>{copiedBuyerLink ? t('copied') : t('copyLink')}</span>
-                </button>
-
-                <button
-                  onClick={async () => {
-                    if (buyerRevoked) {
-                      await store.restoreParticipantAccess(session.id, 'buyer');
-                      setBuyerRevoked(false);
-                    } else {
-                      if (confirm(lang === 'en' ? 'Revoke Buyer access to this lane?' : '¿Revocar el acceso del Cliente a esta sala?')) {
-                        await store.revokeParticipantAccess(session.id, 'buyer');
-                        setBuyerRevoked(true);
-                      }
-                    }
-                  }}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded transition border ${
-                    buyerRevoked
-                      ? 'bg-emerald-950/90 text-emerald-300 border-emerald-600'
-                      : 'bg-rose-950/90 text-rose-300 border-rose-700'
-                  }`}
-                >
-                  {buyerRevoked ? 'Reactivar' : 'Revocar'}
-                </button>
-              </div>
-            </div>
+        <div className="bg-[#09152a] border-b border-amber-500/40 px-4 py-1.5 flex items-center justify-between text-xs shadow">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-amber-300 font-bold">Modo Vista de Sala Pública</span>
+            <span className="text-slate-400 text-[11px] hidden sm:inline">— Todos los controles manuales de las 7 paletas y el martillo están en tu Consola Privada</span>
           </div>
+
+          <a
+            href="#/consola-subastador"
+            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1 rounded text-xs flex items-center gap-1.5 transition shadow"
+          >
+            <Gavel className="w-3.5 h-3.5" />
+            <span>Abrir Mi Consola Privada (Pantalla 2) ↗</span>
+          </a>
         </div>
       )}
 
@@ -1192,6 +1110,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <span className="text-xs text-slate-500">{t('noBidsYet')}</span>
                 )}
               </div>
+
+              {/* SECUENCIA DE VOZ / LLAMADAS DEL SUBASTADOR EN VIVO */}
+              {liveAuctioneerCall && (
+                <div className={`mt-2.5 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border shadow-lg animate-pulse ${
+                  liveAuctioneerCall === 'going_once'
+                    ? 'bg-amber-500 text-slate-950 border-amber-300 ring-2 ring-amber-400/50'
+                    : liveAuctioneerCall === 'going_twice'
+                    ? 'bg-orange-500 text-slate-950 border-orange-300 ring-2 ring-orange-400/50'
+                    : 'bg-rose-600 text-white border-rose-400 ring-2 ring-rose-500/50'
+                }`}>
+                  <Gavel className="w-4 h-4" />
+                  <span>
+                    {liveAuctioneerCall === 'going_once'
+                      ? (lang === 'en' ? '📢 GOING ONCE' : '📢 GOING ONCE — PRIMER AVISO')
+                      : liveAuctioneerCall === 'going_twice'
+                      ? (lang === 'en' ? '🔥 GOING TWICE — LAST CALL' : '🔥 GOING TWICE — ÚLTIMA LLAMADA')
+                      : (lang === 'en' ? '⚠️ FAIR WARNING — FINAL CALL' : '⚠️ FAIR WARNING — AVISO FINAL')}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* FASE 1: ANTES DE LA SUBASTA (SALA ABIERTA - INSPECCIÓN PREVIA) */}
@@ -1585,25 +1523,49 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             {/* TAB 2: PALETAS AUTORIZADAS EN SALA */}
             {activeTab === 'participants' && (
               <div className="flex-1 overflow-y-auto max-h-[260px] space-y-1.5 pr-1">
-                {participants.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between p-2 rounded bg-[#050912] border border-slate-800/80 text-xs"
-                  >
-                    <div>
-                      <div className="font-bold text-white flex items-center gap-1.5">
-                        <span className="text-amber-400 font-mono font-black">{p.paddleNumber}</span>
-                        <span>•</span>
-                        <span>{p.name}</span>
+                {[
+                  { paddle: 'Paleta #101', name: session.broker_name || 'Broker Autorizado (Representante)', loc: 'Miami, FL', isBroker: true },
+                  { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX' },
+                  { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA' },
+                  { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA' },
+                  { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH' },
+                  { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX' },
+                  { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL' },
+                ].map((p) => {
+                  const isLeading = (session as any).currentWinnerPaddle === p.paddle;
+                  return (
+                    <div
+                      key={p.paddle}
+                      className={`flex items-center justify-between p-2 rounded border text-xs ${
+                        isLeading 
+                          ? 'bg-emerald-950/60 border-emerald-500/80 shadow'
+                          : 'bg-[#050912] border-slate-800/80'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-bold text-white flex items-center gap-1.5">
+                          <span className={`font-mono font-black ${isLeading ? 'text-emerald-400' : 'text-amber-400'}`}>{p.paddle}</span>
+                          <span>•</span>
+                          <span className="truncate max-w-[140px]">{p.name}</span>
+                          {p.isBroker && (
+                            <span className="bg-blue-900/60 text-blue-300 text-[9px] px-1.5 py-0.2 rounded font-black">
+                              BROKER
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400">{p.loc}</span>
                       </div>
-                      <span className="text-[10px] text-slate-400">{p.location}</span>
-                    </div>
 
-                    <span className="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase bg-emerald-950 border border-emerald-700/60 text-emerald-300">
-                      AUTORIZADO
-                    </span>
-                  </div>
-                ))}
+                      <span className={`px-2 py-0.5 rounded text-[9.5px] font-bold uppercase border ${
+                        isLeading 
+                          ? 'bg-emerald-500 text-slate-950 border-emerald-300 font-black animate-pulse'
+                          : 'bg-emerald-950 border-emerald-700/60 text-emerald-300'
+                      }`}>
+                        {isLeading ? (lang === 'en' ? 'HIGH BIDDER' : 'LÍDER') : (lang === 'en' ? 'AUTHORIZED' : 'AUTORIZADO')}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -1695,157 +1657,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </button>
             </div>
           )}
-
-          <div className="p-3">
-            <div className="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-            
-            <div className="flex items-center gap-2">
-              <span className="bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded uppercase tracking-wider text-[11px] flex items-center gap-1">
-                <Gavel className="w-3.5 h-3.5" />
-                {lang === 'en' ? 'AUCTIONEER CONSOLE • OPERATOR CONTROLS' : 'CONSOLA DEL OPERADOR Y BROKER'}
-              </span>
-              <span className="text-slate-400 hidden sm:inline">
-                {lang === 'en' ? 'Pace management, simulated bidders, and hammer adjudication' : 'Control de ritmo, ofertas de competidores y adjudicación'}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              
-              {/* CONTROL DEL PRESUPUESTO DEL CLIENTE */}
-              <div className="flex items-center gap-1.5 bg-[#050912] border border-blue-800/80 px-2.5 py-1 rounded">
-                <span className="text-[10px] text-slate-400 font-bold uppercase">{lang === 'en' ? 'Buyer Cap:' : 'Tope Cliente:'}</span>
-                {isEditingBudget ? (
-                  <div className="flex items-center gap-1">
-                    <span className="text-emerald-400 font-bold">$</span>
-                    <input
-                      type="number"
-                      value={tempBudget}
-                      onChange={(e) => setTempBudget(e.target.value)}
-                      className="w-20 bg-slate-900 border border-slate-700 text-white font-mono text-xs px-1 rounded"
-                    />
-                    <button
-                      onClick={async () => {
-                        const val = Number(tempBudget) || 14000;
-                        await store.updateClientBudget(session.id, val);
-                        setClientBudget(val);
-                        setIsEditingBudget(false);
-                      }}
-                      className="text-emerald-400 hover:text-emerald-300 font-bold px-1"
-                    >
-                      ✓
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setTempBudget(String(clientBudget));
-                      setIsEditingBudget(true);
-                    }}
-                    className="font-mono font-black text-amber-400 hover:underline flex items-center gap-1"
-                    title={lang === 'en' ? 'Click to adjust buyer maximum budget' : 'Clic para cambiar el presupuesto máximo del cliente'}
-                  >
-                    <span>${(Number(clientBudget) || 7500).toLocaleString()} USD</span>
-                    <span className="text-[9px] text-slate-500 font-normal">({lang === 'en' ? 'edit' : 'editar'})</span>
-                  </button>
-                )}
-
-                <span className="text-slate-600">|</span>
-                <span className="text-[10px] text-slate-400">
-                  {lang === 'en' ? 'Margin:' : 'Margen:'} <strong className={((Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)) <= (session.bid_increment || 250) ? 'text-amber-400' : 'text-emerald-400 font-mono'}>
-                    ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()}
-                  </strong>
-                </span>
-              </div>
-
-              {/* DISPARAR COMPETENCIA SIMULADA (RESPETA EL PRESUPUESTO DEL CLIENTE) */}
-              <button
-                onClick={handleTriggerCompetitor}
-                disabled={
-                  isTriggeringCompetitor || 
-                  session.status === 'sold' ||
-                  (session.current_price + (session.bid_increment || 250) >= clientBudget)
-                }
-                className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-slate-950 font-black px-3 py-1.5 rounded flex items-center gap-1.5 shadow transition active:scale-95 border-b-2 border-amber-700"
-                title={
-                  session.current_price + (session.bid_increment || 250) >= clientBudget
-                    ? 'Budget cap reached. Competitor bids paused.'
-                    : 'Generate simulated bidder offer'
-                }
-              >
-                <FastForward className="w-3.5 h-3.5" />
-                <span>
-                  {session.current_price + (session.bid_increment || 250) >= clientBudget
-                    ? (lang === 'en' ? '🔒 Budget Cap Met' : '🔒 Tope Presupuesto')
-                    : (lang === 'en' ? `+ Competitor Bid (+${session.bid_increment || 250})` : `+ Oferta Competidor (+${session.bid_increment || 250})`)}
-                </span>
-              </button>
-
-              {session.status === 'prepared' || session.status === 'paused' ? (
-                <button
-                  onClick={() => store.serverStartAuction(session.id)}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded flex items-center gap-1 transition shadow"
-                >
-                  <Play className="w-3.5 h-3.5" />
-                  <span>{session.status === 'paused' ? (lang === 'en' ? 'Resume Sale' : 'Reanudar Subasta') : (lang === 'en' ? 'Start Sale' : 'Abrir Subasta')}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => store.serverPauseAuction(session.id)}
-                  className="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-1.5 rounded flex items-center gap-1 transition"
-                >
-                  <Pause className="w-3.5 h-3.5" />
-                  <span>{lang === 'en' ? 'Pause Sale' : 'Pausar'}</span>
-                </button>
-              )}
-
-              {/* Bajar martillo para adjudicar al cliente o postor actual */}
-              <button
-                onClick={() => store.serverSoldAuction(session.id)}
-                disabled={session.status === 'sold' || session.status === 'closed'}
-                className="bg-rose-700 hover:bg-rose-600 disabled:opacity-50 text-white font-black px-3.5 py-1.5 rounded flex items-center gap-1 transition shadow"
-                title="Hammer down and award to winning paddle"
-              >
-                <Gavel className="w-3.5 h-3.5" />
-                <span>{lang === 'en' ? 'SOLD / Hammer Down' : 'Bajar Martillo (SOLD)'}</span>
-              </button>
-
-              {/* Cerrar Sala Definitivamente y Revocar Acceso de Espectadores */}
-              <button
-                onClick={async () => {
-                  if (confirm(lang === 'en' ? 'Confirm permanently closing this lane? Viewing access will expire immediately.' : '¿Confirma cerrar la sala definitivamente? El acceso del cliente será revocado al instante y la conexión WebSocket cerrada.')) {
-                    await store.serverCloseAuction(session.id);
-                    await fetchStateFromServer();
-                  }
-                }}
-                disabled={session.status === 'sold' || session.status === 'closed'}
-                className="bg-rose-950/90 hover:bg-rose-900 border border-rose-700/80 text-rose-300 font-bold px-3 py-1.5 rounded flex items-center gap-1 transition shadow"
-                title="Close auction lane and revoke spectator access"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span>{lang === 'en' ? 'Close Lane' : 'Cerrar Sala'}</span>
-              </button>
-
-              <button
-                onClick={() => store.serverResetAuction(session.id)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-2.5 py-1.5 rounded border border-slate-700 flex items-center gap-1 transition"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>{lang === 'en' ? 'Reset Lot' : 'Reiniciar Lote'}</span>
-              </button>
-
-              {/* Cargar Siguiente Lote y Atender Nuevo Cliente en la Misma Sala */}
-              <button
-                onClick={() => setShowNextLotModal(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition shadow border border-emerald-400/40 active:scale-95"
-                title={lang === 'en' ? 'Load next lot and attend new buyer in this same lane' : 'Cargar el siguiente vehículo y asignar nuevo cliente y broker en esta misma sala'}
-              >
-                <ArrowRightCircle className="w-3.5 h-3.5 text-amber-300" />
-                <span className="font-extrabold">{lang === 'en' ? 'Next Lot / Client' : 'Siguiente Lote / Cliente'}</span>
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
       )}
 
       {/* MODAL DE FOTOGRAFÍAS FULL SCREEN */}
