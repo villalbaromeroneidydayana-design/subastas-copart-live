@@ -136,9 +136,18 @@ export function App() {
       // Re-verificar si la sala fue reabierta o reactivada
       handleHashChange();
     });
+
+    // Sondeo de recuperación automática si el cliente quedó en pantalla de aviso
+    const interval = setInterval(() => {
+      if (window.location.hash.includes('#/sala/')) {
+        handleHashChange();
+      }
+    }, 2500);
+
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       unsub();
+      clearInterval(interval);
     };
   }, []);
 

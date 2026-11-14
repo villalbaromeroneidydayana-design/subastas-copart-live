@@ -905,8 +905,8 @@ app.get('/api/room/:token', (req, res) => {
     });
   }
 
-  // EXPIRACIÓN Y REVOCACIÓN ESTRICTA EN BACKEND (Para roles que no son el Subastador)
-  if ((r.is_token_revoked || ['sold', 'closed', 'unsold'].includes(r.status)) && role !== 'auctioneer') {
+  // EXPIRACIÓN Y REVOCACIÓN ESTRICTA EN BACKEND (Sólo cuando el token fue revocado explícitamente o la sala cerrada por completo)
+  if ((Boolean(r.is_token_revoked) || r.status === 'closed') && role !== 'auctioneer') {
     return res.status(403).json({
       error: 'ROOM_ACCESS_EXPIRED',
       isExpired: true,
@@ -1398,6 +1398,38 @@ app.post('/api/sessions/:id/call', (req, res) => {
   res.json({ success: true, call });
 });
 
+// 7d.2 ENVIAR AVISO / CINTILLO EN VIVO A LA SALA PÚBLICA
+app.post('/api/sessions/:id/announcement', (req, res) => {
+  const { text } = req.body;
+  const session = db.prepare('SELECT id FROM auction_sessions WHERE id = ?').get(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  broadcast({
+    type: 'ROOM_ANNOUNCEMENT',
+    sessionId: req.params.id,
+    text: String(text || '').trim(),
+    timestamp: new Date().toISOString(),
+  });
+
+  res.json({ success: true, text });
+});
+
+// 7d.3 AJUSTAR CONTEO DE ESPECTADORES EN SALA
+app.post('/api/sessions/:id/viewers', (req, res) => {
+  const count = Number(req.body?.count);
+  if (!isNaN(count) && count >= 1) {
+    connectedClientsCount = count;
+    broadcast({
+      type: 'SPECTATOR_JOINED',
+      sessionId: req.params.id,
+      viewersCount: count,
+      timestamp: new Date().toISOString(),
+    });
+    return res.json({ success: true, count });
+  }
+  return res.status(400).json({ error: 'Conteo inválido' });
+});
+
 // 7e. ADJUDICACIÓN SOBERANA (SOLD / UNSOLD)
 app.post('/api/sessions/:id/adjudicate', (req, res) => {
   const { decision } = req.body; // 'sold' | 'unsold'
@@ -1464,7 +1496,7 @@ app.post('/api/sessions/:id/set-price', (req, res) => {
 
   db.prepare(`
     UPDATE auction_sessions
-    SET current_price = ?, starting_price = ?, updated_at = ?
+    SET current_price = ?, starting_price = ?, is_token_revoked = 0, updated_at = ?
     WHERE id = ?
   `).run(price, price, new Date().toISOString(), session.id);
 
@@ -1499,6 +1531,7 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
       reserve_price = ?,
       client_max_budget = ?,
       current_price = ?,
+      is_token_revoked = 0,
       updated_at = ?
     WHERE id = ?
   `).run(
@@ -1780,7 +1813,7 @@ app.get('/api/documents/:token', (req, res) => {
 });
 
 // 8c. GENERAR ENLACE DOCUMENTAL INDEPENDIENTE
-app.post('/api/sessions/:id/documents', (req, res) => {
+const handleCreateSessionDocument = (req: any, res: any) => {
   const { clientName, clientEmail, expiresInDays = 7 } = req.body;
   const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -1810,13 +1843,10 @@ app.post('/api/sessions/:id/documents', (req, res) => {
     expiresAt,
     documentUrl: `#/documento/${docToken}`,
   });
-});
+};
 
-// 8c.2 Alias para creación de documentos
-app.post('/api/sessions/:id/create-document', (req, res, next) => {
-  req.url = `/api/sessions/${req.params.id}/documents`;
-  app._router.handle(req, res, next);
-});
+app.post('/api/sessions/:id/documents', handleCreateSessionDocument);
+app.post('/api/sessions/:id/create-document', handleCreateSessionDocument);
 
 // 8d. LISTAR DOCUMENTOS DE UNA SESIÓN
 app.get('/api/sessions/:id/documents', (req, res) => {

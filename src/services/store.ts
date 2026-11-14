@@ -856,6 +856,32 @@ class RealAuctionStore {
     }
   }
 
+  public async sendAnnouncement(sessionId: string, text: string) {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/announcement`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  public async setViewersCount(sessionId: string, count: number) {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/viewers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count }),
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+
   public getResults(): AuctionResult[] {
     const raw = localStorage.getItem('copart_results_v1');
     if (!raw) return [];

@@ -129,6 +129,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   } | null>(null);
   const [copiedNextKey, setCopiedNextKey] = useState<string | null>(null);
   const [liveAuctioneerCall, setLiveAuctioneerCall] = useState<string | null>(null);
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
+  const [usTime, setUsTime] = useState<string>('');
 
   const isAuctioneer = role === 'auctioneer';
   const isBroker = role === 'broker' || role === 'auctioneer';
@@ -145,14 +147,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     const data = await store.fetchServerSession(initialSession.room_token || initialSession.id, sessionOpts);
 
     // CONTROL DE EXPIRACIÓN Y REVOCACIÓN DE SALA PARA CLIENTES / ESPECTADORES
+    // Sólo expira si la sala fue cerrada explícitamente o el token fue revocado por el subastador
     if (role === 'buyer' || role === 'spectator') {
-      if (data?.isExpired || data?.isRevoked || (data?.session && (data.session.isTokenRevoked || ['sold', 'closed', 'unsold'].includes(data.session.status)))) {
+      if (data?.isExpired || data?.isRevoked || (data?.session && (data.session.isTokenRevoked || data.session.status === 'closed'))) {
         setIsRoomAccessExpired(true);
         return;
+      } else {
+        setIsRoomAccessExpired(false);
       }
-    } else if (role === 'broker' && data?.isRevoked) {
+    } else if (role === 'broker' && (data?.isRevoked || data?.session?.brokerTokenRevoked)) {
       setIsRoomAccessExpired(true);
       return;
+    } else {
+      setIsRoomAccessExpired(false);
     }
 
     if (data && data.session) {
@@ -327,9 +334,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             try { sounds.playBidPing(); } catch {}
           }
         } else if (msg.type === 'NEW_REAL_BID') {
+          setIsRoomAccessExpired(false);
           setLiveAuctioneerCall(null);
           try { sounds.playBidPing(); } catch {}
           fetchStateFromServer();
+        } else if (msg.type === 'STATUS_CHANGE' || msg.type === 'AUCTION_STARTED' || msg.type === 'AUCTION_RESET' || msg.type === 'AUCTION_RESUMED') {
+          setIsRoomAccessExpired(false);
+          fetchStateFromServer();
+        } else if (msg.type === 'ROOM_ANNOUNCEMENT') {
+          if (msg.text) {
+            setLiveAnnouncement(msg.text);
+            try { sounds.playBidPing(); } catch {}
+          }
         } else if (msg.type === 'ROOM_ACCESS_REVOKED') {
           if (!isBroker) {
             setIsRoomAccessExpired(true);
@@ -345,6 +361,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       if (store.ws) store.ws.removeEventListener('message', handleWs);
     };
   }, [isBroker, role]);
+
+  // Actualización en tiempo real del horario oficial de Estados Unidos (Eastern Time / EST)
+  useEffect(() => {
+    const updateUsTime = () => {
+      const now = new Date();
+      setUsTime(now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) + ' EST');
+    };
+    updateUsTime();
+    const interval = setInterval(updateUsTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const vehicle = session.vehicle_snapshot || (session as any).vehicle;
   const allImages: VehicleImage[] = vehicle?.images || [];
@@ -676,6 +703,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* HORARIO REAL DE ESTADOS UNIDOS (USA / EST) */}
+            <div className="hidden sm:flex items-center gap-1.5 bg-[#07111e] border border-blue-900/60 px-2.5 py-1 rounded text-xs font-mono font-bold text-amber-300 shadow-inner">
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span>{usTime || '12:00:00 PM EST'}</span>
+            </div>
             
             {/* SELECTOR BILINGÜE EN / ES */}
             <div className="flex items-center bg-[#07111e] border border-slate-700/80 rounded-md p-0.5 text-xs font-bold shadow-inner">

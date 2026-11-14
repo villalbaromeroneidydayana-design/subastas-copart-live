@@ -24,6 +24,7 @@ import {
   Car,
   Settings,
   Sliders,
+  Send,
   X
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
@@ -76,6 +77,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [isEditingBasePrice, setIsEditingBasePrice] = useState<boolean>(false);
   const [directPriceInput, setDirectPriceInput] = useState<string>('5000');
+  const [viewersCount, setViewersCount] = useState<number>(14);
+  const [announcementText, setAnnouncementText] = useState<string>('');
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState<boolean>(false);
 
   // Sincronización continua de datos en tiempo real
   const syncSessionData = async () => {
@@ -93,6 +97,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         setLotMinIncrement(Number(data.session.min_increment ?? data.session.minIncrement ?? 250));
         setLotReservePrice(Number(data.session.reserve_price ?? data.session.reservePrice ?? 12000));
         setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500));
+        if (data.session.viewersCount !== undefined) {
+          setViewersCount(Number(data.session.viewersCount));
+        }
       }
       if (data && data.presence) {
         setBrokerOnline(Boolean(data.presence.brokerConnected));
@@ -177,6 +184,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     }
 
     setIsSubmittingBid(true);
+    // Si la sala no estaba abierta, aseguramos su apertura inmediata
+    if (session.status !== 'open') {
+      await store.serverStartAuction(session.id);
+    }
     const res = await store.submitManualBid(session.id, selectedPaddle, amount);
     setIsSubmittingBid(false);
 
@@ -192,6 +203,25 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     } else {
       showFeedback(res.error || 'Error al procesar la oferta', 'error');
     }
+  };
+
+  // CONTROL DE ESPECTADORES EN SALA (SIMULACIÓN Y PRESENCIA REAL)
+  const handleUpdateViewers = async (newCount: number) => {
+    const finalCount = Math.max(1, newCount);
+    setViewersCount(finalCount);
+    await store.setViewersCount(session.id, finalCount);
+    showFeedback(`👥 Espectadores en sala ajustados a ${finalCount}`);
+  };
+
+  // EMISIÓN DE AVISOS EN EL CINTILLO DE LA SALA PÚBLICA
+  const handleSendAnnouncement = async (textToSend?: string) => {
+    const text = (textToSend || announcementText).trim();
+    if (!text) return;
+    setIsSendingAnnouncement(true);
+    await store.sendAnnouncement(session.id, text);
+    setIsSendingAnnouncement(false);
+    showFeedback(`📢 Aviso proyectado en sala: "${text}"`);
+    setAnnouncementText('');
   };
 
   // 2. INCREMENTOS RÁPIDOS
@@ -616,6 +646,30 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <span className="text-[10px] text-slate-400">Control de dirección</span>
             </div>
 
+            {/* AVISO DE SALA EN ESPERA Y BOTÓN DE APERTURA RÁPIDA */}
+            {session.status !== 'open' && (
+              <div className="bg-emerald-950/70 border border-emerald-500/60 p-2.5 rounded-lg mb-3 shadow flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>SALA EN ESPERA DE APERTURA</span>
+                  </div>
+                  <div className="text-[10px] text-slate-300">Los clientes ven el lote en preparación</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await store.serverStartAuction(session.id);
+                    showFeedback('🟢 SALA ABIERTA EN VIVO — Subasta iniciada');
+                    syncSessionData();
+                  }}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-3 py-1.5 rounded text-xs uppercase tracking-wide shadow transition active:scale-95"
+                >
+                  Abrir Sala
+                </button>
+              </div>
+            )}
+
             {/* SECCIÓN A: RITMO DE LA SALA */}
             <div className="space-y-1.5 mb-3">
               <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
@@ -728,6 +782,105 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     Retirar por reserva
                   </span>
                 </button>
+              </div>
+            </div>
+
+            {/* SECCIÓN D: ESPECTADORES Y CINTILLO DE AVISOS EN VIVO */}
+            <div className="space-y-2 mb-3 pt-2.5 border-t border-slate-800">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Espectadores en Sala ({viewersCount}):</span>
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateViewers(viewersCount - 1)}
+                    className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold flex items-center justify-center transition"
+                    title="-1 espectador"
+                  >
+                    -
+                  </button>
+                  <span className="font-mono text-xs font-bold text-blue-400 px-1">{viewersCount}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateViewers(viewersCount + 1)}
+                    className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold flex items-center justify-center transition"
+                    title="+1 espectador"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Botones de Presets de Espectadores */}
+              <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
+                {[8, 15, 28, 45].map((cnt) => (
+                  <button
+                    key={cnt}
+                    type="button"
+                    onClick={() => handleUpdateViewers(cnt)}
+                    className={`py-1 rounded border transition ${
+                      viewersCount === cnt
+                        ? 'bg-blue-600 text-white border-blue-400 font-bold'
+                        : 'bg-[#050a16] text-slate-300 border-slate-800 hover:bg-slate-800'
+                    }`}
+                  >
+                    {cnt} en sala
+                  </button>
+                ))}
+              </div>
+
+              {/* Cintillo de Avisos en Vivo */}
+              <div className="pt-2">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1 flex items-center gap-1">
+                  <Flame className="w-3 h-3 text-amber-400" />
+                  <span>Cintillo de Avisos en Sala:</span>
+                </span>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={announcementText}
+                    onChange={(e) => setAnnouncementText(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSendAnnouncement(); }}
+                    placeholder="Ej. La subasta comenzará en breve..."
+                    className="flex-1 bg-[#050a16] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    disabled={isSendingAnnouncement}
+                    onClick={() => handleSendAnnouncement()}
+                    className="bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-slate-950 font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow"
+                    title="Emitir aviso al cintillo de la sala pública"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>Enviar</span>
+                  </button>
+                </div>
+                {/* Presets de avisos rápidos */}
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSendAnnouncement('🔴 La subasta comenzará en breve • Lane A Live')}
+                    className="text-[9px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-1.5 py-0.5 rounded transition"
+                  >
+                    Comenzará en breve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSendAnnouncement('🚗 Inspección de lote abierta • Unidad verificada')}
+                    className="text-[9px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-1.5 py-0.5 rounded transition"
+                  >
+                    Inspección abierta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSendAnnouncement('⏳ Últimos llamados • Oferte ahora o el lote será adjudicado')}
+                    className="text-[9px] bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-900/40 px-1.5 py-0.5 rounded transition"
+                  >
+                    Últimos llamados
+                  </button>
+                </div>
               </div>
             </div>
           </div>
