@@ -640,8 +640,13 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-3 sm:px-6 py-2 shadow-xl sticky top-0 z-40">
         <div className="max-w-[1720px] mx-auto flex items-center justify-between">
           
-          <div className="flex items-center gap-3 sm:gap-6">
-            <CopartLogo size="lg" showSubtitle={true} className="py-0.5 filter drop-shadow-md" />
+          <div className="flex items-center gap-2 sm:gap-6">
+            <div className="sm:hidden">
+              <CopartLogo size="sm" showSubtitle={false} className="py-0.5 filter drop-shadow-md" />
+            </div>
+            <div className="hidden sm:block">
+              <CopartLogo size="lg" showSubtitle={true} className="py-0.5 filter drop-shadow-md" />
+            </div>
 
             {/* Pista e Identificación de Lote */}
             <div className="hidden sm:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3 py-1 rounded text-xs">
