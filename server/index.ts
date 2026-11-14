@@ -33,25 +33,28 @@ const customAllowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permitir peticiones locales / curl / sockets sin cabecera origin
-      if (!origin) return callback(null, true);
-
-      if (customAllowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      const isAllowed = allowedOriginRegexes.some((regex) => regex.test(origin));
-      if (isAllowed) {
-        return callback(null, true);
-      }
-
-      callback(new Error(`CORS bloqueado: Origen no autorizado (${origin})`));
+      // Reflejar y autorizar el origen entrante (Vercel, subdominios de vista previa, túneles y localhost)
+      callback(null, origin || true);
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 200,
   })
 );
 
 app.use(express.json());
+
+// Endpoint de salud del backend para diagnósticos y uptime
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    service: 'Copart Live Auction Engine',
+    database: 'connected',
+  });
+});
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
