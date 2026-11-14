@@ -482,7 +482,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                             </span>
                           )}
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-300 font-medium truncate mt-0.5">{p.name}</p>
+                        <p className="text-xs sm:text-sm text-slate-300 font-medium truncate mt-0.5">
+                          {p.isBroker ? (lotBrokerName || session.broker_name || p.name) : p.name}
+                        </p>
                       </div>
                     </div>
 
