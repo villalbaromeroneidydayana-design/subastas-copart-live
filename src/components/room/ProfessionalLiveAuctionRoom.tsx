@@ -1163,7 +1163,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <div className="flex items-center justify-center gap-1.5">
                 <span className="text-2xl font-black text-emerald-500">$</span>
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
-                  {session.current_price.toLocaleString()}
+                  {(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()}
                 </span>
                 <span className="text-sm font-bold text-slate-400 self-end mb-2">USD</span>
               </div>
@@ -1397,8 +1397,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     <span className="text-[10px] text-slate-400 block uppercase">
                       {lang === 'en' ? 'Remaining Margin' : 'Margen Restante'}
                     </span>
-                    <span className={`font-mono font-bold text-sm ${clientBudget - session.current_price <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      ${Math.max(0, clientBudget - session.current_price).toLocaleString()} USD
+                    <span className={`font-mono font-bold text-sm ${((Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)) <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD
                     </span>
                   </div>
                 </div>
@@ -1427,7 +1427,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   {lang === 'en' ? 'Awarded to:' : 'Adjudicado a:'} <strong className="text-white">{(session as any).currentWinnerPaddle || ''} - {(session as any).currentWinnerName || session.current_bidder_name}</strong>
                 </p>
                 <p className="text-sm font-black text-emerald-400 font-mono mt-1">
-                  ${session.current_price.toLocaleString()} USD
+                  ${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD
                 </p>
 
                 <div className="mt-3 pt-3 border-t border-amber-500/40 flex flex-wrap items-center justify-center gap-2">
@@ -1744,15 +1744,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     className="font-mono font-black text-amber-400 hover:underline flex items-center gap-1"
                     title={lang === 'en' ? 'Click to adjust buyer maximum budget' : 'Clic para cambiar el presupuesto máximo del cliente'}
                   >
-                    <span>${clientBudget.toLocaleString()} USD</span>
+                    <span>${(Number(clientBudget) || 7500).toLocaleString()} USD</span>
                     <span className="text-[9px] text-slate-500 font-normal">({lang === 'en' ? 'edit' : 'editar'})</span>
                   </button>
                 )}
 
                 <span className="text-slate-600">|</span>
                 <span className="text-[10px] text-slate-400">
-                  {lang === 'en' ? 'Margin:' : 'Margen:'} <strong className={clientBudget - session.current_price <= (session.bid_increment || 250) ? 'text-amber-400' : 'text-emerald-400 font-mono'}>
-                    ${Math.max(0, clientBudget - session.current_price).toLocaleString()}
+                  {lang === 'en' ? 'Margin:' : 'Margen:'} <strong className={((Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)) <= (session.bid_increment || 250) ? 'text-amber-400' : 'text-emerald-400 font-mono'}>
+                    ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()}
                   </strong>
                 </span>
               </div>
@@ -2087,7 +2087,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <div>
                   <span className="text-slate-500 block">Precio Final de Adjudicación:</span>
                   <span className="font-mono font-black text-emerald-400 text-base">
-                    ${session.current_price.toLocaleString()} USD
+                    ${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD
                   </span>
                 </div>
               </div>
@@ -2162,11 +2162,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </div>
                 <div className="flex justify-between items-center text-slate-400">
                   <span>{t('modalOriginalBudget')}:</span>
-                  <span className="font-mono font-bold text-white">${clientBudget.toLocaleString()} USD</span>
+                  <span className="font-mono font-bold text-white">${(Number(clientBudget) || 7500).toLocaleString()} USD</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-400">
                   <span>{t('modalCurrentPrice')}:</span>
-                  <span className="font-mono font-bold text-emerald-400">${session.current_price.toLocaleString()} USD</span>
+                  <span className="font-mono font-bold text-emerald-400">${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD</span>
                 </div>
               </div>
 
@@ -2184,10 +2184,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     className="w-full bg-[#050912] border-2 border-amber-500/60 focus:border-amber-400 text-white font-mono font-black text-base pl-7 pr-3 py-1.5 rounded-lg focus:outline-none"
                   />
                 </div>
-                {Number(requestedAmountInput) > clientBudget && (
+                {Number(requestedAmountInput) > (Number(clientBudget) || 7500) && (
                   <div className="mt-1 flex justify-between text-[11px] font-mono">
                     <span className="text-slate-400">{t('modalDifference')}:</span>
-                    <span className="text-amber-400 font-bold">+${(Number(requestedAmountInput) - clientBudget).toLocaleString()} USD</span>
+                    <span className="text-amber-400 font-bold">+${(Number(requestedAmountInput) - (Number(clientBudget) || 7500)).toLocaleString()} USD</span>
                   </div>
                 )}
               </div>
@@ -2256,7 +2256,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <div className="text-right">
                   <span className="text-[10px] text-slate-400 block font-bold uppercase">{t('modalCurrentPrice')}</span>
                   <span className="text-sm font-black font-mono text-emerald-400">
-                    ${session.current_price.toLocaleString()} USD
+                    ${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD
                   </span>
                 </div>
               </div>

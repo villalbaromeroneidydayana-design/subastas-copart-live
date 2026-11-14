@@ -295,6 +295,20 @@ class RealAuctionStore {
           participants: [],
         };
       }
+      if (data && data.session) {
+        data.session.current_price = Number(data.session.current_price ?? data.session.currentPrice ?? 5000);
+        data.session.currentPrice = data.session.current_price;
+        data.session.starting_price = Number(data.session.starting_price ?? data.session.startingPrice ?? 5000);
+        data.session.startingPrice = data.session.starting_price;
+        data.session.client_max_budget = Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500);
+        data.session.clientMaxBudget = data.session.client_max_budget;
+        data.session.bid_increment = Number(data.session.bid_increment ?? data.session.minIncrement ?? 250);
+        data.session.minIncrement = data.session.bid_increment;
+        data.session.room_token = data.session.room_token ?? data.session.roomToken;
+        data.session.roomToken = data.session.room_token;
+        data.session.vehicle_snapshot = data.session.vehicle_snapshot ?? data.session.vehicle;
+        data.session.vehicle = data.session.vehicle_snapshot;
+      }
       return data;
     } catch {
       return null;
@@ -335,23 +349,27 @@ class RealAuctionStore {
           status: r.status,
           vehicle_snapshot: vehicle,
           client_snapshot: client,
-          starting_price: r.startingPrice,
-          bid_increment: r.minIncrement,
-          expected_final_price: r.reservePrice || r.startingPrice * 2,
-          duration_seconds: r.totalDurationSeconds || 10,
+          starting_price: Number(r.starting_price ?? r.startingPrice ?? 5000),
+          startingPrice: Number(r.starting_price ?? r.startingPrice ?? 5000),
+          bid_increment: Number(r.bid_increment ?? r.minIncrement ?? 250),
+          minIncrement: Number(r.bid_increment ?? r.minIncrement ?? 250),
+          expected_final_price: Number(r.reserve_price ?? r.reservePrice ?? (r.starting_price || 5000) * 2),
+          duration_seconds: r.total_duration_seconds || r.totalDurationSeconds || 10,
           bid_interval_seconds: 3,
           total_planned_bids: 15,
           virtual_bidders: [],
           expected_outcome: 'win',
-          current_price: r.currentPrice,
-          current_bidder_name: r.currentWinnerName,
-          is_client_winning: Boolean(r.currentWinnerPaddle?.includes('101')),
-          current_bid_count: r.bidCount,
-          time_remaining_seconds: r.timeRemainingSeconds,
+          current_price: Number(r.current_price ?? r.currentPrice ?? 5000),
+          currentPrice: Number(r.current_price ?? r.currentPrice ?? 5000),
+          current_bidder_name: r.current_winner_name || r.currentWinnerName,
+          is_client_winning: Boolean((r.current_winner_paddle || r.currentWinnerPaddle)?.includes('101')),
+          current_bid_count: r.bid_count ?? r.bidCount ?? 0,
+          time_remaining_seconds: r.time_remaining_seconds ?? r.timeRemainingSeconds ?? 10,
           is_paused: r.status === 'paused',
-          room_token: r.roomToken,
-          is_token_revoked: r.isTokenRevoked,
-          client_max_budget: r.clientMaxBudget,
+          room_token: r.room_token || r.roomToken,
+          is_token_revoked: Boolean(r.is_token_revoked ?? r.isTokenRevoked),
+          client_max_budget: Number(r.client_max_budget ?? r.clientMaxBudget ?? 7500),
+          clientMaxBudget: Number(r.client_max_budget ?? r.clientMaxBudget ?? 7500),
           broker_name: r.brokerName,
           buyer_name: r.buyerName,
           broker_access_token: r.brokerAccessToken,

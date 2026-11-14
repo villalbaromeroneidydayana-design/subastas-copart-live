@@ -71,9 +71,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const vehicle = mainSession?.vehicle_snapshot || {} as any;
-  const buyerName = mainSession?.buyer_name || mainSession?.client_snapshot?.full_name || 'Carlos Mendoza';
-  const brokerName = mainSession?.broker_name || 'Broker Autorizado';
-  const budget = mainSession?.client_max_budget || 7500;
+  const buyerName = mainSession?.buyer_name || (mainSession as any)?.buyerName || mainSession?.client_snapshot?.full_name || 'Carlos Mendoza';
+  const brokerName = mainSession?.broker_name || (mainSession as any)?.brokerName || 'Broker Autorizado';
+  const budget = Number(mainSession?.client_max_budget ?? (mainSession as any)?.clientMaxBudget ?? 7500);
 
   const auctioneerLink = mainSession 
     ? getFullUrl(mainSession.links?.auctioneerLink || `#/sala/${mainSession.room_token}?auctioneer=true`)
@@ -178,7 +178,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[10px] text-slate-400 block font-semibold uppercase">👤 Cliente Actual:</span>
                 <span className="text-white font-bold block truncate mt-0.5">{buyerName}</span>
                 <span className="text-[11px] text-emerald-400 font-mono font-bold mt-1 block">
-                  Tope: ${budget.toLocaleString()} USD
+                  Tope: ${(Number(budget) || 7500).toLocaleString()} USD
                 </span>
               </div>
 
@@ -191,7 +191,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="bg-[#070e1a] p-3 rounded-lg border border-slate-800">
                 <span className="text-[10px] text-slate-400 block font-semibold uppercase">💵 Precio Actual:</span>
                 <span className="text-lg font-black font-mono text-emerald-400 block mt-0.5">
-                  ${(mainSession.current_price || mainSession.starting_price).toLocaleString()} USD
+                  ${(Number(mainSession?.current_price ?? (mainSession as any)?.currentPrice ?? mainSession?.starting_price ?? (mainSession as any)?.startingPrice ?? 5000)).toLocaleString()} USD
                 </span>
               </div>
             </div>
@@ -358,7 +358,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     {nextLotLinks.buyerUrl}
                   </div>
                   <span className="text-[10px] text-emerald-300 block mt-0.5">
-                    * Presupuesto autorizado: ${nextLotLinks.clientMaxBudget.toLocaleString()} USD
+                    * Presupuesto autorizado: ${(Number(nextLotLinks.clientMaxBudget) || 15000).toLocaleString()} USD
                   </span>
                 </div>
                 <button
