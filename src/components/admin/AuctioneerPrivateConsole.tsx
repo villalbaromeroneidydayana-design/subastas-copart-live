@@ -75,6 +75,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [lotMinIncrement, setLotMinIncrement] = useState<number>(250);
   const [lotReservePrice, setLotReservePrice] = useState<number>(12000);
   const [lotClientBudget, setLotClientBudget] = useState<number>(7500);
+  const [lotBrokerName, setLotBrokerName] = useState<string>('Broker Autorizado (Representante)');
+  const [lotBuyerName, setLotBuyerName] = useState<string>('Carlos Mendoza (Comprador)');
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [isEditingBasePrice, setIsEditingBasePrice] = useState<boolean>(false);
@@ -99,6 +101,12 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         setLotMinIncrement(Number(data.session.min_increment ?? data.session.minIncrement ?? 250));
         setLotReservePrice(Number(data.session.reserve_price ?? data.session.reservePrice ?? 12000));
         setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500));
+        if (data.session.broker_name || data.session.brokerName) {
+          setLotBrokerName(data.session.broker_name || data.session.brokerName);
+        }
+        if (data.session.buyer_name || data.session.buyerName) {
+          setLotBuyerName(data.session.buyer_name || data.session.buyerName);
+        }
         if (data.session.viewersCount !== undefined) {
           setViewersCount(Number(data.session.viewersCount));
         }
@@ -161,6 +169,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       minIncrement: Number(lotMinIncrement),
       reservePrice: Number(lotReservePrice),
       clientMaxBudget: Number(lotClientBudget),
+      brokerName: lotBrokerName,
+      buyerName: lotBuyerName,
     });
     if (res.success) {
       showFeedback('✓ Parámetros del lote actualizados inmediatamente en sala');
@@ -1093,6 +1103,28 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   value={lotClientBudget}
                   onChange={(e) => setLotClientBudget(Number(e.target.value) || 0)}
                   className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-blue-300 font-bold"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-slate-800">
+                <label className="text-amber-300 font-bold block mb-1">Nombre Real del Broker / Representante (Paleta #101):</label>
+                <input
+                  type="text"
+                  value={lotBrokerName}
+                  onChange={(e) => setLotBrokerName(e.target.value)}
+                  placeholder="Ej. Broker Juan Pérez o AutoBroker Miami"
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-sans text-white font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-emerald-300 font-bold block mb-1">Nombre Real del Cliente / Comprador Asignado:</label>
+                <input
+                  type="text"
+                  value={lotBuyerName}
+                  onChange={(e) => setLotBuyerName(e.target.value)}
+                  placeholder="Ej. Carlos Mendoza"
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-sans text-white font-bold"
                 />
               </div>
             </div>

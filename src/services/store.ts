@@ -852,6 +852,8 @@ class RealAuctionStore {
     reservePrice?: number;
     clientMaxBudget?: number;
     currentPrice?: number;
+    brokerName?: string;
+    buyerName?: string;
   }) {
     try {
       const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/update-params`, {

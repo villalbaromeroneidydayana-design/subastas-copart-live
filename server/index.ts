@@ -1544,13 +1544,15 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice } = req.body;
+  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice, brokerName, buyerName } = req.body;
 
   const newStartingPrice = startingPrice !== undefined && !isNaN(Number(startingPrice)) ? Number(startingPrice) : session.starting_price;
   const newIncrement = minIncrement !== undefined && !isNaN(Number(minIncrement)) ? Number(minIncrement) : session.min_increment;
   const newReserve = reservePrice !== undefined && !isNaN(Number(reservePrice)) ? Number(reservePrice) : session.reserve_price;
   const newBudget = clientMaxBudget !== undefined && !isNaN(Number(clientMaxBudget)) ? Number(clientMaxBudget) : session.client_max_budget;
   const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : session.current_price;
+  const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'Broker Autorizado (Representante)';
+  const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Carlos Mendoza (Comprador)';
 
   db.prepare(`
     UPDATE auction_sessions
@@ -1560,6 +1562,8 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
       reserve_price = ?,
       client_max_budget = ?,
       current_price = ?,
+      broker_name = ?,
+      buyer_name = ?,
       is_token_revoked = 0,
       updated_at = ?
     WHERE id = ?
@@ -1569,9 +1573,17 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
     newReserve,
     newBudget,
     newCurrentPrice,
+    newBrokerName,
+    newBuyerName,
     new Date().toISOString(),
     session.id
   );
+
+  db.prepare(`
+    UPDATE auction_participants 
+    SET name = ? 
+    WHERE session_id = ? AND paddle_number = 'Paleta #101'
+  `).run(`${newBuyerName} (${newBrokerName} Rep. #101)`, session.id);
 
   broadcast({
     type: 'STATUS_CHANGE',
@@ -1580,7 +1592,9 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
     minIncrement: newIncrement,
     reservePrice: newReserve,
     clientMaxBudget: newBudget,
-    currentPrice: newCurrentPrice
+    currentPrice: newCurrentPrice,
+    brokerName: newBrokerName,
+    buyerName: newBuyerName
   });
 
   return res.json({
@@ -1590,7 +1604,9 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
       minIncrement: newIncrement,
       reservePrice: newReserve,
       clientMaxBudget: newBudget,
-      currentPrice: newCurrentPrice
+      currentPrice: newCurrentPrice,
+      brokerName: newBrokerName,
+      buyerName: newBuyerName
     }
   });
 });
