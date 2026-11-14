@@ -277,7 +277,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const buyerUrl = `${origin}${basePath}/#/sala/${session.room_token || 'copart-live-m729k1'}?cliente=${session.buyer_access_token || 'bdr_buyer_m729k1'}`;
 
   const currentPrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
-  const currentLeader = (session as any).currentWinnerPaddle || 'Esperando apertura';
+  const currentLeader = (bids && bids.length > 0 && bids[0].paddleNumber && bids[0].paddleNumber !== 'N/A')
+    ? bids[0].paddleNumber
+    : ((session as any).current_winner_paddle && (session as any).current_winner_paddle !== 'N/A'
+        ? (session as any).current_winner_paddle
+        : ((session as any).currentWinnerPaddle && (session as any).currentWinnerPaddle !== 'N/A'
+            ? (session as any).currentWinnerPaddle
+            : 'Esperando apertura'));
 
   return (
     <div className="min-h-screen bg-[#050914] text-slate-100 flex flex-col font-sans select-none">
