@@ -428,7 +428,8 @@ function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold') {
     winnerName = session.buyer_name || 'Broker Autorizado';
   }
 
-  // 1. REGISTRO Y REVOCACIÓN INMEDIATA DEL TOKEN DE SALA
+  // 1. REGISTRO OFICIAL DEL RESULTADO Y ACTUALIZACIÓN DE ESTADO
+  const isRevoked = finalStatus === 'closed' ? 1 : 0;
   db.prepare(`
     UPDATE auction_sessions 
     SET status = ?,
@@ -436,10 +437,10 @@ function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold') {
         current_winner_name = ?,
         current_winner_id = ?,
         time_remaining_seconds = 0,
-        is_token_revoked = 1,
+        is_token_revoked = ?,
         updated_at = ? 
     WHERE id = ?
-  `).run(finalStatus, winnerPaddle, winnerName, winnerId, now, sessionId);
+  `).run(finalStatus, winnerPaddle, winnerName, winnerId, isRevoked, now, sessionId);
 
   // 2. Registrar resultado en tabla inmutable
   db.prepare(`DELETE FROM auction_results WHERE session_id = ?`).run(session.id);
@@ -478,36 +479,47 @@ function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold') {
     now
   );
 
-  // 4. Notificar finalización de subasta
+  // 4. Notificar finalización de subasta a todos los clientes (Celebración SOLD y Certificado)
   broadcast({
     type: 'AUCTION_FINALIZED',
     sessionId,
     status: finalStatus,
-    winnerPaddle: session.current_winner_paddle,
-    winnerName: session.current_winner_name,
+    winnerPaddle,
+    winnerName,
     finalPrice: session.current_price,
     totalBids: session.bid_count,
     serverTimestamp: now,
     docToken,
   });
 
-  // 5. CERRAR INMEDIATAMENTE LAS CONEXIONES WEBSOCKET DE ESPECTADORES
-  wss.clients.forEach((client: any) => {
-    if (client.readyState === WebSocket.OPEN) {
-      const matchRoom = client.roomToken === session.room_token || client.roomToken === session.id;
-      if (matchRoom && !client.isBroker) {
-        client.send(JSON.stringify({
-          type: 'ROOM_ACCESS_REVOKED',
-          sessionId,
-          title: 'SUBASTA FINALIZADA',
-          message: 'Esta sala ha cerrado oficialmente y el acceso de visualización ha expirado.\n\nSi necesitas consultar la documentación de tu operación, comunícate con tu broker autorizado.'
-        }));
-        setTimeout(() => {
-          try { client.close(4003, 'SUBASTA FINALIZADA - ACCESO EXPIRADO'); } catch {}
-        }, 100);
-      }
-    }
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId,
+    status: finalStatus,
+    currentPrice: session.current_price,
+    winnerPaddle,
+    winnerName,
   });
+
+  // 5. CERRAR CONEXIONES ÚNICAMENTE SI EL SUBASTADOR CIERRA DEFINITIVAMENTE LA SALA (CLOSED)
+  if (finalStatus === 'closed') {
+    wss.clients.forEach((client: any) => {
+      if (client.readyState === WebSocket.OPEN) {
+        const matchRoom = client.roomToken === session.room_token || client.roomToken === session.id;
+        if (matchRoom && !client.isBroker) {
+          client.send(JSON.stringify({
+            type: 'ROOM_ACCESS_REVOKED',
+            sessionId,
+            title: 'SUBASTA FINALIZADA',
+            message: 'Esta sala ha cerrado oficialmente y el acceso de visualización ha expirado.\n\nSi necesitas consultar la documentación de tu operación, comunícate con tu broker autorizado.'
+          }));
+          setTimeout(() => {
+            try { client.close(4003, 'SUBASTA FINALIZADA - ACCESO EXPIRADO'); } catch {}
+          }, 100);
+        }
+      }
+    });
+  }
 }
 
 // ==========================================

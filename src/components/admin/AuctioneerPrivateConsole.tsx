@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { store } from '../../services/store';
 import { AuctionSession } from '../../types';
 import { sounds } from '../../lib/soundEffects';
+import confetti from 'canvas-confetti';
 import {
   Gavel,
   Play,
@@ -262,6 +263,15 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     if (decision === 'sold') {
       const confirmSold = window.confirm(`¿Confirmas adjudicar el lote (SOLD) a ${winner} por $${price.toLocaleString()} USD?`);
       if (!confirmSold) return;
+      try {
+        sounds.playSoldFanfare();
+        confetti({
+          particleCount: 160,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#22c55e', '#eab308', '#3b82f6', '#ec4899', '#ffffff']
+        });
+      } catch {}
     }
 
     await store.adjudicateAuction(session.id, decision);

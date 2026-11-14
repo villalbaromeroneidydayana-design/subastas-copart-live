@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AuctionSession, AuctionBid, VehicleImage, PhotoCategory } from '../../types';
 import { store, ParticipantInfo } from '../../services/store';
 import { sounds } from '../../lib/soundEffects';
@@ -131,6 +131,48 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [liveAuctioneerCall, setLiveAuctioneerCall] = useState<string | null>(null);
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
   const [usTime, setUsTime] = useState<string>('');
+  const hasCelebratedSoldRef = useRef<boolean>(false);
+
+  const triggerSoldConfettiCelebration = useCallback(() => {
+    try {
+      sounds.playSoldFanfare();
+      // Cañón central con colores vibrantes
+      confetti({
+        particleCount: 160,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#22c55e', '#eab308', '#3b82f6', '#ec4899', '#ffffff']
+      });
+
+      // Ráfagas laterales estilo estadio Copart
+      setTimeout(() => {
+        confetti({
+          particleCount: 90,
+          angle: 60,
+          spread: 75,
+          origin: { x: 0.05, y: 0.7 },
+          colors: ['#22c55e', '#eab308', '#ffffff']
+        });
+        confetti({
+          particleCount: 90,
+          angle: 120,
+          spread: 75,
+          origin: { x: 0.95, y: 0.7 },
+          colors: ['#22c55e', '#eab308', '#ffffff']
+        });
+      }, 250);
+
+      // Segunda lluvia dorada
+      setTimeout(() => {
+        confetti({
+          particleCount: 110,
+          spread: 120,
+          origin: { y: 0.4 },
+          colors: ['#fbbf24', '#f59e0b', '#d97706', '#ffffff']
+        });
+      }, 550);
+    } catch { /* ignore */ }
+  }, []);
 
   const isAuctioneer = role === 'auctioneer';
   const isBroker = role === 'broker' || role === 'auctioneer';
@@ -247,13 +289,16 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         }
       }
 
-      if (data.session.status === 'sold' && (!activeParticipant || data.session.currentWinnerPaddle === activeParticipant.paddleNumber)) {
-        try {
-          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-        } catch { /* ignore */ }
+      if (data.session.status === 'sold') {
+        if (!hasCelebratedSoldRef.current) {
+          hasCelebratedSoldRef.current = true;
+          triggerSoldConfettiCelebration();
+        }
+      } else {
+        hasCelebratedSoldRef.current = false;
       }
     }
-  }, [initialSession.id, initialSession.room_token, initialBidderToken, activeParticipant, lastBidId, isBroker, role, userToken]);
+  }, [initialSession.id, initialSession.room_token, initialBidderToken, activeParticipant, lastBidId, isBroker, role, userToken, triggerSoldConfettiCelebration]);
 
   useEffect(() => {
     fetchStateFromServer();
@@ -338,8 +383,21 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           setLiveAuctioneerCall(null);
           try { sounds.playBidPing(); } catch {}
           fetchStateFromServer();
+        } else if (msg.type === 'AUCTION_FINALIZED') {
+          setIsRoomAccessExpired(false);
+          if ((msg.status === 'sold' || !msg.status) && !hasCelebratedSoldRef.current) {
+            hasCelebratedSoldRef.current = true;
+            triggerSoldConfettiCelebration();
+          }
+          fetchStateFromServer();
         } else if (msg.type === 'STATUS_CHANGE' || msg.type === 'AUCTION_STARTED' || msg.type === 'AUCTION_RESET' || msg.type === 'AUCTION_RESUMED') {
           setIsRoomAccessExpired(false);
+          if (msg.status === 'sold' && !hasCelebratedSoldRef.current) {
+            hasCelebratedSoldRef.current = true;
+            triggerSoldConfettiCelebration();
+          } else if (msg.status !== 'sold') {
+            hasCelebratedSoldRef.current = false;
+          }
           fetchStateFromServer();
         } else if (msg.type === 'ROOM_ANNOUNCEMENT') {
           if (msg.text) {
