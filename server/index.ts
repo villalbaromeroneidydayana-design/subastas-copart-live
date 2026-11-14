@@ -837,6 +837,22 @@ app.get('/api/sessions/:id', (req, res) => {
   });
 });
 
+// 2b. Listar ofertas de una sesión
+app.get('/api/sessions/:id/bids', (req, res) => {
+  const bids = db.prepare('SELECT * FROM auction_bids WHERE session_id = ? ORDER BY sequence_number DESC').all(req.params.id) as any[];
+  res.json(bids.map((b) => ({
+    id: b.id,
+    sessionId: b.session_id,
+    participantId: b.participant_id,
+    paddleNumber: b.paddle_number,
+    bidderName: b.bidder_name,
+    location: b.location,
+    amount: b.amount,
+    sequenceNumber: b.sequence_number,
+    serverTimestamp: b.server_timestamp,
+  })));
+});
+
 // 3. Sala pública por Room Token (CON DISTINCIÓN DE ENLACE BROKER Y ENLACE CLIENTE)
 app.get('/api/room/:token', (req, res) => {
   const r = db.prepare('SELECT * FROM auction_sessions WHERE room_token = ? OR id = ?').get(req.params.token, req.params.token) as any;
@@ -1794,6 +1810,12 @@ app.post('/api/sessions/:id/documents', (req, res) => {
     expiresAt,
     documentUrl: `#/documento/${docToken}`,
   });
+});
+
+// 8c.2 Alias para creación de documentos
+app.post('/api/sessions/:id/create-document', (req, res, next) => {
+  req.url = `/api/sessions/${req.params.id}/documents`;
+  app._router.handle(req, res, next);
 });
 
 // 8d. LISTAR DOCUMENTOS DE UNA SESIÓN
