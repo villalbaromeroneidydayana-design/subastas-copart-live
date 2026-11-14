@@ -19,7 +19,8 @@ import {
   Users,
   Clock,
   Radio,
-  Sparkles
+  Sparkles,
+  Edit3
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 
@@ -198,6 +199,23 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
         {/* Estado en vivo + Indicadores de Red */}
         <div className="flex items-center gap-3">
+          {/* Indicador de conexión con Backend */}
+          <button
+            type="button"
+            onClick={() => {
+              const current = store.getServerUrl();
+              const newUrl = window.prompt('URL de conexión del Backend (Servidor/Túnel):', current);
+              if (newUrl && newUrl.trim() && newUrl.trim() !== current) {
+                store.setCustomBackendUrl(newUrl.trim());
+              }
+            }}
+            title="Clic para ver o cambiar la URL del servidor backend"
+            className="flex items-center gap-1.5 text-[10px] font-mono font-bold bg-[#060b17] hover:bg-slate-800 px-2.5 py-1 rounded border border-emerald-500/40 text-emerald-300 transition"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>BACKEND EN LÍNEA</span>
+          </button>
+
           <span className={`px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${
             session.status === 'open' || session.status === 'bidding'
               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500 animate-pulse'
@@ -340,8 +358,32 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
                 PRECIO VIGENTE EN SALA PÚBLICA
               </span>
-              <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 my-0.5">
-                ${currentPrice.toLocaleString()} <span className="text-sm font-bold text-slate-500">USD</span>
+              <div className="flex items-center justify-center gap-2 my-0.5">
+                <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400">
+                  ${currentPrice.toLocaleString()} <span className="text-sm font-bold text-slate-500">USD</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const val = window.prompt('Cambiar Precio Base / Inicial ($ USD):', String(currentPrice));
+                    if (val) {
+                      const num = parseInt(val.replace(/[^0-9]/g, ''));
+                      if (num && num > 0) {
+                        const res = await store.updateStartingPrice(session.id, num);
+                        if (res.success) {
+                          showFeedback(`✓ Precio base actualizado a $${num.toLocaleString()} USD`);
+                          await syncSessionData();
+                        } else {
+                          showFeedback(res.error || 'Error al actualizar precio', 'error');
+                        }
+                      }
+                    }
+                  }}
+                  title="Cambiar Precio Base / Inicial del Lote"
+                  className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-slate-400 transition"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
               </div>
               <div className="text-xs text-slate-300 flex items-center justify-center gap-1.5">
                 <span className="text-slate-500">Líder actual:</span>

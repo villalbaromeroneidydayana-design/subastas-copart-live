@@ -2,6 +2,8 @@ import { Client, Vehicle, AuctionSession, AuctionBid, AuctionResult, DashboardMe
 import { INITIAL_CLIENTS, INITIAL_VEHICLES, INITIAL_SESSIONS } from './seedData';
 import { sounds } from '../lib/soundEffects';
 
+const CLOUDFLARE_TUNNEL_URL = 'https://geological-overview-coins-became.trycloudflare.com';
+
 const getDynamicBackendUrls = () => {
   if (typeof window === 'undefined') {
     return { http: 'http://localhost:3001', ws: 'ws://localhost:3001' };
@@ -12,7 +14,17 @@ const getDynamicBackendUrls = () => {
   const httpProto = isHttps ? 'https:' : 'http:';
   const wsProto = isHttps ? 'wss:' : 'ws:';
   
-  // Si está configurada una variable de entorno personalizada, usarla (ideal para Vercel)
+  // 1. Si el usuario guardó manualmente una URL de backend en localStorage, usarla con máxima prioridad
+  try {
+    const savedUrl = localStorage.getItem('AUCTION_BACKEND_URL');
+    if (savedUrl && savedUrl.trim()) {
+      const cleanHttp = savedUrl.trim().replace(/\/+$/, '');
+      const cleanWs = cleanHttp.replace(/^http/i, 'ws');
+      return { http: cleanHttp, ws: cleanWs };
+    }
+  } catch {}
+
+  // 2. Si está configurada una variable de entorno personalizada, usarla (ideal para Vercel)
   let customHttp = (import.meta as any).env?.VITE_BACKEND_URL;
   let customWs = (import.meta as any).env?.VITE_WS_URL;
   if (customHttp) {
@@ -30,7 +42,15 @@ const getDynamicBackendUrls = () => {
     return { http: customHttp, ws: customWs };
   }
 
-  // Si estamos en el puerto de Vite dev server (5173), conectar al backend en 3001
+  // 3. Si estamos en cualquier dominio de Vercel (*.vercel.app), conectar automáticamente al túnel activo de Cloudflare
+  if (hostname.includes('vercel.app')) {
+    return {
+      http: CLOUDFLARE_TUNNEL_URL,
+      ws: CLOUDFLARE_TUNNEL_URL.replace(/^http/i, 'ws'),
+    };
+  }
+
+  // 4. Si estamos en el puerto de Vite dev server (5173), conectar al backend en 3001
   if (port === '5173') {
     return {
       http: `${httpProto}//${hostname}:3001`,
@@ -38,7 +58,7 @@ const getDynamicBackendUrls = () => {
     };
   }
 
-  // En producción, túneles HTTPS o cuando Express sirve la app: usar el mismo host y puerto
+  // 5. En producción, túneles HTTPS o cuando Express sirve la app: usar el mismo host y puerto
   const host = window.location.host;
   return {
     http: `${httpProto}//${host}`,
@@ -804,6 +824,19 @@ class RealAuctionStore {
     }
   }
 
+  public async updateStartingPrice(sessionId: string, price: number) {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/set-price`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price }),
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+
   public getResults(): AuctionResult[] {
     const raw = localStorage.getItem('copart_results_v1');
     if (!raw) return [];
@@ -822,6 +855,21 @@ class RealAuctionStore {
       activeAuctions: sessions.filter((s) => ['open', 'bidding', 'last_call'].includes(s.status)).length,
       finishedAuctions: sessions.filter((s) => ['sold', 'unsold', 'closed'].includes(s.status)).length,
     };
+  }
+
+  public getServerUrl(): string {
+    return SERVER_URL;
+  }
+
+  public isOnline(): boolean {
+    return this.isServerOnline;
+  }
+
+  public setCustomBackendUrl(url: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('AUCTION_BACKEND_URL', url.trim());
+      window.location.reload();
+    }
   }
 }
 

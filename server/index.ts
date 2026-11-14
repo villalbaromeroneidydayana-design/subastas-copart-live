@@ -1441,6 +1441,31 @@ app.post('/api/sessions/:id/reset', (req, res) => {
   res.json({ success: true });
 });
 
+// 8a.2 AJUSTAR PRECIO BASE / DE ARRANQUE DIRECTAMENTE
+app.post('/api/sessions/:id/set-price', (req, res) => {
+  const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+  const price = Number(req.body?.price);
+  if (!price || isNaN(price) || price <= 0) {
+    return res.status(400).json({ error: 'Precio inválido' });
+  }
+
+  db.prepare(`
+    UPDATE auction_sessions
+    SET current_price = ?, starting_price = ?, updated_at = ?
+    WHERE id = ?
+  `).run(price, price, new Date().toISOString(), session.id);
+
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    currentPrice: price,
+    startingPrice: price
+  });
+
+  return res.json({ success: true, price });
+});
+
 // 8b. CARGAR SIGUIENTE LOTE Y NUEVO CLIENTE EN LA MISMA SALA
 app.post('/api/sessions/:id/next-lot', (req, res) => {
   const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
