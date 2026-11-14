@@ -1079,6 +1079,80 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </div>
             )}
           </div>
+
+          {/* TABLERO DE PARTICIPANTES Y PALETAS AUTORIZADAS (COPART PADDLES BOARD) */}
+          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3 sm:p-4 shadow-xl text-xs">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2.5">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-amber-400" />
+                <h3 className="font-black text-white text-xs uppercase tracking-wider">
+                  {lang === 'en' ? 'OFFICIAL BIDDING PADDLES (LANE A)' : 'TABLERO DE PALETAS AUTORIZADAS (LANE A)'}
+                </h3>
+              </div>
+              <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                7 {lang === 'en' ? 'ACTIVE PADDLES' : 'POSTORES ACTIVOS'}
+              </span>
+            </div>
+
+            {/* Grid de las 7 paletas oficiales */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { paddle: 'Paleta #101', name: 'Carlos Mendoza', role: 'Broker Rep.', loc: 'Miami, FL', isBuyer: true },
+                { paddle: 'Paleta #108', name: 'Marcus Vance', role: 'AutoExport Direct', loc: 'Houston, TX' },
+                { paddle: 'Paleta #214', name: 'Elena Rostova', role: 'Premier Motors', loc: 'Los Angeles, CA' },
+                { paddle: 'Paleta #305', name: 'David Sterling', role: 'Sterling Fleet', loc: 'Dallas, TX' },
+                { paddle: 'Paleta #412', name: 'Sanjay Patel', role: 'Apex Auto Group', loc: 'Chicago, IL' },
+                { paddle: 'Paleta #550', name: 'Roberto Silva', role: 'Global Logistics', loc: 'Atlanta, GA' },
+                { paddle: 'Paleta #721', name: 'Jean-Luc Dubois', role: 'Atlantic Wholesale', loc: 'Phoenix, AZ' },
+              ].map((p) => {
+                const isCurrentWinner = ((session as any).currentWinnerPaddle || (session as any).current_winner_paddle) === p.paddle;
+                return (
+                  <div
+                    key={p.paddle}
+                    className={`p-2 rounded border transition ${
+                      isCurrentWinner
+                        ? 'bg-emerald-950/80 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400'
+                        : p.isBuyer
+                        ? 'bg-[#061124] border-blue-600/60'
+                        : 'bg-[#050912] border-slate-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`font-mono font-black text-xs ${isCurrentWinner ? 'text-emerald-300' : p.isBuyer ? 'text-blue-300' : 'text-amber-400'}`}>
+                        {p.paddle}
+                      </span>
+                      {isCurrentWinner && (
+                        <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1 py-0.2 rounded uppercase">
+                          LÍDER
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-white font-bold text-[11px] block truncate mt-0.5">{p.name}</span>
+                    <div className="flex items-center justify-between text-[9.5px] text-slate-400 mt-0.5">
+                      <span>{p.loc}</span>
+                      <span className="text-slate-500 font-mono">{p.role}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* DATOS DE SUBASTA Y GARANTÍA COPART */}
+          <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3 shadow-xl text-xs flex flex-wrap items-center justify-between gap-3 text-slate-400">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="text-[11px]">
+                <strong className="text-white">Copart Title Hub Guarantee:</strong> {lang === 'en' ? 'Verified Title & Lien Free' : 'Título Limpio Verificado Libre de Gravamen'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] font-mono">
+              <span>YARD: <strong className="text-slate-200">Yard 12 (Atlanta East)</strong></span>
+              <span>GRID: <strong className="text-slate-200">Row 14 • B-08</strong></span>
+              <span>SALE TYPE: <strong className="text-amber-400">Pure Sale</strong></span>
+            </div>
+          </div>
         </div>
 
         {/* COLUMNA DERECHA (5 COLUMNAS): TERMINAL DE OFERTAS EN DIRECTO */}

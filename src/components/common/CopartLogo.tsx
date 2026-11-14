@@ -46,13 +46,13 @@ export const CopartLogo: React.FC<CopartLogoProps> = ({
         </defs>
 
         {/* The iconic Red Dot at the top center of Copart oval */}
-        <circle cx="115" cy="7" r="4.5" fill="#e01a22" className="animate-pulse" />
+        <circle cx="115" cy="7" r="4.5" fill="#e01a22" />
 
         {/* Outer metallic border ellipse */}
         <ellipse cx="115" cy="36" rx="72" ry="24" fill="url(#copartRing)" />
         
         {/* Inner black ellipse */}
-        <ellipse cx="115" cy="36" rx="67" ry="20" fill="#0c1118" />
+        <ellipse cx="115" cy="36" rx="67" ry="20" fill="#080e18" />
 
         {/* Lower blue swoosh inside the ellipse */}
         <path
@@ -62,16 +62,15 @@ export const CopartLogo: React.FC<CopartLogoProps> = ({
 
         {/* "Copart" text in bold italic white font */}
         <text
-          x="112"
-          y="44"
+          x="114"
+          y="45"
           fill="#ffffff"
-          fontSize="33"
+          fontSize="32"
           fontWeight="900"
           fontStyle="italic"
-          fontFamily="Impact, Arial Black, sans-serif"
+          fontFamily="'Arial Black', Impact, sans-serif"
           textAnchor="middle"
           letterSpacing="-0.5px"
-          filter="url(#copartShadow)"
         >
           Copart
         </text>
