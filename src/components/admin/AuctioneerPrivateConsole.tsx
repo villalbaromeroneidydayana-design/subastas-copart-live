@@ -60,6 +60,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [isNextLotModalOpen, setIsNextLotModalOpen] = useState<boolean>(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>('en');
+  const [isEditingBasePrice, setIsEditingBasePrice] = useState<boolean>(false);
+  const [directPriceInput, setDirectPriceInput] = useState<string>('5000');
 
   // Sincronización continua de datos en tiempo real
   const syncSessionData = async () => {
@@ -102,6 +104,23 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const showFeedback = (text: string, type: 'success' | 'error' = 'success') => {
     setFeedbackMessage({ text, type });
     setTimeout(() => setFeedbackMessage(null), 3500);
+  };
+
+  // Guardar precio editado directamente
+  const handleSaveDirectPrice = async () => {
+    const num = parseInt(directPriceInput.replace(/[^0-9]/g, ''));
+    if (!num || num <= 0) {
+      showFeedback('Introduce un precio válido', 'error');
+      return;
+    }
+    const res = await store.updateStartingPrice(session.id, num);
+    if (res.success) {
+      showFeedback(`✓ Precio base fijado a $${num.toLocaleString()} USD`);
+      setIsEditingBasePrice(false);
+      await syncSessionData();
+    } else {
+      showFeedback(res.error || 'Error al actualizar precio', 'error');
+    }
   };
 
   const copyToClipboard = (text: string, key: string) => {
@@ -355,36 +374,60 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
             {/* PRECIO ACTUAL Y LÍDER ACTUAL */}
             <div className="bg-[#050a16] p-3 rounded-lg border border-slate-800 text-center mb-3">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
-                PRECIO VIGENTE EN SALA PÚBLICA
-              </span>
-              <div className="flex items-center justify-center gap-2 my-0.5">
-                <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400">
-                  ${currentPrice.toLocaleString()} <span className="text-sm font-bold text-slate-500">USD</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const val = window.prompt('Cambiar Precio Base / Inicial ($ USD):', String(currentPrice));
-                    if (val) {
-                      const num = parseInt(val.replace(/[^0-9]/g, ''));
-                      if (num && num > 0) {
-                        const res = await store.updateStartingPrice(session.id, num);
-                        if (res.success) {
-                          showFeedback(`✓ Precio base actualizado a $${num.toLocaleString()} USD`);
-                          await syncSessionData();
-                        } else {
-                          showFeedback(res.error || 'Error al actualizar precio', 'error');
-                        }
-                      }
-                    }
-                  }}
-                  title="Cambiar Precio Base / Inicial del Lote"
-                  className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-slate-400 transition"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                </button>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                  PRECIO VIGENTE EN SALA PÚBLICA
+                </span>
+                <span className="text-[10px] text-amber-400 font-mono">
+                  {isEditingBasePrice ? 'Modo edición' : 'En vivo'}
+                </span>
               </div>
+
+              {isEditingBasePrice ? (
+                <div className="flex items-center justify-center gap-2 my-1">
+                  <span className="text-2xl font-black font-mono text-amber-400">$</span>
+                  <input
+                    type="number"
+                    value={directPriceInput}
+                    onChange={(e) => setDirectPriceInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveDirectPrice()}
+                    autoFocus
+                    className="w-36 bg-[#030712] border-2 border-amber-400 text-white font-mono font-black text-2xl py-1 px-2 rounded-lg text-center focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveDirectPrice}
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded text-xs transition"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingBasePrice(false)}
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-2 py-1.5 rounded text-xs transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2 my-0.5">
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400">
+                    ${currentPrice.toLocaleString()} <span className="text-sm font-bold text-slate-500">USD</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDirectPriceInput(String(currentPrice));
+                      setIsEditingBasePrice(true);
+                    }}
+                    title="Hacer clic para editar directamente el precio base"
+                    className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-slate-400 transition"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               <div className="text-xs text-slate-300 flex items-center justify-center gap-1.5">
                 <span className="text-slate-500">Líder actual:</span>
                 <strong className="text-amber-300 font-mono">{currentLeader}</strong>
