@@ -497,14 +497,25 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </span>
           </div>
 
-          {/* Enlace rápido para ver la Sala Pública en Vivo */}
+          {/* Enlaces rápidos para ver Sala Broker y Transmisión Cliente */}
           <a
-            href={publicRoomUrl}
+            href={brokerUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1 transition shadow"
+            title="Abrir sala oficial como Broker Autorizado (Paleta #101 con botones de puja)"
           >
-            <span>Ver Sala</span>
+            <span>Sala Broker</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+          <a
+            href={buyerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1 transition shadow"
+            title="Abrir transmisión en vivo para el Cliente (Espectador VIP emocionante, sin botones de puja)"
+          >
+            <span>En Vivo Cliente</span>
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
@@ -1166,10 +1177,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             <button
               onClick={() => copyToClipboard(brokerUrl, 'broker')}
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
-              title="Copiar enlace oficial de la Sala Copart para el Broker Autorizado"
+              title="Copiar enlace oficial de la Sala Copart para el Broker Autorizado (Paleta #101 con botones de puja)"
             >
               {copiedKey === 'broker' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Copiar Enlace de Sala (Broker #101)</span>
+              <span>Copiar Enlace Broker (Paleta #101)</span>
+            </button>
+            <button
+              onClick={() => copyToClipboard(buyerUrl, 'buyer')}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
+              title="Copiar enlace de Transmisión en Vivo para el Cliente (Espectador VIP emocionante, sin botones de puja)"
+            >
+              {copiedKey === 'buyer' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>Copiar Enlace Transmisión (Cliente VIP)</span>
             </button>
           </div>
 

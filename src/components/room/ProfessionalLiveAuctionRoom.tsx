@@ -178,6 +178,22 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
   };
 
+  const [clientReactionFeedback, setClientReactionFeedback] = useState<string | null>(null);
+
+  const handleClientReaction = (reactionText: string) => {
+    try {
+      sounds.playBidPing();
+      confetti({
+        particleCount: 30,
+        spread: 55,
+        origin: { y: 0.82 },
+        colors: ['#38bdf8', '#f59e0b', '#10b981', '#ec4899', '#ffffff']
+      });
+    } catch {}
+    setClientReactionFeedback(`¡Alentando a tu Broker con "${reactionText}"!`);
+    setTimeout(() => setClientReactionFeedback(null), 3000);
+  };
+
   const handlePlaceBuyerDirectBid = async (amount: number) => {
     if (isSubmittingBid) return;
     setIsSubmittingBid(true);
@@ -942,11 +958,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </select>
               </div>
             ) : (
-              /* Si es Cliente: Badge de Espectador */
-              <div className="flex items-center gap-1.5 bg-blue-950/60 border border-blue-600/60 px-3 py-1 rounded text-xs">
-                <Lock className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-blue-200 font-bold">{t('buyerRole')}</span>
-                <span className="text-slate-400 text-[10px] hidden sm:inline">{t('buyerRoleSubtitle')}</span>
+              /* Si es Cliente: Badge Oficial de Transmisión VIP */
+              <div className="flex items-center gap-1.5 bg-rose-950/80 border border-rose-500/70 px-3 py-1 rounded-full text-xs shadow-md">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                <span className="text-rose-200 font-black tracking-wide">🔴 EN VIVO • TRANSMISIÓN COPART VB3</span>
+                <span className="text-slate-300 text-[10px] hidden md:inline">| Postor Oficial: Broker #101</span>
               </div>
             )}
 
@@ -1923,63 +1939,86 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 )}
 
                 {['open', 'bidding', 'last_call'].includes(session.status) && (
-                  <div className="space-y-2 pt-2 border-t border-blue-900/60">
-                    {clientBidFeedback && (
-                      <div className="p-2 bg-emerald-950 border border-emerald-500 text-emerald-300 text-xs font-bold rounded-lg animate-bounce">
-                        {clientBidFeedback}
+                  <div className="space-y-3 pt-2 border-t border-blue-900/60">
+                    {/* ESTADO EN VIVO DEL DUELO DE PUJAS */}
+                    {isBrokerWinning ? (
+                      <div className="p-3.5 bg-emerald-950/90 border-2 border-emerald-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.35)] text-center animate-pulse">
+                        <div className="flex items-center justify-center gap-2 text-emerald-300 font-black text-sm uppercase tracking-wide">
+                          <Award className="w-5 h-5 text-emerald-400" />
+                          <span>{lang === 'en' ? 'YOUR BROKER HOLDS HIGH BID!' : '¡TU BROKER TIENE LA MEJOR OFERTA!'}</span>
+                        </div>
+                        <div className="text-2xl sm:text-3xl font-mono font-black text-white mt-1">
+                          ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+                        </div>
+                        <p className="text-[11px] text-emerald-200/95 mt-1.5 font-semibold">
+                          {lang === 'en'
+                            ? 'Paddle #101 is winning Lane A against national competitors. If the hammer falls now, vehicle is won!'
+                            : 'Paleta #101 liderando la subasta frente a postores de otros estados. ¡Si el martillo cae ahora, el vehículo es tuyo!'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3.5 bg-amber-950/80 border-2 border-amber-500 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.25)] text-center">
+                        <div className="flex items-center justify-center gap-2 text-amber-300 font-black text-xs uppercase tracking-wide">
+                          <Flame className="w-4 h-4 text-amber-400 animate-bounce" />
+                          <span>{lang === 'en' ? 'COMPETITOR OUTBID THE BROKER' : 'OFERTA RIVAL EN CABEZA'}</span>
+                        </div>
+                        <div className="text-xl sm:text-2xl font-mono font-black text-white mt-0.5">
+                          ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+                        </div>
+                        <p className="text-[11px] text-amber-200/90 mt-1 font-medium">
+                          {lang === 'en'
+                            ? `Current lead: ${(session as any).currentWinnerPaddle || 'Competitor'}. Your authorized broker is preparing the response...`
+                            : `Líder actual: ${(session as any).currentWinnerPaddle || 'Postor Rival'}. Tu broker autorizado está preparando la respuesta en vivo...`}
+                        </p>
                       </div>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250))}
-                      disabled={isSubmittingBid || isBrokerWinning}
-                      className={`w-full font-black py-4 px-4 rounded-xl shadow-2xl text-base sm:text-lg flex items-center justify-center gap-2.5 transition active:scale-95 border-b-4 ${
-                        isBrokerWinning
-                          ? 'bg-emerald-950/80 border-emerald-600 text-emerald-300 cursor-not-allowed'
-                          : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950 border-emerald-800 animate-pulse'
-                      }`}
-                    >
-                      <Zap className="w-5 h-5 text-slate-950" />
-                      <span>
-                        {isBrokerWinning
-                          ? (lang === 'en' ? "BROKER IS HIGH BIDDER!" : '¡BROKER ES EL MEJOR POSTOR!')
-                          : isSubmittingBid
-                          ? t('submittingBid')
-                          : (lang === 'en' ? `BID $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD (BROKER #101)` : `PUJAR $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD (BROKER #101)`)}
-                      </span>
-                    </button>
-                    <p className="text-[10px] text-slate-400 text-center font-mono">
-                      {lang === 'en'
-                        ? `Official Copart licensed broker bid representing ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`
-                        : `Puja oficial de Broker Autorizado Copart en representación de ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`}
-                    </p>
+                    {/* ALIENTO EN VIVO AL BROKER (BOTONES DE REACCIÓN INTERACTIVA) */}
+                    <div className="bg-[#081226] border border-blue-900/80 p-3 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-slate-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-amber-400" />
+                          {lang === 'en' ? 'Live Reactions for your Broker' : 'Reacciones en Vivo para tu Broker'}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono">1-Clic</span>
+                      </div>
 
-                    <div className="grid grid-cols-3 gap-1.5 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + 100)}
-                        disabled={isSubmittingBid || isBrokerWinning}
-                        className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-slate-200 py-2 rounded-lg border border-slate-700 transition"
-                      >
-                        +$100
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + 250)}
-                        disabled={isSubmittingBid || isBrokerWinning}
-                        className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-amber-300 py-2 rounded-lg border border-slate-700 transition"
-                      >
-                        +$250 USD
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + 500)}
-                        disabled={isSubmittingBid || isBrokerWinning}
-                        className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-black text-emerald-400 py-2 rounded-lg border border-slate-700 transition"
-                      >
-                        +$500 USD
-                      </button>
+                      {clientReactionFeedback && (
+                        <div className="p-1.5 bg-blue-950 border border-blue-500 text-blue-200 text-[11px] font-bold rounded text-center animate-fadeIn">
+                          {clientReactionFeedback}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleClientReaction(lang === 'en' ? '⚡ Raise the bid!' : '⚡ ¡Sube la puja!')}
+                          className="bg-[#0b1730] hover:bg-blue-900/70 border border-blue-600/60 active:scale-95 text-blue-200 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
+                        >
+                          <span>⚡ {lang === 'en' ? 'Raise Bid' : 'Sube la puja'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleClientReaction(lang === 'en' ? '🔥 Go get it!' : '🔥 ¡Vamos por él!')}
+                          className="bg-[#0b1730] hover:bg-emerald-900/70 border border-emerald-600/60 active:scale-95 text-emerald-300 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
+                        >
+                          <span>🔥 {lang === 'en' ? 'Go get it!' : '¡Por él!'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleClientReaction(lang === 'en' ? '👍 Great price!' : '👍 ¡Buen precio!')}
+                          className="bg-[#0b1730] hover:bg-amber-900/70 border border-amber-600/60 active:scale-95 text-amber-300 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
+                        >
+                          <span>👍 {lang === 'en' ? 'Great price' : 'Buen precio'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleClientReaction(lang === 'en' ? '🛑 Hold on!' : '🛑 ¡Aguanta ahí!')}
+                          className="bg-[#0b1730] hover:bg-rose-900/70 border border-rose-600/60 active:scale-95 text-rose-300 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
+                        >
+                          <span>🛑 {lang === 'en' ? 'Hold' : 'Aguanta'}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
