@@ -873,6 +873,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     const veh = session.vehicle_snapshot || (session as any).vehicle;
                     setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
                     try {
+                      if (veh?.custom_badges?.auctioneerVoiceGender) {
+                        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
+                      }
                       sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
                         year: veh?.year,
                         brand: veh?.brand,
@@ -908,6 +911,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     const veh = session.vehicle_snapshot || (session as any).vehicle;
                     setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
                     try {
+                      if (veh?.custom_badges?.auctioneerVoiceGender) {
+                        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
+                      }
                       sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
                         year: veh?.year,
                         brand: veh?.brand,

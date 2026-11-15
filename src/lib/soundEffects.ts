@@ -3,6 +3,7 @@
 class SoundManager {
   private ctx: AudioContext | null = null;
   public isMuted: boolean = false;
+  public voiceGender: 'male' | 'female' = 'male'; // Por defecto: Voz Masculina Americana Oficial de Copart
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -36,6 +37,10 @@ class SoundManager {
 
   public setMuted(muted: boolean) {
     this.isMuted = muted;
+  }
+
+  public setVoiceGender(gender: 'male' | 'female') {
+    this.voiceGender = gender;
   }
 
   // Sonido de nueva oferta (Copart Bid Chime)
@@ -132,7 +137,7 @@ class SoundManager {
   }
 
   // Locución por voz del subastador en inglés (Copart Live Auctioneer Voice)
-  public speak(phrase: string, rate: number = 1.05) {
+  public speak(phrase: string, rate: number = 1.10) {
     if (this.isMuted) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
@@ -141,16 +146,59 @@ class SoundManager {
 
       const utterance = new SpeechSynthesisUtterance(phrase);
       utterance.lang = 'en-US';
-      utterance.rate = rate; // Ritmo auténtico de subastador
-      utterance.pitch = 1.02;
+      utterance.rate = rate; // Ritmo acelerado auténtico de subastador
       utterance.volume = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
-      const usVoice = voices.find((v) => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('David') || v.name.includes('Guy') || v.name.includes('Natural') || v.name.includes('Mark') || v.name.includes('Matthew')))
-        || voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
 
-      if (usVoice) {
-        utterance.voice = usVoice;
+      // Nombres de voces masculinas comunes en Windows, Edge, Chrome y macOS
+      const maleKeywords = [
+        'david', 'guy', 'mark', 'christopher', 'eric', 'roger', 
+        'george', 'james', 'andrew', 'alex', 'matthew', 'brian', 
+        'daniel', 'ryan', 'steffan', 'fred', 'natural male'
+      ];
+
+      // Nombres de voces exclusivamente femeninas para excluir cuando se busca voz masculina
+      const femaleKeywords = [
+        'zira', 'jenny', 'aria', 'samantha', 'victoria', 'karen', 
+        'susan', 'catherine', 'hazel', 'google us english'
+      ];
+
+      let chosenVoice: SpeechSynthesisVoice | undefined;
+
+      if (this.voiceGender === 'male') {
+        // Tono grave, resonante y masculino de subastador Copart
+        utterance.pitch = 0.88;
+
+        // 1. Buscar voz masculina en inglés estadounidense por nombre clave (ej. Microsoft David, Guy, Mark)
+        chosenVoice = voices.find((v) =>
+          (v.lang === 'en-US' || v.lang.startsWith('en')) &&
+          maleKeywords.some((k) => v.name.toLowerCase().includes(k))
+        );
+
+        // 2. Si no encuentra por nombre explícito, buscar en inglés excluyendo las femeninas
+        if (!chosenVoice) {
+          chosenVoice = voices.find((v) =>
+            (v.lang === 'en-US' || v.lang.startsWith('en')) &&
+            !femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
+          );
+        }
+
+        // 3. Fallback en inglés
+        if (!chosenVoice) {
+          chosenVoice = voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
+        }
+      } else {
+        // Tono femenino
+        utterance.pitch = 1.05;
+        chosenVoice = voices.find((v) =>
+          (v.lang === 'en-US' || v.lang.startsWith('en')) &&
+          femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
+        ) || voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
+      }
+
+      if (chosenVoice) {
+        utterance.voice = chosenVoice;
       }
 
       window.speechSynthesis.speak(utterance);

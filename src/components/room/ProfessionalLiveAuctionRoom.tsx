@@ -503,6 +503,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             } else if (msg.status === 'unsold') {
               sounds.playUnsoldVoice();
             } else if (msg.type === 'AUCTION_STARTED' || msg.status === 'open') {
+              if (vehicle?.custom_badges?.auctioneerVoiceGender) {
+                sounds.setVoiceGender(vehicle.custom_badges.auctioneerVoiceGender);
+              }
               sounds.playStartVoice(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000), {
                 year: vehicle?.year,
                 brand: vehicle?.brand,

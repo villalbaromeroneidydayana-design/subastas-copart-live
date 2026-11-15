@@ -62,10 +62,12 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
     `Welcome bidders to Lane A! Coming up right now on the block, we have an incredible ${vehicle.year || 2023} ${vehicle.brand || 'Ford'} ${vehicle.model || 'Mustang GT'}! Clean run and drive, verified with only ${vehicle.odometer ? Number(vehicle.odometer).toLocaleString() : '14,000'} miles, keys in hand! Beautiful unit, folks! Who'll give me 5,000 dollars to open? Let's start the bidding!`
   );
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [voiceType, setVoiceType] = useState<'male' | 'female'>(existing.auctioneerVoiceGender || sounds.voiceGender || 'male');
 
   const handlePlayVoicePreview = () => {
     setIsPlayingPreview(true);
     try {
+      sounds.setVoiceGender(voiceType);
       sounds.speak(auctioneerWelcomeChant.trim(), 1.08);
     } catch {}
     setTimeout(() => setIsPlayingPreview(false), 4500);
@@ -117,8 +119,10 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
         titleTypeText: titleTypeText.trim() || 'CLEAN TITLE',
         extraBadges,
         auctioneerWelcomeChant: auctioneerWelcomeChant.trim(),
+        auctioneerVoiceGender: voiceType,
       };
 
+      sounds.setVoiceGender(voiceType);
       await onSave(updatedBadges);
       onClose();
     } finally {
@@ -443,7 +447,7 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
 
           {/* SECCIÓN 4: CANTO Y SALUDO DE BIENVENIDA DEL MARTILLERO (COPART AUCTION CHANT) */}
           <div className="bg-[#070e1c] p-4 rounded-xl border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-2">
               <div>
                 <span className="font-bold text-amber-400 uppercase tracking-wider text-xs flex items-center gap-2">
                   <Mic className="w-4 h-4" /> 4. Saludo y Canto de Bienvenida del Martillero (Apertura de Subasta)
@@ -452,15 +456,50 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                   El subastador canta esta bienvenida con voz profesional en inglés al abrir la subasta, elogiando las características del auto y pidiendo la primera puja.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={handlePlayVoicePreview}
-                disabled={isPlayingPreview}
-                className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-black px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow"
-              >
-                <Volume2 className="w-3.5 h-3.5" />
-                <span>{isPlayingPreview ? 'Reproduciendo...' : 'Escuchar Voz'}</span>
-              </button>
+
+              {/* Selector de Género de Voz y Preescucha */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex bg-[#030712] p-1 rounded-lg border border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceType('male');
+                      sounds.setVoiceGender('male');
+                    }}
+                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${
+                      voiceType === 'male'
+                        ? 'bg-amber-500 text-slate-950 shadow'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>👨 Masculina Americana (Copart)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceType('female');
+                      sounds.setVoiceGender('female');
+                    }}
+                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${
+                      voiceType === 'female'
+                        ? 'bg-amber-500 text-slate-950 shadow'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>👩 Femenina</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handlePlayVoicePreview}
+                  disabled={isPlayingPreview}
+                  className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-black px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow"
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                  <span>{isPlayingPreview ? 'Reproduciendo...' : 'Escuchar Voz'}</span>
+                </button>
+              </div>
             </div>
 
             <div>
