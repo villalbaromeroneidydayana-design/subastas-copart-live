@@ -1962,56 +1962,74 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       </div>
                     )}
 
-                    {/* Desglose Financiero Ejecutivo */}
-                    <div className="bg-[#081224] border border-slate-800 p-3 rounded-lg space-y-2">
-                      <div className="flex items-center justify-between text-xs border-b border-slate-800/80 pb-1.5">
-                        <span className="text-slate-400 uppercase font-semibold text-[11px]">
-                          {lang === 'en' ? 'Registered Client Account:' : 'Comprador Registrado:'}
-                        </span>
-                        <span className="text-slate-100 font-bold">
-                          {(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}
-                        </span>
-                      </div>
+                    {/* Desglose Financiero Privado para el Cliente (o datos públicos si es espectador general) */}
+                    {role === 'buyer' ? (
+                      <div className="bg-[#081224] border border-slate-800 p-3 rounded-lg space-y-2">
+                        <div className="flex items-center justify-between text-xs border-b border-slate-800/80 pb-1.5">
+                          <span className="text-slate-400 uppercase font-semibold text-[11px]">
+                            {lang === 'en' ? 'Registered Client Account:' : 'Comprador Registrado:'}
+                          </span>
+                          <span className="text-slate-100 font-bold">
+                            {(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}
+                          </span>
+                        </div>
 
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400 uppercase font-semibold text-[11px]">
-                          {lang === 'en' ? 'Authorized Client Budget:' : 'Presupuesto Máximo Autorizado:'}
-                        </span>
-                        <span className="font-mono font-black text-amber-400 text-sm">
-                          ${clientBudget.toLocaleString()} USD
-                        </span>
-                      </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 uppercase font-semibold text-[11px]">
+                            {lang === 'en' ? 'Authorized Client Budget (Private):' : 'Presupuesto Acordado con Broker (Privado):'}
+                          </span>
+                          <span className="font-mono font-black text-amber-400 text-sm">
+                            ${clientBudget.toLocaleString()} USD
+                          </span>
+                        </div>
 
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400 uppercase font-semibold text-[11px]">
-                          {lang === 'en' ? 'Available Operating Margin:' : 'Margen Disponible en Mesa:'}
-                        </span>
-                        <span className={`font-mono font-bold text-sm ${((Number(clientBudget) || 7500) - Number(session?.current_price ?? 5000)) <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                          ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? 5000)).toLocaleString()} USD
-                        </span>
-                      </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 uppercase font-semibold text-[11px]">
+                            {lang === 'en' ? 'Available Operating Margin:' : 'Margen Disponible en Mesa:'}
+                          </span>
+                          <span className={`font-mono font-bold text-sm ${((Number(clientBudget) || 7500) - Number(session?.current_price ?? 5000)) <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                            ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? 5000)).toLocaleString()} USD
+                          </span>
+                        </div>
 
-                      {/* Barra de Consumo de Presupuesto */}
-                      <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800 mt-1">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            (Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) > 0.9
-                              ? 'bg-rose-500'
-                              : (Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) > 0.75
-                              ? 'bg-amber-400'
-                              : 'bg-emerald-400'
-                          }`}
-                          style={{
-                            width: `${Math.min(100, Math.round((Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) * 100))}%`
-                          }}
-                        />
+                        {/* Barra de Consumo de Presupuesto */}
+                        <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800 mt-1">
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              (Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) > 0.9
+                                ? 'bg-rose-500'
+                                : (Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) > 0.75
+                                ? 'bg-amber-400'
+                                : 'bg-emerald-400'
+                            }`}
+                            style={{
+                              width: `${Math.min(100, Math.round((Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) * 100))}%`
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                          <span>$0 USD</span>
+                          <span>{Math.min(100, Math.round((Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) * 100))}% COMPROMETIDO</span>
+                          <span>${clientBudget.toLocaleString()} USD</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-[10px] font-mono text-slate-500">
-                        <span>$0 USD</span>
-                        <span>{Math.min(100, Math.round((Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) * 100))}% COMPROMETIDO</span>
-                        <span>${clientBudget.toLocaleString()} USD</span>
+                    ) : (
+                      /* Si es Espectador Público General: CERO información de presupuesto privado */
+                      <div className="bg-[#081224] border border-slate-800 p-3 rounded-lg space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 uppercase font-semibold text-[11px]">Transmisión de Sala:</span>
+                          <span className="text-emerald-400 font-bold">COPART VB3 EN VIVO</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 uppercase font-semibold text-[11px]">Incremento Mínimo:</span>
+                          <span className="text-white font-mono font-bold">+${(session.bid_increment || 250).toLocaleString()} USD</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 uppercase font-semibold text-[11px]">Condición del Lote:</span>
+                          <span className="text-amber-400 font-bold font-mono">EN COMPETENCIA PÚBLICA</span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
