@@ -40,9 +40,12 @@ export const CopartVerificationModal: React.FC<CopartVerificationModalProps> = (
   if (!isOpen) return null;
 
   const lotNumber = vehicle?.lot_number || '48291032';
+  const cleanLot = lotNumber.replace(/[^0-9]/g, '');
   const vin = vehicle?.vin || '1FA6P8CF8N5103982';
   const yardLocation = vehicle?.location || 'Atlanta East Yard 12 (Georgia, USA)';
-  const copartUrl = vehicle?.reference_url || `https://www.copart.com/lot/${lotNumber}`;
+  const copartUrl = vehicle?.reference_url?.trim() 
+    ? vehicle.reference_url.trim() 
+    : `https://www.copart.com/es/lot/${cleanLot}`;
 
   const checks = [
     {

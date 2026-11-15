@@ -553,6 +553,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   }, []);
 
   const vehicle = session.vehicle_snapshot || (session as any).vehicle;
+  const cleanLotNumber = (vehicle?.lot_number || '48291032').replace(/[^0-9]/g, '');
+  const copartLotUrl = vehicle?.reference_url?.trim()
+    ? vehicle.reference_url.trim()
+    : `https://www.copart.com/${lang === 'es' ? 'es/' : ''}lot/${cleanLotNumber}`;
   const allImages: VehicleImage[] = vehicle?.images || [];
   
   const filteredCategoryImages = selectedCategory === 'todas'
@@ -881,7 +885,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* ENLACE DIRECTO AL LOTE REAL EN COPART.COM */}
             <a
-              href={vehicle?.reference_url || `https://www.copart.com/lot/${vehicle?.lot_number || '48291032'}`}
+              href={copartLotUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 bg-[#ffb81c] hover:bg-[#e5a618] text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-xs transition shadow active:scale-95 cursor-pointer whitespace-nowrap"
@@ -1209,7 +1213,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
               {/* Botón Lote Oficial en Copart.com */}
               <a
-                href={vehicle?.reference_url || `https://www.copart.com/lot/${vehicle?.lot_number || '48291032'}`}
+                href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
@@ -1528,7 +1532,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </div>
 
               <a
-                href={vehicle?.reference_url || `https://www.copart.com/lot/${vehicle?.lot_number || '48291032'}`}
+                href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95 whitespace-nowrap shrink-0"
@@ -1843,7 +1847,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     </div>
                   </div>
                   <a
-                    href={vehicle?.reference_url || `https://www.copart.com/lot/${vehicle?.lot_number || '48291032'}`}
+                    href={copartLotUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full sm:w-auto px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
