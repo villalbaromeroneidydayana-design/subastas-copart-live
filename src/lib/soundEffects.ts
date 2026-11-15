@@ -13,7 +13,7 @@ class SoundManager {
           if (c && c.state === 'suspended') {
             c.resume();
           }
-        } catch {}
+        } catch { }
       };
       window.addEventListener('click', unlock, { passive: true });
       window.addEventListener('touchstart', unlock, { passive: true });
@@ -76,7 +76,7 @@ class SoundManager {
 
     try {
       const strikeTime = ctx.currentTime;
-      
+
       // Impact thump
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -404,7 +404,7 @@ class SoundManager {
 
       osc.start(startTime);
       osc.stop(startTime + 2.5);
-    } catch {}
+    } catch { }
   }
 }
 

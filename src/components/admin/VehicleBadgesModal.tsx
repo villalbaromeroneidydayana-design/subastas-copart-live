@@ -69,7 +69,7 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
     try {
       sounds.setVoiceGender(voiceType);
       sounds.speak(auctioneerWelcomeChant.trim(), 1.08);
-    } catch {}
+    } catch { }
     setTimeout(() => setIsPlayingPreview(false), 4500);
   };
 
@@ -157,7 +157,7 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
 
         {/* Formulario con Scroll */}
         <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 text-xs">
-          
+
           {/* SECCIÓN 1: INSIGNIAS SUPERIORES SOBRE LA FOTO */}
           <div className="bg-[#070e1c] p-4 rounded-xl border border-slate-800 space-y-3">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -165,7 +165,7 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                 <Sparkles className="w-4 h-4" /> 1. Insignias de Estado Legal y Mecánico (Sobre la Foto)
               </span>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-300 font-bold mb-1">
@@ -393,7 +393,7 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                           className="flex-1 bg-[#030712] border border-slate-700 rounded px-2.5 py-1 text-white font-bold"
                         />
                       </div>
-                      
+
                       {/* Color Selector */}
                       <select
                         value={badge.color || 'amber'}
@@ -466,11 +466,10 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                       setVoiceType('male');
                       sounds.setVoiceGender('male');
                     }}
-                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${
-                      voiceType === 'male'
+                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${voiceType === 'male'
                         ? 'bg-amber-500 text-slate-950 shadow'
                         : 'text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <span>👨 Masculina Americana (Copart)</span>
                   </button>
@@ -480,11 +479,10 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                       setVoiceType('female');
                       sounds.setVoiceGender('female');
                     }}
-                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${
-                      voiceType === 'female'
+                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${voiceType === 'female'
                         ? 'bg-amber-500 text-slate-950 shadow'
                         : 'text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <span>👩 Femenina</span>
                   </button>

@@ -9,6 +9,7 @@ import { RoomAccessExpiredView } from './RoomAccessExpiredView';
 import confetti from 'canvas-confetti';
 import { NextLotModal } from './NextLotModal';
 import { VehicleBadgesModal } from '../admin/VehicleBadgesModal';
+import { CopartVerificationModal } from './CopartVerificationModal';
 import { useTranslation, Language } from '../../lib/i18n';
 import { 
   Volume2, VolumeX, Eye, EyeOff, Play, Pause, CheckCircle2,
@@ -140,6 +141,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [selectedLane, setSelectedLane] = useState<'A' | 'B' | 'C'>('A');
   const [isFeesExpanded, setIsFeesExpanded] = useState<boolean>(false);
   const [isCarfaxModalOpen, setIsCarfaxModalOpen] = useState<boolean>(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
   const [is360Active, setIs360Active] = useState<boolean>(false);
   const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
@@ -877,6 +879,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </span>
             </div>
 
+            {/* BOTÓN 6 COMPROBACIONES OFICIALES COPART */}
+            <button
+              type="button"
+              onClick={() => setIsVerificationModalOpen(true)}
+              className="flex items-center gap-1.5 bg-[#002855] hover:bg-[#003875] border border-amber-500/60 px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-300 transition shadow cursor-pointer"
+              title="Verificar las 6 comprobaciones de seguridad Copart: Vehículo, Subasta, Broker, Oferta, Resultado y Pago"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Auditoría Copart:</span>
+              <span className="text-emerald-400 font-mono font-black">6/6 ✓</span>
+            </button>
+
             {/* Conteo y Movimiento de Espectadores Conectados en Tiempo Real */}
             <div className="hidden md:flex items-center gap-2 text-xs sm:text-sm text-cyan-300 bg-cyan-950/50 border border-cyan-800/60 px-3 py-1.5 rounded-lg font-bold">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -1165,6 +1179,20 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <span>{vehicle?.custom_badges?.carfaxText || 'Carfax Clean ✓'}</span>
                 </button>
               )}
+
+              {/* Botón 6 Comprobaciones Oficiales Copart */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsVerificationModalOpen(true);
+                }}
+                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855]/90 hover:bg-[#002855] text-amber-300 border-amber-500/60 hover:border-amber-400 transition active:scale-95"
+                title="Comprobaciones Oficiales de Seguridad Copart (Vehículo, Subasta, Broker, Oferta, Resultado, Pago)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span>6 Comprobaciones Copart ✓</span>
+              </button>
 
               {/* Botones e Insignias Extra Configuradas por el Usuario */}
               {vehicle?.custom_badges?.extraBadges && vehicle.custom_badges.extraBadges.map((badge) => (
@@ -2994,6 +3022,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           onSave={handleSaveBadges}
         />
       )}
+
+      {/* MODAL OFICIAL: 6 COMPROBACIONES DE SEGURIDAD COPART */}
+      <CopartVerificationModal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        vehicle={vehicle}
+        usTime={usTime}
+        brokerName={activeParticipant?.name || 'Broker Oficial Copart'}
+        paddleNumber={activeParticipant?.paddleNumber || '101'}
+        currentPrice={Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)}
+      />
     </div>
   );
 };

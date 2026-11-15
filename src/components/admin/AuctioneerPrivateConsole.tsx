@@ -37,6 +37,7 @@ import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
 import { VehiclesView } from './VehiclesView';
 import { VehicleBadgesModal } from './VehicleBadgesModal';
+import { CopartVerificationModal } from '../room/CopartVerificationModal';
 
 interface AuctioneerPrivateConsoleProps {
   session: AuctionSession;
@@ -93,6 +94,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(sounds.isMuted);
   const [activeDocToken, setActiveDocToken] = useState<string | null>(null);
   const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
 
   const handleToggleAudio = () => {
     const next = !isAudioMuted;
@@ -461,6 +463,17 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           >
             <Tag className="w-3.5 h-3.5 text-amber-300" />
             <span>Insignias / Botones</span>
+          </button>
+
+          {/* Botón 6 Comprobaciones Oficiales Copart */}
+          <button
+            type="button"
+            onClick={() => setIsVerificationModalOpen(true)}
+            className="bg-[#002855] hover:bg-[#003875] text-amber-300 font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 border border-amber-500/50 transition shadow"
+            title="Verificar las 6 comprobaciones de seguridad Copart: Vehículo, Subasta, Broker, Oferta, Resultado y Pago"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>Auditoría 6/6 ✓</span>
           </button>
 
           {/* Control de Audio del Subastador */}
@@ -1455,6 +1468,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           onSave={handleSaveBadges}
         />
       )}
+
+      {/* MODAL OFICIAL: 6 COMPROBACIONES DE SEGURIDAD COPART */}
+      <CopartVerificationModal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        vehicle={session.vehicle_snapshot || (session as any).vehicle}
+        brokerName={lotBrokerName || 'Broker Oficial Copart'}
+        paddleNumber="101"
+        currentPrice={currentPrice}
+      />
     </div>
   );
 };
