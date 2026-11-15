@@ -277,3 +277,4 @@ export const CopartVerificationModal: React.FC<CopartVerificationModalProps> = (
     </div>
   );
 };
+

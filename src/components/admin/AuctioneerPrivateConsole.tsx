@@ -412,7 +412,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
 
           <div className="hidden lg:flex items-center gap-2 text-xs">
-            <span className="text-slate-400">LOTE #{(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}</span>
+            <a
+              href={(session as any).reference_url || session.vehicle_snapshot?.reference_url || `https://www.copart.com/lot/${(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-400 hover:text-amber-300 font-mono font-bold flex items-center gap-1 bg-[#051124] border border-amber-500/40 px-2 py-0.5 rounded transition hover:border-amber-400"
+              title="Abrir lote en la página oficial de Copart.com (Pestaña nueva)"
+            >
+              <span>LOTE #{(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
             <span className="text-slate-600">•</span>
             <span className="text-white font-bold truncate max-w-xs">
               {(session as any).year || session.vehicle_snapshot?.year || 2023} {(session as any).brand || session.vehicle_snapshot?.brand || 'Ford'} {(session as any).model || session.vehicle_snapshot?.model || 'Mustang GT'}
