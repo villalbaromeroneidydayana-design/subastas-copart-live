@@ -2103,16 +2103,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 >
                   {t('tabParticipants')} ({participants.length})
                 </button>
-                <button
-                  onClick={() => setActiveTab('budgetAudit')}
-                  className={`font-bold pb-1 transition border-b-2 ${
-                    activeTab === 'budgetAudit'
-                      ? 'border-amber-400 text-amber-400'
-                      : 'border-transparent text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {t('tabBudgetAudit')} ({budgetRequests.length})
-                </button>
               </div>
 
               <span className="text-[10px] text-emerald-400 font-mono font-bold">
@@ -2209,61 +2199,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     </div>
                   );
                 })}
-              </div>
-            )}
-
-            {/* TAB 3: AUDITORÍA DE AUTORIZACIONES EXTRAORDINARIAS DE PRESUPUESTO */}
-            {activeTab === 'budgetAudit' && (
-              <div className="flex-1 overflow-y-auto max-h-[260px] space-y-2 pr-1">
-                {budgetRequests.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-slate-500 py-8 text-center">
-                    No se han registrado solicitudes de aumento extraordinario para este lote.
-                  </div>
-                ) : (
-                  budgetRequests.map((req) => (
-                    <div
-                      key={req.id}
-                      className="p-2.5 rounded bg-[#050912] border border-slate-800 space-y-1.5 text-xs"
-                    >
-                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-1">
-                        <span className="font-mono text-[10px] text-slate-400">ID: {req.id}</span>
-                        <span className={`px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider ${
-                          req.status === 'approved'
-                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-500'
-                            : req.status === 'used'
-                            ? 'bg-blue-950 text-blue-300 border border-blue-500'
-                            : req.status === 'rejected'
-                            ? 'bg-rose-950 text-rose-300 border border-rose-600'
-                            : req.status === 'expired'
-                            ? 'bg-slate-800 text-slate-400'
-                            : 'bg-amber-950 text-amber-300 border border-amber-600 animate-pulse'
-                        }`}>
-                          {req.status === 'approved' ? '✓ Aprobado por Comprador'
-                            : req.status === 'used' ? '✓ Oferta Ejecutada en Sala'
-                            : req.status === 'rejected' ? '✗ Rechazado por Comprador'
-                            : req.status === 'expired' ? 'Expirado'
-                            : '⏳ Pendiente de Respuesta'}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-[11px]">
-                        <div>
-                          <span className="text-slate-500 block text-[9.5px]">Presupuesto Inicial:</span>
-                          <span className="font-mono text-slate-300">${Number(req.initialBudget || 7500).toLocaleString()} USD</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block text-[9.5px]">Importe Solicitado:</span>
-                          <span className="font-mono font-bold text-amber-400">${Number(req.requestedAmount).toLocaleString()} USD</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-0.5">
-                        <span>Diferencia: +${(Number(req.requestedAmount) - Number(req.initialBudget || 7500)).toLocaleString()} USD</span>
-                        <span>{req.createdAt ? new Date(req.createdAt).toLocaleTimeString() : ''}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
               </div>
             )}
           </div>
