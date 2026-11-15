@@ -216,6 +216,7 @@ interface ClientMetadata {
 }
 
 const socketMetadata = new Map<WebSocket, ClientMetadata>();
+const activeAuctioneerCalls = new Map<string, string>();
 
 function broadcast(message: object) {
   const payload = JSON.stringify(message);
@@ -334,6 +335,21 @@ wss.on('connection', (ws) => {
         (ws as any).sessionId = s.id;
 
         broadcastPresence(s.id);
+      } else if (msg.type === 'AUCTIONEER_CALL') {
+        const session = findSession(msg.sessionId);
+        if (session) {
+          if (msg.call === 'clear' || !msg.call) {
+            activeAuctioneerCalls.delete(session.id);
+          } else {
+            activeAuctioneerCalls.set(session.id, msg.call);
+          }
+          broadcast({
+            type: 'AUCTIONEER_CALL',
+            sessionId: session.id,
+            call: msg.call || 'clear',
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     } catch {}
   });
@@ -855,6 +871,7 @@ app.get('/api/sessions/:id', (req, res) => {
     })),
     participants,
     viewersCount: Math.max(1, connectedClientsCount),
+    activeCall: activeAuctioneerCalls.get(r.id) || null,
   });
 });
 
@@ -1035,6 +1052,7 @@ app.get('/api/room/:token', (req, res) => {
     })),
     participants,
     viewersCount: Math.max(1, connectedClientsCount),
+    activeCall: activeAuctioneerCalls.get(r.id) || null,
   });
 });
 
@@ -1243,6 +1261,7 @@ app.post('/api/sessions/:id/start', (req, res) => {
   `).run(new Date().toISOString(), session.id);
 
   startServerClock(session.id);
+  activeAuctioneerCalls.delete(session.id);
   broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: 'open' });
   broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
   res.json({ success: true, sessionId: session.id });
@@ -1280,6 +1299,7 @@ app.post('/api/sessions/:id/resume', (req, res) => {
     session.id
   );
   startServerClock(session.id);
+  activeAuctioneerCalls.delete(session.id);
   broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: nextStatus });
   res.json({ success: true, sessionId: session.id });
 });
@@ -1369,6 +1389,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
   `).run(bidAmount, paddle, bidderName, participantId, newStatus, now, session.id);
 
   startServerClock(session.id);
+  activeAuctioneerCalls.delete(session.id);
 
   const createdBid = {
     id: bidId,
@@ -1413,6 +1434,12 @@ app.post('/api/sessions/:id/call', (req, res) => {
   const { call } = req.body; // 'going_once' | 'going_twice' | 'fair_warning' | 'clear'
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  if (call === 'clear' || !call) {
+    activeAuctioneerCalls.delete(session.id);
+  } else {
+    activeAuctioneerCalls.set(session.id, call);
+  }
 
   broadcast({
     type: 'AUCTIONEER_CALL',
@@ -1978,6 +2005,7 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
     // Si la subasta estaba en preparación, abrirla automáticamente
     db.prepare(`UPDATE auction_sessions SET status = 'open', time_remaining_seconds = total_duration_seconds WHERE id = ?`).run(session.id);
     startServerClock(session.id);
+  activeAuctioneerCalls.delete(session.id);
   }
 
   const clientMaxBudget = Number(session.client_max_budget) || 7500;

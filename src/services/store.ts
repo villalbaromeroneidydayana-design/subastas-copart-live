@@ -81,11 +81,19 @@ export interface ParticipantInfo {
 class RealAuctionStore {
   public ws: WebSocket | null = null;
   private listeners: Set<() => void> = new Set();
+  private wsListeners: Set<(data: any) => void> = new Set();
   private isServerOnline: boolean = false;
 
   constructor() {
     this.initWebSocket();
     this.checkServerHealth();
+  }
+
+  public onWsMessage(callback: (data: any) => void): () => void {
+    this.wsListeners.add(callback);
+    return () => {
+      this.wsListeners.delete(callback);
+    };
   }
 
   private initWebSocket() {
@@ -103,6 +111,10 @@ class RealAuctionStore {
         try {
           const data = JSON.parse(event.data);
           
+          this.wsListeners.forEach((fn) => {
+            try { fn(data); } catch {}
+          });
+
           if (data.type === 'NEW_REAL_BID') {
             sounds.playBidPing();
             this.notify();
@@ -111,7 +123,7 @@ class RealAuctionStore {
             this.notify();
           } else if (data.type === 'CLOCK_TICK') {
             this.notify();
-          } else if (data.type === 'STATUS_CHANGE' || data.type === 'AUCTION_RESET') {
+          } else if (data.type === 'STATUS_CHANGE' || data.type === 'AUCTION_RESET' || data.type === 'AUCTIONEER_CALL' || data.type === 'ROOM_ANNOUNCEMENT') {
             this.notify();
           }
         } catch {
@@ -644,8 +656,21 @@ class RealAuctionStore {
   }
 
   public async sendAuctioneerCall(sessionId: string, call: 'going_once' | 'going_twice' | 'fair_warning' | 'clear'): Promise<boolean> {
+    const target = sessionId || 'ses-live-001';
+    // 1. Envío instantáneo por WebSocket si está conectado
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      try {
+        this.ws.send(JSON.stringify({
+          type: 'AUCTIONEER_CALL',
+          sessionId: target,
+          call,
+          timestamp: new Date().toISOString()
+        }));
+      } catch {}
+    }
+
+    // 2. Envío por HTTP REST persistente para asegurar almacenamiento en memoria del servidor
     try {
-      const target = sessionId || 'ses-live-001';
       const res = await fetch(`${SERVER_URL}/api/sessions/${target}/call`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

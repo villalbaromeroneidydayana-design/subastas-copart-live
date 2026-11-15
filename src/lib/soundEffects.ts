@@ -115,6 +115,30 @@ class SoundManager {
     }
   }
 
+  // Llamadas oficiales del martillero (Going Once, Going Twice, Fair Warning)
+  public playAuctioneerCall(type: 'going_once' | 'going_twice' | 'fair_warning' | string) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      if (type === 'going_once') {
+        this.playGavel();
+        setTimeout(() => this.playCountdownTick(1.2), 120);
+      } else if (type === 'going_twice') {
+        this.playGavel();
+        setTimeout(() => this.playCountdownTick(1.5), 100);
+        setTimeout(() => this.playCountdownTick(1.8), 220);
+      } else {
+        // fair_warning
+        this.playGavel();
+        setTimeout(() => this.playGavel(), 150);
+        setTimeout(() => this.playCountdownTick(2.0), 300);
+      }
+    } catch {
+      // audio context error ignore
+    }
+  }
+
   // Fanfarria de victoria / adjudicación (Sold!)
   public playSoldFanfare() {
     const ctx = this.getContext();

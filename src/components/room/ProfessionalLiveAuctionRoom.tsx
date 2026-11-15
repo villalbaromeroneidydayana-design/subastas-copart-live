@@ -219,6 +219,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         setRole(data.role);
       }
 
+      if (data.activeCall !== undefined) {
+        setLiveAuctioneerCall(data.activeCall);
+      }
+
       if (data.links) {
         if (data.links.brokerLink) setBrokerLink(data.links.brokerLink);
         if (data.links.buyerLink) setBuyerLink(data.links.buyerLink);
@@ -315,9 +319,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   // Escuchar en vivo movimientos de espectadores, presencia y autorizaciones por WebSocket
   useEffect(() => {
-    const handleWs = (e: MessageEvent) => {
+    const unsubscribeWs = store.onWsMessage((msg: any) => {
       try {
-        const msg = JSON.parse(e.data);
+        if (!msg) return;
         if (msg.type === 'SPECTATOR_JOINED') {
           if (msg.viewersCount !== undefined) setViewersCount(msg.viewersCount);
           const text = 'Nuevo espectador conectado';
@@ -376,7 +380,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         } else if (msg.type === 'AUCTIONEER_CALL') {
           setLiveAuctioneerCall(msg.call === 'clear' ? null : msg.call);
           if (msg.call && msg.call !== 'clear') {
-            try { sounds.playBidPing(); } catch {}
+            try { sounds.playAuctioneerCall(msg.call); } catch {}
           }
         } else if (msg.type === 'NEW_REAL_BID') {
           setIsRoomAccessExpired(false);
@@ -410,15 +414,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           }
         }
       } catch {}
-    };
+    });
 
-    if (store.ws) {
-      store.ws.addEventListener('message', handleWs);
-    }
     return () => {
-      if (store.ws) store.ws.removeEventListener('message', handleWs);
+      unsubscribeWs();
     };
-  }, [isBroker, role]);
+  }, [isBroker, role, fetchStateFromServer, triggerSoldConfettiCelebration]);
 
   // Actualización en tiempo real del horario oficial de Estados Unidos (Eastern Time / EST)
   useEffect(() => {
@@ -975,6 +976,28 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   </button>
                 </>
               )}
+
+              {/* Overlay llamativo de Llamada del Martillero sobre la foto */}
+              {liveAuctioneerCall && (
+                <div className="absolute bottom-3 inset-x-3 z-20 flex justify-center pointer-events-none">
+                  <div className={`px-4 py-2 rounded-xl text-center font-black uppercase tracking-wider border-2 shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce ${
+                    liveAuctioneerCall === 'going_once'
+                      ? 'bg-amber-500/95 text-slate-950 border-amber-300 shadow-amber-500/50'
+                      : liveAuctioneerCall === 'going_twice'
+                      ? 'bg-orange-500/95 text-slate-950 border-orange-300 shadow-orange-500/50'
+                      : 'bg-rose-600/95 text-white border-rose-300 shadow-rose-600/60'
+                  }`}>
+                    <Gavel className="w-4 h-4 shrink-0" />
+                    <span className="text-xs sm:text-sm font-black">
+                      {liveAuctioneerCall === 'going_once'
+                        ? '📢 GOING ONCE • ¡A LA UNA!'
+                        : liveAuctioneerCall === 'going_twice'
+                        ? '🔥 GOING TWICE • ¡A LAS DOS!'
+                        : '⚠️ FAIR WARNING • ¡ÚLTIMA ADVERTENCIA!'}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Barra de Clasificación de Fotografías */}
@@ -1240,6 +1263,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 lang={lang}
               />
             </div>
+
+            {/* MEGA BANNER DE LLAMADAS DEL MARTILLERO EN VIVO (GOING ONCE / GOING TWICE / FAIR WARNING) */}
+            {liveAuctioneerCall && (
+              <div className={`mt-3.5 py-3 px-4 rounded-xl text-center font-black uppercase tracking-wider border-2 shadow-2xl flex items-center justify-center gap-3 animate-pulse ${
+                liveAuctioneerCall === 'going_once'
+                  ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 border-amber-200 ring-4 ring-amber-400/50'
+                  : liveAuctioneerCall === 'going_twice'
+                  ? 'bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 text-slate-950 border-orange-200 ring-4 ring-orange-400/50'
+                  : 'bg-gradient-to-r from-rose-700 via-red-600 to-rose-700 text-white border-rose-200 ring-4 ring-rose-500/60'
+              }`}>
+                <Gavel className="w-5 h-5 animate-bounce shrink-0" />
+                <span className="text-xs sm:text-sm md:text-base font-black tracking-wide">
+                  {liveAuctioneerCall === 'going_once'
+                    ? (lang === 'en' ? '📢 GOING ONCE — FIRST CALL!' : '📢 ¡A LA UNA! — GOING ONCE (PRIMER AVISO)')
+                    : liveAuctioneerCall === 'going_twice'
+                    ? (lang === 'en' ? '🔥 GOING TWICE — LAST CALL!' : '🔥 ¡A LAS DOS! — GOING TWICE (ÚLTIMA LLAMADA)')
+                    : (lang === 'en' ? '⚠️ FAIR WARNING — FINAL CALL!' : '⚠️ ¡ÚLTIMA ADVERTENCIA! — FAIR WARNING (MARTILLO POR CAER)')}
+                </span>
+              </div>
+            )}
 
             {/* PRECIO ACTUAL EN GRANDE */}
             <div className="my-3.5 text-center bg-[#050912] p-4 sm:p-5 rounded-xl border border-[#1b2b44] relative overflow-hidden shadow-inner">
