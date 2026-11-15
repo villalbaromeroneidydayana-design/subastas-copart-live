@@ -281,6 +281,60 @@ class SoundManager {
       this.speak('Lot passed, reserve not met.', 1.05);
     }, 250);
   }
+
+  // Sonido de arranque y aceleración de motor V8 (Engine Start & Rev Sound)
+  public playEngineSound() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+
+      // Arranque / Starter crank (ch-ch-ch)
+      for (let i = 0; i < 3; i++) {
+        const crankTime = now + (i * 0.12);
+        const crankOsc = ctx.createOscillator();
+        const crankGain = ctx.createGain();
+        crankOsc.type = 'sawtooth';
+        crankOsc.frequency.setValueAtTime(80, crankTime);
+        crankGain.gain.setValueAtTime(0.2, crankTime);
+        crankGain.gain.exponentialRampToValueAtTime(0.001, crankTime + 0.08);
+        crankOsc.connect(crankGain);
+        crankGain.connect(ctx.destination);
+        crankOsc.start(crankTime);
+        crankOsc.stop(crankTime + 0.08);
+      }
+
+      // Rugido del motor V8 (Fire up & Rev)
+      const startTime = now + 0.38;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sawtooth';
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(280, startTime);
+      filter.frequency.exponentialRampToValueAtTime(650, startTime + 0.8);
+      filter.frequency.exponentialRampToValueAtTime(320, startTime + 2.0);
+
+      osc.frequency.setValueAtTime(45, startTime);
+      osc.frequency.exponentialRampToValueAtTime(140, startTime + 0.7);
+      osc.frequency.exponentialRampToValueAtTime(65, startTime + 1.6);
+      osc.frequency.exponentialRampToValueAtTime(48, startTime + 2.4);
+
+      gain.gain.setValueAtTime(0.01, startTime);
+      gain.gain.linearRampToValueAtTime(0.35, startTime + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.25, startTime + 1.0);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 2.5);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + 2.5);
+    } catch {}
+  }
 }
 
 export const sounds = new SoundManager();

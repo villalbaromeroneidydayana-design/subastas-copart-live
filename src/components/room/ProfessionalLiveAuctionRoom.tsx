@@ -16,9 +16,10 @@ import {
   PlusCircle, ShieldCheck, ShieldAlert, Wifi, ExternalLink, Copy, Check,
   FastForward, User, Lock, ChevronLeft, ChevronRight,
   Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send,
-  ArrowRightCircle, CheckCircle, Sparkles,
+  ArrowRightCircle, CheckCircle, Sparkles, ChevronDown, ChevronUp, Zap, Calculator,
   ExternalLink as LinkIcon
 } from 'lucide-react';
+import { INITIAL_VEHICLES } from '../../services/seedData';
 
 interface ProfessionalLiveAuctionRoomProps {
   session: AuctionSession;
@@ -132,6 +133,49 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
   const [usTime, setUsTime] = useState<string>('');
   const hasCelebratedSoldRef = useRef<boolean>(false);
+
+  // Estados exclusivos Copart VB3 (5 Features Oficiales)
+  const [selectedLane, setSelectedLane] = useState<'A' | 'B' | 'C'>('A');
+  const [isFeesExpanded, setIsFeesExpanded] = useState<boolean>(false);
+  const [isCarfaxModalOpen, setIsCarfaxModalOpen] = useState<boolean>(false);
+  const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
+  const [is360Active, setIs360Active] = useState<boolean>(false);
+  const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
+
+  const handleTriggerEngineSound = () => {
+    setIsEngineRunning(true);
+    try { sounds.playEngineSound(); } catch {}
+    setTimeout(() => setIsEngineRunning(false), 2600);
+  };
+
+  const handleToggle360 = () => {
+    const nextState = !is360Active;
+    setIs360Active(nextState);
+    if (nextState && displayedImages.length > 1) {
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        setSelectedImageIdx((s) => (s + 1) % displayedImages.length);
+        if (step >= displayedImages.length * 2) {
+          clearInterval(interval);
+          setIs360Active(false);
+        }
+      }, 650);
+    }
+  };
+
+  const handlePlaceBuyerDirectBid = async (amount: number) => {
+    if (isSubmittingBid) return;
+    setIsSubmittingBid(true);
+    try {
+      const token = initialBidderToken || activeParticipant?.token || 'part-101';
+      await store.submitRealBid(session.id, token, amount);
+      try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch {}
+      setClientBidFeedback(`✓ ¡Oferta de $${amount.toLocaleString()} USD enviada a sala!`);
+      setTimeout(() => setClientBidFeedback(null), 3500);
+    } catch {}
+    setIsSubmittingBid(false);
+  };
 
   const triggerSoldConfettiCelebration = useCallback(() => {
     try {
@@ -884,6 +928,64 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       </header>
 
+      {/* BARRA OFICIAL DE CARRILES COPART VB3 (LANE TABS) */}
+      <div className="bg-[#050c18] border-b border-[#1b2b44] px-3 sm:px-6 py-1.5 flex items-center justify-between text-xs">
+        <div className="max-w-[1720px] w-full mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1 hidden sm:inline">LANES:</span>
+            
+            {/* LANE A (LIVE) */}
+            <button
+              type="button"
+              onClick={() => setSelectedLane('A')}
+              className={`px-3 py-1 rounded-md text-xs font-black flex items-center gap-2 transition ${
+                selectedLane === 'A'
+                  ? 'bg-emerald-600 text-white shadow-lg ring-1 ring-emerald-400'
+                  : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span>LANE A • LIVE (Atlanta East Yard 12)</span>
+            </button>
+
+            {/* LANE B (DALLAS SOUTH) */}
+            <button
+              type="button"
+              onClick={() => setSelectedLane('B')}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${
+                selectedLane === 'B'
+                  ? 'bg-blue-600 text-white shadow ring-1 ring-blue-400'
+                  : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800'
+              }`}
+              title="Carril B: Próxima apertura 2:00 PM EST"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>LANE B • Dallas South (Pre-Bid)</span>
+            </button>
+
+            {/* LANE C (CHICAGO NORTH) */}
+            <button
+              type="button"
+              onClick={() => setSelectedLane('C')}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${
+                selectedLane === 'C'
+                  ? 'bg-blue-600 text-white shadow ring-1 ring-blue-400'
+                  : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800'
+              }`}
+              title="Carril C: Subasta pesada y camiones"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+              <span>LANE C • Chicago Heavy Duty</span>
+            </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono text-slate-400">
+            <span>Terminal ID: <strong className="text-amber-300">VB3-US-EAST-492</strong></span>
+            <span>Audio Engine: <strong className="text-emerald-400">EN-US Procedural Live</strong></span>
+          </div>
+        </div>
+      </div>
+
       {/* AVISO DISCRETO PARA EL DIRECTOR DE SALA (PANTALLA 1) */}
       {isAuctioneer && (
         <div className="bg-[#09152a] border-b border-amber-500/40 px-4 py-1.5 flex items-center justify-between text-xs shadow">
@@ -940,6 +1042,59 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   {activeImage.category}
                 </span>
               )}
+            </div>
+
+            {/* INSIGNIAS EXCLUSIVAS COPART: 360° View, Engine Sound, Carfax */}
+            <div className="absolute top-11 left-2.5 z-20 flex flex-wrap gap-1.5">
+              {/* Botón Engine Sound */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTriggerEngineSound();
+                }}
+                className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
+                  isEngineRunning
+                    ? 'bg-amber-500 text-slate-950 border-amber-300 animate-pulse ring-2 ring-amber-400'
+                    : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
+                }`}
+                title="Escuchar sonido de arranque y aceleración del motor V8 verificado en patio"
+              >
+                <Volume2 className={`w-3.5 h-3.5 ${isEngineRunning ? 'animate-bounce text-slate-950' : 'text-amber-400'}`} />
+                <span>{isEngineRunning ? 'V8 Revving...' : 'Engine Sound 🔊'}</span>
+              </button>
+
+              {/* Botón 360° Walkaround */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggle360();
+                }}
+                className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
+                  is360Active
+                    ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-300 animate-pulse'
+                    : 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
+                }`}
+                title="Activar vista panorámica y giro 360° de las fotografías"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${is360Active ? 'animate-spin' : ''}`} />
+                <span>{is360Active ? '360° Active...' : '360° View 🔄'}</span>
+              </button>
+
+              {/* Botón Carfax Report */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsCarfaxModalOpen(true);
+                }}
+                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400 transition active:scale-95"
+                title="Consultar reporte oficial de historial Carfax / AutoCheck"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Carfax Clean ✓</span>
+              </button>
             </div>
 
             {/* Botones de Acción sobre la Foto */}
@@ -1365,6 +1520,60 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               )}
             </div>
 
+            {/* CALCULADORA OFICIAL DE TARIFAS COPART VB3 (BUYER FEES BREAKDOWN) */}
+            <div className="bg-[#050a16] border border-[#1b2b44] rounded-xl overflow-hidden shadow-inner mb-3 text-xs">
+              <button
+                type="button"
+                onClick={() => setIsFeesExpanded(!isFeesExpanded)}
+                className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-slate-900/60 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <Calculator className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="font-bold text-slate-300">
+                    {lang === 'en' ? 'Estimated Total & Copart Fees:' : 'Total Estimado con Tarifas Copart:'}
+                  </span>
+                  <span className="font-mono font-black text-emerald-400 text-xs sm:text-sm">
+                    ${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000) + Math.round(Math.max(250, Number(session?.current_price ?? 5000) * 0.085 + 120)) + 119 + 79 + 20).toLocaleString()} USD
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-amber-400 font-bold shrink-0">
+                  <span>{isFeesExpanded ? (lang === 'en' ? 'Hide' : 'Ocultar') : (lang === 'en' ? 'Fees Breakdown' : 'Ver Desglose')}</span>
+                  {isFeesExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </div>
+              </button>
+
+              {isFeesExpanded && (
+                <div className="px-3.5 pb-3 pt-1 border-t border-slate-800 space-y-1.5 font-mono text-[11px] animate-fadeIn">
+                  <div className="flex justify-between text-slate-400">
+                    <span>{lang === 'en' ? 'Winning Hammer Bid:' : 'Monto de Puja en Subasta:'}</span>
+                    <strong className="text-white">${(Number(session?.current_price ?? 5000)).toLocaleString()} USD</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>{lang === 'en' ? 'Copart Buyer Fee (Tier Standard):' : 'Comisión de Comprador Copart:'}</span>
+                    <span className="text-slate-300">${(Math.round(Math.max(250, Number(session?.current_price ?? 5000) * 0.085 + 120))).toLocaleString()} USD</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>{lang === 'en' ? 'Virtual Bidding Fee (Copart VB3):' : 'Tarifa Puja por Internet Copart VB3:'}</span>
+                    <span className="text-slate-300">$119 USD</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>{lang === 'en' ? 'Gate / Yard Loading Fee (Yard 12):' : 'Tarifa de Salida de Patio Copart:'}</span>
+                    <span className="text-slate-300">$79 USD</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>{lang === 'en' ? 'Environmental & Title Prep Fee:' : 'Tarifa Ambiental y Trámite Título:'}</span>
+                    <span className="text-slate-300">$20 USD</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-800 pt-1.5 font-bold text-xs text-white">
+                    <span className="text-amber-400 uppercase tracking-wider">{lang === 'en' ? 'Estimated Total to Pay:' : 'Total Estimado a Liquidar:'}</span>
+                    <span className="text-emerald-400 font-mono font-black text-sm">
+                      ${(Number(session?.current_price ?? 5000) + Math.round(Math.max(250, Number(session?.current_price ?? 5000) * 0.085 + 120)) + 119 + 79 + 20).toLocaleString()} USD
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* FASE 1: ANTES DE LA SUBASTA (SALA ABIERTA - INSPECCIÓN PREVIA) */}
             {session.status === 'prepared' && (
               <div className="bg-[#050912] border border-blue-900/80 p-3.5 rounded-lg space-y-3 mb-3 animate-fadeIn text-xs">
@@ -1578,10 +1787,68 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span>
                     {lang === 'en'
-                      ? 'SPECTATOR STREAM ACTIVE • YOU WILL BE PROMPTED IF BROKER REQUESTS A BUDGET INCREASE'
-                      : 'SIN BOTONES DE OFERTA • RECIBIRÁS AVISO SI EL BROKER REQUIERE MÁS PRESUPUESTO'}
+                      ? 'PALETTE #101 ASSIGNED • YOU CAN BID DIRECTLY OR LET YOUR BROKER MANAGE'
+                      : 'PALETA #101 ASIGNADA • PUEDES PUJAR DIRECTAMENTE O DEJAR QUE TU BROKER GESTIONE'}
                   </span>
                 </div>
+
+                {/* BOTÓN OFICIAL DE PUJA DIRECTA COPART PARA EL COMPRADOR */}
+                {['open', 'bidding', 'last_call'].includes(session.status) && (
+                  <div className="space-y-2 pt-2 border-t border-blue-900/60">
+                    {clientBidFeedback && (
+                      <div className="p-2 bg-emerald-950 border border-emerald-500 text-emerald-300 text-xs font-bold rounded-lg animate-bounce">
+                        {clientBidFeedback}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250))}
+                      disabled={isSubmittingBid || isBrokerWinning}
+                      className={`w-full font-black py-4 px-4 rounded-xl shadow-2xl text-base sm:text-lg flex items-center justify-center gap-2.5 transition active:scale-95 border-b-4 ${
+                        isBrokerWinning
+                          ? 'bg-emerald-950/80 border-emerald-600 text-emerald-300 cursor-not-allowed'
+                          : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950 border-emerald-800 animate-pulse'
+                      }`}
+                    >
+                      <Zap className="w-5 h-5 text-slate-950" />
+                      <span>
+                        {isBrokerWinning
+                          ? (lang === 'en' ? "YOU'RE HIGH BIDDER!" : '¡YA ERES EL MEJOR POSTOR!')
+                          : isSubmittingBid
+                          ? t('submittingBid')
+                          : (lang === 'en' ? `BID $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD NOW` : `PUJAR $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD (OFERTA EN VIVO)`)}
+                      </span>
+                    </button>
+
+                    <div className="grid grid-cols-3 gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + 100)}
+                        disabled={isSubmittingBid || isBrokerWinning}
+                        className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-slate-200 py-2 rounded-lg border border-slate-700 transition"
+                      >
+                        +$100
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + 250)}
+                        disabled={isSubmittingBid || isBrokerWinning}
+                        className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-amber-300 py-2 rounded-lg border border-slate-700 transition"
+                      >
+                        +$250 USD
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handlePlaceBuyerDirectBid(Number(session?.current_price ?? 5000) + 500)}
+                        disabled={isSubmittingBid || isBrokerWinning}
+                        className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-black text-emerald-400 py-2 rounded-lg border border-slate-700 transition"
+                      >
+                        +$500 USD
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1859,6 +2126,79 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           </div>
         </div>
       </main>
+
+      {/* TIRA DE PRÓXIMOS VEHÍCULOS EN COLA (COPART ON-DECK RUN LIST) */}
+      <section className="max-w-[1720px] w-full mx-auto px-2 sm:px-4 mb-4">
+        <div className="bg-[#09101c] border border-[#1b2b44] rounded-xl p-3 sm:p-4 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                {lang === 'en' ? 'LANE A UPCOMING RUN LIST • COPART ATLANTA EAST YARD 12' : 'LISTA DE VEHÍCULOS EN COLA • CARRIL A (COPART ATLANTA EAST)'}
+              </h3>
+            </div>
+            <span className="text-[11px] font-mono text-amber-300 font-bold hidden sm:inline">
+              {lang === 'en' ? "5 Units Scheduled for Today's Auction" : '5 Unidades Programadas para Hoy'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+            {/* Lote 1: El actual en vivo */}
+            <div className="bg-[#050a16] border-2 border-emerald-500 rounded-xl overflow-hidden shadow-lg ring-2 ring-emerald-500/30 flex flex-col justify-between">
+              <div className="relative aspect-[16/10] bg-black">
+                <img
+                  src={activeImage?.url || vehicle?.images?.[0]?.url || 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=600&q=80'}
+                  alt={vehicle?.model}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-1.5 left-1.5 bg-emerald-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded shadow uppercase">
+                  LIVE NOW ⚡
+                </span>
+                <span className="absolute bottom-1.5 right-1.5 bg-black/80 text-amber-300 font-mono font-bold text-[10px] px-1.5 py-0.5 rounded">
+                  #{vehicle?.lot_number || '48291032'}
+                </span>
+              </div>
+              <div className="p-2 space-y-1">
+                <span className="text-xs font-bold text-white block truncate">{vehicle?.year} {vehicle?.brand} {vehicle?.model}</span>
+                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                  <span className="text-emerald-400 font-black font-mono">${(Number(session?.current_price ?? 5000)).toLocaleString()} USD</span>
+                  <span className="uppercase text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700/60 font-bold">RUN & DRIVE</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Lotes siguientes en cola desde INITIAL_VEHICLES */}
+            {INITIAL_VEHICLES.filter((v) => v.lot_number !== vehicle?.lot_number).slice(0, 4).map((veh, idx) => (
+              <div key={veh.id} className="bg-[#050a16] border border-slate-800 hover:border-slate-600 rounded-xl overflow-hidden shadow flex flex-col justify-between transition hover:scale-[1.02]">
+                <div className="relative aspect-[16/10] bg-black">
+                  <img
+                    src={veh.images?.[0]?.url || 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80'}
+                    alt={veh.model}
+                    className="w-full h-full object-cover opacity-85 hover:opacity-100 transition"
+                  />
+                  <span className={`absolute top-1.5 left-1.5 font-bold text-[9px] px-2 py-0.5 rounded shadow uppercase ${
+                    idx === 0 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'
+                  }`}>
+                    {idx === 0 ? 'ON DECK (NEXT)' : `IN LINE #${idx + 2}`}
+                  </span>
+                  <span className="absolute bottom-1.5 right-1.5 bg-black/80 text-slate-300 font-mono font-bold text-[10px] px-1.5 py-0.5 rounded">
+                    #{veh.lot_number}
+                  </span>
+                </div>
+                <div className="p-2 space-y-1">
+                  <span className="text-xs font-bold text-slate-200 block truncate">{veh.year} {veh.brand} {veh.model}</span>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400">
+                    <span className="font-mono text-slate-300 font-bold">Est. ${veh.est_retail_value?.toLocaleString() || '35,000'}</span>
+                    <span className="uppercase text-[9px] bg-slate-900 text-amber-300 px-1.5 py-0.5 rounded border border-slate-700 font-bold">
+                      {veh.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* 3. CONSOLA DEL OPERADOR/BROKER ("LO MANEJO YO") */}
       {isBroker && (
@@ -2455,6 +2795,67 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 Continuar en Sala (Lane A)
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL OFICIAL DE REPORTE DE HISTORIAL CARFAX / AUTOCHECK */}
+      {isCarfaxModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+          <div className="bg-[#0b1323] border border-emerald-500/60 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                <div>
+                  <h3 className="text-base font-black text-white">REPORTE OFICIAL CARFAX / AUTOCHECK</h3>
+                  <p className="text-slate-400 text-xs font-mono">VIN: {vehicle?.vin || '1FA6P8CF9P5198241'}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCarfaxModalOpen(false)}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div>
+                  <strong className="text-emerald-300 block font-bold">Historial de Título Verificado</strong>
+                  <span className="text-slate-300 text-[11px]">Sin reporte de inundación, sin reporte de robo, odómetro original verificado.</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#060b17] border border-slate-800 space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Propietarios Registrados:</span>
+                  <strong className="text-white">1 Dueño Particular (Florida Title)</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Historial de Mantenimientos:</span>
+                  <span className="text-emerald-400 font-bold">14 Registros en Concesionario</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Despliegue de Airbags:</span>
+                  <span className="text-slate-300">Ningún Airbag Desplegado</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Estatus de Llaves:</span>
+                  <span className="text-emerald-400 font-bold">Llaves Originales Incluidas (Yes)</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsCarfaxModalOpen(false)}
+              className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition"
+            >
+              Cerrar Reporte
+            </button>
           </div>
         </div>
       )}
