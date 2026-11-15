@@ -1964,6 +1964,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
                     {/* Desglose Financiero Ejecutivo */}
                     <div className="bg-[#081224] border border-slate-800 p-3 rounded-lg space-y-2">
+                      <div className="flex items-center justify-between text-xs border-b border-slate-800/80 pb-1.5">
+                        <span className="text-slate-400 uppercase font-semibold text-[11px]">
+                          {lang === 'en' ? 'Registered Client Account:' : 'Comprador Registrado:'}
+                        </span>
+                        <span className="text-slate-100 font-bold">
+                          {(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}
+                        </span>
+                      </div>
+
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-400 uppercase font-semibold text-[11px]">
                           {lang === 'en' ? 'Authorized Client Budget:' : 'Presupuesto Máximo Autorizado:'}

@@ -726,7 +726,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 {/* Botones de Presupuesto Rápido (1 Clic) */}
                 <div className="flex items-center gap-1 mt-2 flex-wrap justify-between">
                   <span className="text-[10px] text-slate-500 font-mono">Ajustar:</span>
-                  {[5000, 7500, 10000, 12500, 15000, 20000].map((b) => (
+                  {[5000, 7500, 10000, 15000, 20000, 30000, 50000].map((b) => (
                     <button
                       key={b}
                       type="button"
