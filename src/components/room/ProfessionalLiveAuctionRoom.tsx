@@ -8,7 +8,6 @@ import { ImageGalleryModal } from '../common/ImageGalleryModal';
 import { RoomAccessExpiredView } from './RoomAccessExpiredView';
 import confetti from 'canvas-confetti';
 import { NextLotModal } from './NextLotModal';
-import { VehicleBadgesModal } from '../admin/VehicleBadgesModal';
 import { CopartVerificationModal } from './CopartVerificationModal';
 import { BuyerGuideModal } from './BuyerGuideModal';
 import { useTranslation, Language } from '../../lib/i18n';
@@ -114,11 +113,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [tempBudget, setTempBudget] = useState('');
 
   // Modales
-  const [showEditVehicleModal, setShowEditVehicleModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
-  const [editVehicleState, setEditVehicleState] = useState<any>(null);
-  const [newPhotoUrl, setNewPhotoUrl] = useState('');
-  const [newPhotoCategory, setNewPhotoCategory] = useState<PhotoCategory>('exterior');
 
   // Siguiente Lote (Misma Sala)
   const [showNextLotModal, setShowNextLotModal] = useState(false);
@@ -147,18 +142,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
   const [is360Active, setIs360Active] = useState<boolean>(false);
   const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
-  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState<boolean>(false);
   const [activeExtraBadgeModal, setActiveExtraBadgeModal] = useState<CustomBadgeItem | null>(null);
-
-  const handleSaveBadges = async (updatedBadges: CustomVehicleBadges) => {
-    const currVeh = vehicle || {};
-    const updatedVeh = {
-      ...currVeh,
-      custom_badges: updatedBadges,
-    };
-    await store.updateSessionVehicle(session.id, updatedVeh);
-    await fetchStateFromServer();
-  };
 
   const handleTriggerEngineSound = () => {
     setIsEngineRunning(true);
@@ -698,76 +682,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
   };
 
-  // ABRIR EDITOR DE VEHÍCULO PARA EL BROKER
-  const handleOpenEditVehicle = () => {
-    setEditVehicleState(JSON.parse(JSON.stringify(vehicle || {})));
-    setShowEditVehicleModal(true);
-  };
-
-  const handleSaveVehicleEdit = async () => {
-    if (!editVehicleState) return;
-    await store.updateSessionVehicle(session.id, editVehicleState);
-    setShowEditVehicleModal(false);
-    await fetchStateFromServer();
-  };
-
-  const handleAddPhotoToVehicle = () => {
-    if (!newPhotoUrl.trim() || !editVehicleState) return;
-    const currentImgs = editVehicleState.images || [];
-    const newImg: VehicleImage = {
-      id: 'img-' + Math.random().toString(36).substring(2, 8),
-      vehicle_id: editVehicleState.id || 'veh-current',
-      url: newPhotoUrl.trim(),
-      category: newPhotoCategory,
-      is_primary: currentImgs.length === 0,
-      order: currentImgs.length + 1,
-      caption: `Foto ${newPhotoCategory}`,
-    };
-
-    setEditVehicleState({
-      ...editVehicleState,
-      images: [...currentImgs, newImg],
-    });
-    setNewPhotoUrl('');
-  };
-
-  const handleFileUploadToVehicle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0 || !editVehicleState) return;
-
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        if (base64) {
-          const currentImgs = editVehicleState.images || [];
-          const newImg: VehicleImage = {
-            id: 'img-' + Math.random().toString(36).substring(2, 8),
-            vehicle_id: editVehicleState.id || 'veh-current',
-            url: base64,
-            category: newPhotoCategory,
-            is_primary: currentImgs.length === 0,
-            order: currentImgs.length + 1,
-            caption: file.name,
-          };
-          setEditVehicleState((prev: any) => prev ? {
-            ...prev,
-            images: [...(prev.images || []), newImg],
-          } : null);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleRemovePhoto = (imgId: string) => {
-    if (!editVehicleState?.images) return;
-    setEditVehicleState({
-      ...editVehicleState,
-      images: editVehicleState.images.filter((img: VehicleImage) => img.id !== imgId),
-    });
-  };
-
   const getStatusBadge = () => {
     switch (session.status) {
       case 'prepared':
@@ -878,25 +792,25 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <span className="text-amber-300 font-mono font-bold">{vehicle?.location || 'Atlanta East Yard 12'}</span>
             </div>
 
-            <div className="flex items-center gap-2 bg-[#0c192c] border border-slate-700/80 px-3 py-1.5 rounded-lg text-xs sm:text-sm">
-              <span className="text-slate-300 text-xs font-bold uppercase tracking-wider">{t('lotPrefix')}</span>
-              <span className="font-mono font-black text-amber-400 text-sm sm:text-base">
-                #{vehicle?.lot_number || '48291032'}
-              </span>
+            {/* LOTE OFICIAL COPART Y EXPEDIENTE DE PATIO */}
+            <div className="flex items-center bg-[#0c192c] border border-slate-700/80 rounded-lg overflow-hidden text-xs sm:text-sm shadow-sm">
+              <div className="px-3 py-1.5 flex items-center gap-1.5">
+                <span className="text-slate-300 text-xs font-bold uppercase tracking-wider">{t('lotPrefix')}</span>
+                <span className="font-mono font-black text-amber-400 text-sm sm:text-base">
+                  #{vehicle?.lot_number || '48291032'}
+                </span>
+              </div>
+              <a
+                href={copartLotUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 font-bold text-xs flex items-center gap-1.5 border-l border-slate-700/80 transition"
+                title="Consultar expediente técnico del lote en patio Copart"
+              >
+                <span>{lang === 'en' ? 'COPART LOT DETAILS' : 'FICHA OFICIAL DE LOTE'}</span>
+                <ExternalLink className="w-3 h-3 text-amber-400" />
+              </a>
             </div>
-
-            {/* ENLACE DIRECTO AL LOTE REAL EN COPART.COM */}
-            <a
-              href={copartLotUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-[#ffb81c] hover:bg-[#e5a618] text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-xs transition shadow active:scale-95 cursor-pointer whitespace-nowrap"
-              title="Abrir la ficha oficial de este lote en Copart.com en una nueva pestaña"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Ver en Copart.com ↗</span>
-              <span className="sm:hidden">Copart ↗</span>
-            </a>
 
             {/* BOTÓN 6 COMPROBACIONES OFICIALES COPART */}
             <button
@@ -1216,17 +1130,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <span>6 Comprobaciones Copart ✓</span>
               </button>
 
-              {/* Botón Lote Oficial en Copart.com */}
+              {/* Insignia Ficha de Patio Copart */}
               <a
                 href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#ffb81c] hover:bg-[#e5a618] text-slate-950 border-amber-300 transition active:scale-95"
-                title="Abrir lote real en Copart.com para ver todas las especificaciones y fotos oficiales"
+                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855]/90 hover:bg-[#002855] text-amber-300 border-amber-500/60 hover:border-amber-400 transition active:scale-95"
+                title="Consultar expediente técnico del lote en patio Copart"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Lote Oficial Copart.com ↗</span>
+                <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                <span>{lang === 'en' ? 'Copart Lot Record ↗' : 'Expediente del Lote ↗'}</span>
               </a>
 
               {/* Botones e Insignias Extra Configuradas por el Usuario */}
@@ -1254,34 +1168,16 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               ))}
             </div>
 
-            {/* Botones de Acción sobre la Foto */}
-            <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
+            {/* Botón de Galería en Pantalla Completa */}
+            <div className="absolute top-2.5 right-2.5 z-20">
               <button
                 type="button"
-                onClick={() => setIsBadgesModalOpen(true)}
-                className="bg-amber-600/90 hover:bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1.5 rounded-lg backdrop-blur border border-amber-400/60 shadow flex items-center gap-1 transition"
-                title="Editar los botones e insignias debajo y sobre la foto del vehículo"
-              >
-                <Tag className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Editar Botones</span>
-              </button>
-
-              {isBroker && (
-                <button
-                  onClick={handleOpenEditVehicle}
-                  className="bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg backdrop-blur border border-blue-400/60 shadow flex items-center gap-1 transition"
-                  title="Editar Ficha Técnica y Administrar Fotografías"
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Editar Ficha / Fotos</span>
-                </button>
-              )}
-              <button
                 onClick={() => setIsGalleryOpen(true)}
-                className="bg-black/75 hover:bg-black text-white p-2 rounded-lg backdrop-blur border border-slate-700 transition"
-                title="Ampliar fotografía a pantalla completa"
+                className="bg-black/75 hover:bg-black text-white text-xs font-bold px-2.5 py-1.5 rounded-lg backdrop-blur border border-slate-700/80 shadow flex items-center gap-1.5 transition active:scale-95"
+                title="Ampliar fotografía a pantalla completa (Galería HD)"
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-4 h-4 text-amber-400" />
+                <span className="hidden sm:inline">Galería HD</span>
               </button>
             </div>
 
@@ -1509,39 +1405,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <p className="text-xs sm:text-sm leading-relaxed">{vehicle.notes}</p>
               </div>
             )}
-
-            {/* ENLACE OFICIAL DE REVISIÓN EN COPART.COM ANTES DE LA SUBASTA */}
-            <div className="mt-3.5 bg-gradient-to-r from-[#002855] via-[#05172e] to-[#002855] border border-amber-500/70 p-3.5 sm:p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow shrink-0">
-                  <ExternalLink className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded">
-                      Ficha Real Copart.com
-                    </span>
-                    <span className="text-amber-300 font-mono text-xs font-bold">Lote #{vehicle?.lot_number || '48291032'}</span>
-                  </div>
-                  <h4 className="text-white font-black text-sm uppercase mt-0.5">
-                    ¿Deseas inspeccionar este vehículo directamente en Copart?
-                  </h4>
-                  <p className="text-[11px] text-slate-300 mt-0.5">
-                    Abre la página original de Copart para consultar fotografías adicionales, reporte de daños y patio oficial. Esta sala permanece activa para regresar y pujar en vivo.
-                  </p>
-                </div>
-              </div>
-
-              <a
-                href={copartLotUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95 whitespace-nowrap shrink-0"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Abrir en Copart.com ↗</span>
-              </a>
-            </div>
           </div>
 
           {/* TABLERO DE PARTICIPANTES Y PALETAS AUTORIZADAS (COPART PADDLES BOARD) */}
@@ -1827,18 +1690,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     : 'Puedes observar el vehículo, las fotografías y la ficha técnica. Tu broker autorizado iniciará las pujas en cuanto comience la subasta.'}
                 </p>
 
-                {/* INSPECCIÓN CONJUNTA BROKER Y CLIENTE EN COPART.COM */}
-                <div className="bg-[#002855]/70 border border-amber-500/70 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 mt-2">
+                {/* EXPEDIENTE TÉCNICO Y AUDITORÍA DEL LOTE */}
+                <div className="bg-[#002855]/70 border border-blue-500/60 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 mt-2">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0">
                       <ExternalLink className="w-4 h-4" />
                     </div>
                     <div>
                       <span className="font-bold text-white text-xs block">
-                        Inspección Oficial en Copart.com:
+                        Expediente Oficial de Patio (Copart Yard Facility):
                       </span>
                       <span className="text-[10px] text-slate-300">
-                        Revisen el lote #{vehicle?.lot_number || '48291032'} en la página real de Copart antes de iniciar. Al terminar, regresan aquí para pujar en tiempo real.
+                        Registro técnico original del lote #{vehicle?.lot_number || '48291032'} en patio antes de la apertura de sala.
                       </span>
                     </div>
                   </div>
@@ -1847,9 +1710,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       href={copartLotUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
+                      className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
                     >
-                      <span>Revisar en Copart ↗</span>
+                      <span>{lang === 'en' ? 'Lot Record ↗' : 'Expediente de Lote ↗'}</span>
                     </a>
                     <button
                       type="button"
@@ -1858,7 +1721,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       title="Ver explicación de cómo opera tu broker en esta sala"
                     >
                       <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-                      <span>¿Cómo funciona?</span>
+                      <span>{lang === 'en' ? 'How it works' : '¿Cómo funciona?'}</span>
                     </button>
                   </div>
                 </div>
@@ -2445,188 +2308,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         title={`${vehicle?.year} ${vehicle?.brand} ${vehicle?.model} - Lote #${vehicle?.lot_number}`}
       />
 
-      {/* MODAL DEL BROKER: EDITAR FICHA TÉCNICA Y ADMINISTRAR FOTOGRAFÍAS */}
-      {showEditVehicleModal && editVehicleState && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0e1828] border border-[#1b3152] rounded-xl max-w-2xl w-full p-5 shadow-2xl animate-fadeIn max-h-[90vh] overflow-y-auto text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="font-bold text-white text-base flex items-center gap-2">
-                <Edit className="w-4 h-4 text-amber-400" />
-                <span>Gestión de Ficha Técnica y Fotografías del Lote</span>
-              </h3>
-              <button onClick={() => setShowEditVehicleModal(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="space-y-4">
-              {/* Sección 1: Datos Técnicos */}
-              <div>
-                <h4 className="font-bold text-amber-400 uppercase tracking-wider text-[11px] mb-2">Especificaciones Técnicas</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-0.5">Condición</label>
-                    <select
-                      value={editVehicleState.vehicle_condition || 'run_and_drive'}
-                      onChange={(e) => setEditVehicleState({ ...editVehicleState, vehicle_condition: e.target.value })}
-                      className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                    >
-                      <option value="run_and_drive">RUN & DRIVE</option>
-                      <option value="starts">ENGINE STARTS</option>
-                      <option value="stationary">STATIONARY / NON-RUN</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-0.5">Tipo de Título</label>
-                    <input
-                      type="text"
-                      value={editVehicleState.title_type || 'Salvage Certificate'}
-                      onChange={(e) => setEditVehicleState({ ...editVehicleState, title_type: e.target.value })}
-                      className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-0.5">Daño Principal</label>
-                    <input
-                      type="text"
-                      value={editVehicleState.primary_damage || 'Impacto Frontal'}
-                      onChange={(e) => setEditVehicleState({ ...editVehicleState, primary_damage: e.target.value })}
-                      className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-0.5">Daño Secundario</label>
-                    <input
-                      type="text"
-                      value={editVehicleState.secondary_damage || 'Ninguno'}
-                      onChange={(e) => setEditVehicleState({ ...editVehicleState, secondary_damage: e.target.value })}
-                      className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-0.5">Llaves Presentes</label>
-                    <select
-                      value={editVehicleState.has_keys ? 'true' : 'false'}
-                      onChange={(e) => setEditVehicleState({ ...editVehicleState, has_keys: e.target.value === 'true' })}
-                      className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                    >
-                      <option value="true">SÍ (Presentes)</option>
-                      <option value="false">NO</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-0.5">Odómetro ({editVehicleState.odometer_unit || 'mi'})</label>
-                    <input
-                      type="number"
-                      value={editVehicleState.odometer || 14250}
-                      onChange={(e) => setEditVehicleState({ ...editVehicleState, odometer: Number(e.target.value) })}
-                      className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-2">
-                  <label className="text-[10px] text-slate-400 block mb-0.5">Descripción / Observaciones del Patio</label>
-                  <textarea
-                    rows={2}
-                    value={editVehicleState.notes || ''}
-                    onChange={(e) => setEditVehicleState({ ...editVehicleState, notes: e.target.value })}
-                    className="w-full bg-[#070e1a] border border-slate-700 rounded p-1.5 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Sección 2: Gestión de Fotografías */}
-              <div className="border-t border-slate-800 pt-3">
-                <h4 className="font-bold text-amber-400 uppercase tracking-wider text-[11px] mb-2">Administrar Fotografías ({editVehicleState.images?.length || 0})</h4>
-
-                {/* Formulario para agregar foto */}
-                <div className="bg-[#070e1a] p-2.5 rounded-lg border border-slate-800 space-y-2 mb-3">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Pegar URL de fotografía..."
-                      value={newPhotoUrl}
-                      onChange={(e) => setNewPhotoUrl(e.target.value)}
-                      className="flex-1 bg-[#050912] border border-slate-700 rounded p-1.5 text-xs text-white"
-                    />
-                    <select
-                      value={newPhotoCategory}
-                      onChange={(e) => setNewPhotoCategory(e.target.value as PhotoCategory)}
-                      className="bg-[#050912] border border-slate-700 rounded p-1.5 text-xs text-white"
-                    >
-                      <option value="exterior">Exterior</option>
-                      <option value="interior">Interior</option>
-                      <option value="motor">Motor</option>
-                      <option value="tablero">Tablero</option>
-                      <option value="danos">Daños</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleAddPhotoToVehicle}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded flex items-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Agregar</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                    <span>O subir archivo local:</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUploadToVehicle}
-                      className="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-900 file:text-blue-200 hover:file:bg-blue-800 cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Lista de fotos existentes */}
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-[#050912] rounded border border-slate-800">
-                  {editVehicleState.images?.map((img: VehicleImage, i: number) => (
-                    <div key={img.id || i} className="relative group rounded border border-slate-800 overflow-hidden bg-black aspect-[4/3]">
-                      <img
-                        src={img.url}
-                        alt=""
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
-                        }}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] text-center font-bold text-amber-300 uppercase truncate">
-                        {img.category}
-                      </span>
-                      <button
-                        onClick={() => handleRemovePhoto(img.id)}
-                        className="absolute top-1 right-1 bg-rose-600/90 hover:bg-rose-500 text-white p-1 rounded-full opacity-80 group-hover:opacity-100 transition"
-                        title="Eliminar foto"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3 mt-4">
-              <button
-                onClick={() => setShowEditVehicleModal(false)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-xs transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveVehicleEdit}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded text-xs transition shadow"
-              >
-                Guardar y Actualizar Sala en Vivo
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MODAL OFICIAL: ACTA DE ADJUDICACIÓN IMPRIMIBLE (PDF) */}
       {showCertificateModal && (
@@ -3101,15 +2783,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       )}
 
-      {/* MODAL DE EDICIÓN DE BOTONES E INSIGNIAS DEL VEHÍCULO */}
-      {isBadgesModalOpen && (
-        <VehicleBadgesModal
-          vehicle={(vehicle || {}) as any}
-          isOpen={isBadgesModalOpen}
-          onClose={() => setIsBadgesModalOpen(false)}
-          onSave={handleSaveBadges}
-        />
-      )}
+
 
       {/* MODAL OFICIAL: 6 COMPROBACIONES DE SEGURIDAD COPART */}
       <CopartVerificationModal
