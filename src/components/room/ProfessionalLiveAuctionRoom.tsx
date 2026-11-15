@@ -10,6 +10,7 @@ import confetti from 'canvas-confetti';
 import { NextLotModal } from './NextLotModal';
 import { VehicleBadgesModal } from '../admin/VehicleBadgesModal';
 import { CopartVerificationModal } from './CopartVerificationModal';
+import { BuyerGuideModal } from './BuyerGuideModal';
 import { useTranslation, Language } from '../../lib/i18n';
 import { 
   Volume2, VolumeX, Eye, EyeOff, Play, Pause, CheckCircle2,
@@ -19,7 +20,7 @@ import {
   FastForward, User, Lock, ChevronLeft, ChevronRight,
   Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send,
   ArrowRightCircle, CheckCircle, Sparkles, ChevronDown, ChevronUp, Zap, Calculator,
-  ExternalLink as LinkIcon, Tag
+  ExternalLink as LinkIcon, Tag, HelpCircle
 } from 'lucide-react';
 import { INITIAL_VEHICLES } from '../../services/seedData';
 
@@ -47,13 +48,13 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [bids, setBids] = useState<AuctionBid[]>([]);
   const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
   const [activeParticipant, setActiveParticipant] = useState<ParticipantInfo | null>(null);
-  
+
   // Roles de usuario: 'auctioneer' (Tú / Subastador), 'broker' (Operador), 'buyer' (Comprador), 'spectator' (Espectador)
   const [role, setRole] = useState<'auctioneer' | 'broker' | 'buyer' | 'spectator'>(
     initialRole || (isAdmin ? 'auctioneer' : 'spectator')
   );
   const [userToken, setUserToken] = useState<string | undefined>(initialUserToken || initialBidderToken);
-  
+
   // Enlaces y presencia de participantes
   const [brokerLink, setBrokerLink] = useState<string>(initialRoomData?.links?.brokerLink || '');
   const [buyerLink, setBuyerLink] = useState<string>(initialRoomData?.links?.buyerLink || '');
@@ -86,12 +87,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     { id: '1', text: 'Espectador conectado a la sala', time: 'En vivo', type: 'join' },
   ]);
   const [latestSpectatorEvent, setLatestSpectatorEvent] = useState<string | null>(null);
-  
+
   // Galería de imágenes y categorización
   const [selectedCategory, setSelectedCategory] = useState<PhotoCategory | 'todas'>('todas');
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  
+
   // Opciones de visualización técnica
   const [isVinMasked, setIsVinMasked] = useState(false);
   const [odometerUnit, setOdometerUnit] = useState<'mi' | 'km'>('mi');
@@ -106,7 +107,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [bidFlash, setBidFlash] = useState(false);
   const [lastBidId, setLastBidId] = useState<string | null>(null);
   const [viewersCount, setViewersCount] = useState(1);
-  
+
   // Presupuesto del cliente y edición rápida
   const [clientBudget, setClientBudget] = useState<number>((session as any).clientMaxBudget || 7500);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
@@ -142,6 +143,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [isFeesExpanded, setIsFeesExpanded] = useState<boolean>(false);
   const [isCarfaxModalOpen, setIsCarfaxModalOpen] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
+  const [isBuyerGuideOpen, setIsBuyerGuideOpen] = useState<boolean>(false);
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
   const [is360Active, setIs360Active] = useState<boolean>(false);
   const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
@@ -160,7 +162,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   const handleTriggerEngineSound = () => {
     setIsEngineRunning(true);
-    try { sounds.playEngineSound(); } catch {}
+    try { sounds.playEngineSound(); } catch { }
     setTimeout(() => setIsEngineRunning(false), 2600);
   };
 
@@ -186,18 +188,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     try {
       const res = await store.submitManualBid(session.id, 'Paleta #101', amount);
       if (res && res.success) {
-        try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch {}
+        try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch { }
         setClientBidFeedback(`✓ ¡Oferta de $${amount.toLocaleString()} USD enviada a sala con Paleta #101!`);
       } else {
         // Fallback vía submitRealBid
         const token = initialBidderToken || activeParticipant?.token || 'bdr_broker_m729k1';
         await store.submitRealBid(session.id, token, amount);
-        try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch {}
+        try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch { }
         setClientBidFeedback(`✓ ¡Oferta de $${amount.toLocaleString()} USD enviada a sala!`);
       }
       setTimeout(() => setClientBidFeedback(null), 3500);
       await fetchStateFromServer();
-    } catch {}
+    } catch { }
     setIsSubmittingBid(false);
   };
 
@@ -425,7 +427,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           setBudgetRequests((prev) => [msg.request, ...prev.filter((r) => r.id !== msg.request.id)]);
           if (role === 'buyer') {
             setPendingBuyerRequest(msg.request);
-            try { sounds.playBidPing(); } catch {}
+            try { sounds.playBidPing(); } catch { }
           } else if (role === 'broker') {
             setBrokerBudgetStatus(msg.request);
           }
@@ -467,7 +469,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           setLiveAuctioneerCall(call);
           if (call) {
             const currentPrice = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
-            try { sounds.playAuctioneerCall(call, currentPrice); } catch {}
+            try { sounds.playAuctioneerCall(call, currentPrice); } catch { }
             auctioneerCallTimeoutRef.current = setTimeout(() => {
               setLiveAuctioneerCall(null);
             }, 7500);
@@ -483,7 +485,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             const isClient = msg.bid.paddleNumber?.includes('101');
             sounds.playBidVoice(msg.bid.amount, msg.bid.paddleNumber, isClient);
           } else {
-            try { sounds.playBidPing(); } catch {}
+            try { sounds.playBidPing(); } catch { }
           }
           fetchStateFromServer();
         } else if (msg.type === 'AUCTION_FINALIZED') {
@@ -526,14 +528,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         } else if (msg.type === 'ROOM_ANNOUNCEMENT') {
           if (msg.text) {
             setLiveAnnouncement(msg.text);
-            try { sounds.playBidPing(); } catch {}
+            try { sounds.playBidPing(); } catch { }
           }
         } else if (msg.type === 'ROOM_ACCESS_REVOKED') {
           if (!isBroker) {
             setIsRoomAccessExpired(true);
           }
         }
-      } catch {}
+      } catch { }
     });
 
     return () => {
@@ -558,11 +560,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     ? vehicle.reference_url.trim()
     : `https://www.copart.com/${lang === 'es' ? 'es/' : ''}lot/${cleanLotNumber}`;
   const allImages: VehicleImage[] = vehicle?.images || [];
-  
+
   const filteredCategoryImages = selectedCategory === 'todas'
     ? allImages
     : allImages.filter((img) => img.category === selectedCategory);
-  
+
   const displayedImages = filteredCategoryImages.length > 0 ? filteredCategoryImages : (allImages.length > 0 ? allImages : [{
     id: 'img-default',
     vehicle_id: vehicle?.id || 'veh-001',
@@ -855,11 +857,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 flex flex-col font-sans select-none antialiased">
-      
+
       {/* 1. BARRA SUPERIOR AUTÉNTICA COPART VB3 LIVE */}
       <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-3 sm:px-6 py-2 shadow-xl sticky top-0 z-40">
         <div className="max-w-[1720px] mx-auto flex items-center justify-between">
-          
+
           <div className="flex items-center gap-2 sm:gap-6">
             <div className="sm:hidden">
               <CopartLogo size="sm" showSubtitle={false} className="py-0.5 filter drop-shadow-md" />
@@ -921,22 +923,33 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* BOTÓN GUÍA DE INDUCCIÓN AL COMPRADOR */}
+            <button
+              type="button"
+              onClick={() => setIsBuyerGuideOpen(true)}
+              className="flex items-center gap-1.5 bg-[#081528] hover:bg-[#0c2242] border border-blue-500/60 px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-200 hover:text-white transition shadow cursor-pointer whitespace-nowrap"
+              title="¿Cómo funciona tu sala en vivo? Guía rápida de inducción para el comprador"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">¿Cómo funciona mi sala?</span>
+              <span className="sm:hidden">Guía ℹ️</span>
+            </button>
+
             {/* HORARIO REAL DE ESTADOS UNIDOS (USA / EST) */}
             <div className="hidden sm:flex items-center gap-2 bg-[#07111e] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono font-black text-amber-300 shadow-inner">
               <Clock className="w-4 h-4 text-amber-400" />
               <span>{usTime || '12:00:00 PM EST'}</span>
             </div>
-            
+
             {/* SELECTOR BILINGÜE EN / ES */}
             <div className="flex items-center bg-[#07111e] border border-slate-700/80 rounded-lg p-0.5 text-xs font-bold shadow-inner">
               <button
                 type="button"
                 onClick={() => setLang('en')}
-                className={`px-2.5 py-1 rounded text-xs font-black transition ${
-                  lang === 'en'
+                className={`px-2.5 py-1 rounded text-xs font-black transition ${lang === 'en'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
-                }`}
+                  }`}
                 title="Switch interface to English (Default US Terminal)"
               >
                 EN
@@ -944,11 +957,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <button
                 type="button"
                 onClick={() => setLang('es')}
-                className={`px-2.5 py-1 rounded text-xs font-black transition ${
-                  lang === 'es'
+                className={`px-2.5 py-1 rounded text-xs font-black transition ${lang === 'es'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
-                }`}
+                  }`}
                 title="Cambiar interfaz a Español"
               >
                 ES
@@ -988,11 +1000,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             {/* Botón de Audio Visible y Claro */}
             <button
               onClick={handleToggleAudio}
-              className={`px-2.5 py-1.5 rounded text-xs font-black border flex items-center gap-1.5 transition shadow ${
-                isAudioMuted
+              className={`px-2.5 py-1.5 rounded text-xs font-black border flex items-center gap-1.5 transition shadow ${isAudioMuted
                   ? 'bg-rose-950/80 border-rose-600 text-rose-300 hover:bg-rose-900'
                   : 'bg-emerald-950/80 border-emerald-500 text-emerald-300 hover:bg-emerald-900'
-              }`}
+                }`}
               title={isAudioMuted ? 'Activar sonido de la subasta' : 'Silenciar sonido'}
             >
               {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
@@ -1028,16 +1039,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         <div className="max-w-[1720px] w-full mx-auto flex items-center justify-between">
           <div className="flex items-center gap-1.5 overflow-x-auto">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1 hidden sm:inline">LANES:</span>
-            
+
             {/* LANE A (LIVE) */}
             <button
               type="button"
               onClick={() => setSelectedLane('A')}
-              className={`px-3 py-1 rounded-md text-xs font-black flex items-center gap-2 transition ${
-                selectedLane === 'A'
+              className={`px-3 py-1 rounded-md text-xs font-black flex items-center gap-2 transition ${selectedLane === 'A'
                   ? 'bg-emerald-600 text-white shadow-lg ring-1 ring-emerald-400'
                   : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800'
-              }`}
+                }`}
             >
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span>LANE A • LIVE (Atlanta East Yard 12)</span>
@@ -1047,11 +1057,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             <button
               type="button"
               onClick={() => setSelectedLane('B')}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${
-                selectedLane === 'B'
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${selectedLane === 'B'
                   ? 'bg-blue-600 text-white shadow ring-1 ring-blue-400'
                   : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800'
-              }`}
+                }`}
               title="Carril B: Próxima apertura 2:00 PM EST"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -1062,11 +1071,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             <button
               type="button"
               onClick={() => setSelectedLane('C')}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${
-                selectedLane === 'C'
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${selectedLane === 'C'
                   ? 'bg-blue-600 text-white shadow ring-1 ring-blue-400'
                   : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800'
-              }`}
+                }`}
               title="Carril C: Subasta pesada y camiones"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
@@ -1110,23 +1118,22 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
       {/* 2. ÁREA PRINCIPAL: SHOWCASE DEL VEHÍCULO Y TERMINAL DE PUJAS */}
       <main className="flex-1 max-w-[1720px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
-        
+
         {/* COLUMNA IZQUIERDA (7 COLUMNAS): VEHÍCULO COMO PROTAGONISTA */}
         <div className="lg:col-span-7 flex flex-col gap-3">
-          
+
           {/* FOTOGRAFÍA PRINCIPAL CON NAVEGACIÓN Y ZOOM */}
           <div className="relative bg-[#09101c] border border-[#1b2b44] rounded-lg overflow-hidden shadow-2xl group">
-            
+
             {/* Badges Superiores sobre la Fotografía */}
             <div className="absolute top-2.5 left-2.5 z-20 flex flex-wrap gap-1.5">
               <span className="bg-[#002855]/95 text-white font-black text-xs px-2.5 py-1 rounded border border-blue-400/40 shadow backdrop-blur">
                 {t('lotPrefix')} #{vehicle?.lot_number || '48291032'}
               </span>
-              <span className={`text-xs font-black px-2.5 py-1 rounded shadow backdrop-blur ${
-                (vehicle?.custom_badges?.runDriveText || vehicle?.vehicle_condition) === 'run_and_drive' || (vehicle?.custom_badges?.runDriveText && vehicle.custom_badges.runDriveText.toLowerCase().includes('run'))
+              <span className={`text-xs font-black px-2.5 py-1 rounded shadow backdrop-blur ${(vehicle?.custom_badges?.runDriveText || vehicle?.vehicle_condition) === 'run_and_drive' || (vehicle?.custom_badges?.runDriveText && vehicle.custom_badges.runDriveText.toLowerCase().includes('run'))
                   ? 'bg-emerald-600 text-white'
                   : 'bg-amber-600 text-white'
-              }`}>
+                }`}>
                 {vehicle?.custom_badges?.runDriveText || (vehicle?.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS')}
               </span>
               <span className="bg-slate-900/90 text-amber-300 border border-amber-400/40 font-mono text-xs px-2.5 py-1 rounded shadow">
@@ -1149,11 +1156,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     e.stopPropagation();
                     handleTriggerEngineSound();
                   }}
-                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
-                    isEngineRunning
+                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${isEngineRunning
                       ? 'bg-amber-500 text-slate-950 border-amber-300 animate-pulse ring-2 ring-amber-400'
                       : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
-                  }`}
+                    }`}
                   title="Escuchar sonido de arranque y aceleración del motor verificado en patio"
                 >
                   <Volume2 className={`w-3.5 h-3.5 ${isEngineRunning ? 'animate-bounce text-slate-950' : 'text-amber-400'}`} />
@@ -1169,11 +1175,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     e.stopPropagation();
                     handleToggle360();
                   }}
-                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
-                    is360Active
+                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${is360Active
                       ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-300 animate-pulse'
                       : 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
-                  }`}
+                    }`}
                   title="Activar vista panorámica y giro 360° de las fotografías"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${is360Active ? 'animate-spin' : ''}`} />
@@ -1233,15 +1238,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     e.stopPropagation();
                     setActiveExtraBadgeModal(badge);
                   }}
-                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
-                    badge.color === 'emerald'
+                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${badge.color === 'emerald'
                       ? 'bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400'
                       : badge.color === 'blue'
-                      ? 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
-                      : badge.color === 'purple'
-                      ? 'bg-black/85 hover:bg-black text-purple-300 border-purple-500/50 hover:border-purple-400'
-                      : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
-                  }`}
+                        ? 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
+                        : badge.color === 'purple'
+                          ? 'bg-black/85 hover:bg-black text-purple-300 border-purple-500/50 hover:border-purple-400'
+                          : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
+                    }`}
                   title={badge.modalTitle || badge.label}
                 >
                   <Tag className="w-3.5 h-3.5" />
@@ -1322,20 +1326,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               {/* Overlay llamativo de Llamada del Martillero sobre la foto */}
               {liveAuctioneerCall && (
                 <div className="absolute bottom-3 inset-x-3 z-20 flex justify-center pointer-events-none">
-                  <div className={`px-4 py-2 rounded-xl text-center font-black uppercase tracking-wider border-2 shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce ${
-                    liveAuctioneerCall === 'going_once'
+                  <div className={`px-4 py-2 rounded-xl text-center font-black uppercase tracking-wider border-2 shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce ${liveAuctioneerCall === 'going_once'
                       ? 'bg-amber-500/95 text-slate-950 border-amber-300 shadow-amber-500/50'
                       : liveAuctioneerCall === 'going_twice'
-                      ? 'bg-orange-500/95 text-slate-950 border-orange-300 shadow-orange-500/50'
-                      : 'bg-rose-600/95 text-white border-rose-300 shadow-rose-600/60'
-                  }`}>
+                        ? 'bg-orange-500/95 text-slate-950 border-orange-300 shadow-orange-500/50'
+                        : 'bg-rose-600/95 text-white border-rose-300 shadow-rose-600/60'
+                    }`}>
                     <Gavel className="w-4 h-4 shrink-0" />
                     <span className="text-xs sm:text-sm font-black">
                       {liveAuctioneerCall === 'going_once'
                         ? '📢 GOING ONCE • ¡A LA UNA!'
                         : liveAuctioneerCall === 'going_twice'
-                        ? '🔥 GOING TWICE • ¡A LAS DOS!'
-                        : '⚠️ FAIR WARNING • ¡ÚLTIMA ADVERTENCIA!'}
+                          ? '🔥 GOING TWICE • ¡A LAS DOS!'
+                          : '⚠️ FAIR WARNING • ¡ÚLTIMA ADVERTENCIA!'}
                     </span>
                   </div>
                 </div>
@@ -1357,11 +1360,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         setSelectedCategory(cat);
                         setSelectedImageIdx(0);
                       }}
-                      className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase transition flex items-center gap-1 ${
-                        selectedCategory === cat
+                      className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase transition flex items-center gap-1 ${selectedCategory === cat
                           ? 'bg-amber-500 text-slate-950 font-black shadow'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                      }`}
+                        }`}
                     >
                       <span>{catLabel}</span>
                       <span className="text-[9.5px] opacity-70">({count})</span>
@@ -1382,9 +1384,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <button
                     key={img.id || idx}
                     onClick={() => setSelectedImageIdx(idx)}
-                    className={`relative flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition ${
-                      idx === selectedImageIdx ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-slate-800 opacity-60 hover:opacity-100'
-                    }`}
+                    className={`relative flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition ${idx === selectedImageIdx ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-slate-800 opacity-60 hover:opacity-100'
+                      }`}
                   >
                     <img
                       src={img.url}
@@ -1424,7 +1425,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* Cuadrícula de Especificaciones Completas */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              
+
               {/* Odómetro con Switch MI / KM */}
               <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
                 <div className="flex items-center justify-between">
@@ -1573,13 +1574,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 return (
                   <div
                     key={p.paddle}
-                    className={`p-3 rounded-xl border transition ${
-                      isCurrentWinner
+                    className={`p-3 rounded-xl border transition ${isCurrentWinner
                         ? 'bg-emerald-950/90 border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.35)] ring-2 ring-emerald-400'
                         : p.isBuyer
-                        ? 'bg-[#061124] border-blue-600/70 shadow'
-                        : 'bg-[#050912] border-slate-800 shadow-sm'
-                    }`}
+                          ? 'bg-[#061124] border-blue-600/70 shadow'
+                          : 'bg-[#050912] border-slate-800 shadow-sm'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className={`font-mono font-black text-sm sm:text-base ${isCurrentWinner ? 'text-emerald-300' : p.isBuyer ? 'text-blue-300' : 'text-amber-400'}`}>
@@ -1620,11 +1620,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
         {/* COLUMNA DERECHA (5 COLUMNAS): TERMINAL DE OFERTAS EN DIRECTO */}
         <div className="lg:col-span-5 flex flex-col gap-3">
-          
-          <div className={`bg-[#09101c] border-2 rounded-lg p-4 sm:p-5 shadow-2xl transition-all duration-300 ${
-            bidFlash ? 'border-emerald-400 bg-emerald-950/20' : 'border-[#1b2b44]'
-          }`}>
-            
+
+          <div className={`bg-[#09101c] border-2 rounded-lg p-4 sm:p-5 shadow-2xl transition-all duration-300 ${bidFlash ? 'border-emerald-400 bg-emerald-950/20' : 'border-[#1b2b44]'
+            }`}>
+
             {/* Header del bloque con Estado y Contador */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
@@ -1648,20 +1647,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* MEGA BANNER DE LLAMADAS DEL MARTILLERO EN VIVO (GOING ONCE / GOING TWICE / FAIR WARNING) */}
             {liveAuctioneerCall && (
-              <div className={`mt-3.5 py-3 px-4 rounded-xl text-center font-black uppercase tracking-wider border-2 shadow-2xl flex items-center justify-center gap-3 animate-pulse ${
-                liveAuctioneerCall === 'going_once'
+              <div className={`mt-3.5 py-3 px-4 rounded-xl text-center font-black uppercase tracking-wider border-2 shadow-2xl flex items-center justify-center gap-3 animate-pulse ${liveAuctioneerCall === 'going_once'
                   ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 border-amber-200 ring-4 ring-amber-400/50'
                   : liveAuctioneerCall === 'going_twice'
-                  ? 'bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 text-slate-950 border-orange-200 ring-4 ring-orange-400/50'
-                  : 'bg-gradient-to-r from-rose-700 via-red-600 to-rose-700 text-white border-rose-200 ring-4 ring-rose-500/60'
-              }`}>
+                    ? 'bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 text-slate-950 border-orange-200 ring-4 ring-orange-400/50'
+                    : 'bg-gradient-to-r from-rose-700 via-red-600 to-rose-700 text-white border-rose-200 ring-4 ring-rose-500/60'
+                }`}>
                 <Gavel className="w-5 h-5 animate-bounce shrink-0" />
                 <span className="text-xs sm:text-sm md:text-base font-black tracking-wide">
                   {liveAuctioneerCall === 'going_once'
                     ? (lang === 'en' ? '📢 GOING ONCE — FIRST CALL!' : '📢 ¡A LA UNA! — GOING ONCE (PRIMER AVISO)')
                     : liveAuctioneerCall === 'going_twice'
-                    ? (lang === 'en' ? '🔥 GOING TWICE — LAST CALL!' : '🔥 ¡A LAS DOS! — GOING TWICE (ÚLTIMA LLAMADA)')
-                    : (lang === 'en' ? '⚠️ FAIR WARNING — FINAL CALL!' : '⚠️ ¡ÚLTIMA ADVERTENCIA! — FAIR WARNING (MARTILLO POR CAER)')}
+                      ? (lang === 'en' ? '🔥 GOING TWICE — LAST CALL!' : '🔥 ¡A LAS DOS! — GOING TWICE (ÚLTIMA LLAMADA)')
+                      : (lang === 'en' ? '⚠️ FAIR WARNING — FINAL CALL!' : '⚠️ ¡ÚLTIMA ADVERTENCIA! — FAIR WARNING (MARTILLO POR CAER)')}
                 </span>
               </div>
             )}
@@ -1671,7 +1669,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <span className="text-xs sm:text-sm font-black text-slate-300 uppercase tracking-widest block mb-1">
                 {lang === 'en' ? 'CURRENT BID' : 'PRECIO VIGENTE DE SUBASTA (CURRENT BID)'}
               </span>
-              
+
               <div className="flex items-center justify-center gap-2">
                 <span className="text-3xl sm:text-4xl font-black text-emerald-500">$</span>
                 <span className="text-5xl sm:text-6xl font-black font-mono tracking-tight text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.35)]">
@@ -1683,11 +1681,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               {/* Indicador de Postor Vigente */}
               <div className="mt-2.5 flex items-center justify-center">
                 {(session as any).currentWinnerPaddle || session.current_bidder_name ? (
-                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold ${
-                    isBrokerWinning
+                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold ${isBrokerWinning
                       ? 'bg-emerald-950/90 border border-emerald-400 text-emerald-300 animate-pulse shadow'
                       : 'bg-rose-950/90 border border-rose-600/80 text-rose-300 shadow'
-                  }`}>
+                    }`}>
                     {isBrokerWinning ? (
                       <>
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -1707,20 +1704,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
               {/* SECUENCIA DE VOZ / LLAMADAS DEL SUBASTADOR EN VIVO */}
               {liveAuctioneerCall && (
-                <div className={`mt-2.5 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border shadow-lg animate-pulse ${
-                  liveAuctioneerCall === 'going_once'
+                <div className={`mt-2.5 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border shadow-lg animate-pulse ${liveAuctioneerCall === 'going_once'
                     ? 'bg-amber-500 text-slate-950 border-amber-300 ring-2 ring-amber-400/50'
                     : liveAuctioneerCall === 'going_twice'
-                    ? 'bg-orange-500 text-slate-950 border-orange-300 ring-2 ring-orange-400/50'
-                    : 'bg-rose-600 text-white border-rose-400 ring-2 ring-rose-500/50'
-                }`}>
+                      ? 'bg-orange-500 text-slate-950 border-orange-300 ring-2 ring-orange-400/50'
+                      : 'bg-rose-600 text-white border-rose-400 ring-2 ring-rose-500/50'
+                  }`}>
                   <Gavel className="w-4 h-4" />
                   <span>
                     {liveAuctioneerCall === 'going_once'
                       ? (lang === 'en' ? '📢 GOING ONCE' : '📢 GOING ONCE — PRIMER AVISO')
                       : liveAuctioneerCall === 'going_twice'
-                      ? (lang === 'en' ? '🔥 GOING TWICE — LAST CALL' : '🔥 GOING TWICE — ÚLTIMA LLAMADA')
-                      : (lang === 'en' ? '⚠️ FAIR WARNING — FINAL CALL' : '⚠️ FAIR WARNING — AVISO FINAL')}
+                        ? (lang === 'en' ? '🔥 GOING TWICE — LAST CALL' : '🔥 GOING TWICE — ÚLTIMA LLAMADA')
+                        : (lang === 'en' ? '⚠️ FAIR WARNING — FINAL CALL' : '⚠️ FAIR WARNING — AVISO FINAL')}
                   </span>
                 </div>
               )}
@@ -1846,14 +1842,25 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       </span>
                     </div>
                   </div>
-                  <a
-                    href={copartLotUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
-                  >
-                    <span>Revisar en Copart ↗</span>
-                  </a>
+                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                    <a
+                      href={copartLotUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
+                    >
+                      <span>Revisar en Copart ↗</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setIsBuyerGuideOpen(true)}
+                      className="px-3 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-200 border border-blue-600/60 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition whitespace-nowrap"
+                      title="Ver explicación de cómo opera tu broker en esta sala"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                      <span>¿Cómo funciona?</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1922,24 +1929,23 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <button
                     onClick={() => handlePlaceBrokerBid(authorizedBidAmount || undefined)}
                     disabled={
-                      isSubmittingBid || 
-                      !['open', 'bidding', 'last_call'].includes(session.status) || 
+                      isSubmittingBid ||
+                      !['open', 'bidding', 'last_call'].includes(session.status) ||
                       !activeParticipant ||
                       (isNextBidOverBudget && !authorizedBidAmount)
                     }
-                    className={`w-full font-black py-3.5 px-4 rounded-lg shadow-xl text-base sm:text-lg flex items-center justify-center gap-2 transition active:scale-95 border-b-4 ${
-                      authorizedBidAmount
+                    className={`w-full font-black py-3.5 px-4 rounded-lg shadow-xl text-base sm:text-lg flex items-center justify-center gap-2 transition active:scale-95 border-b-4 ${authorizedBidAmount
                         ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 border-emerald-700 animate-pulse'
                         : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-800'
-                    }`}
+                      }`}
                   >
                     <Flame className="w-5 h-5" />
                     <span>
                       {isSubmittingBid
                         ? t('submittingBid')
                         : authorizedBidAmount
-                        ? (lang === 'en' ? `BID $${authorizedBidAmount.toLocaleString()} USD (AUTHORIZED)` : `PUJAR $${authorizedBidAmount.toLocaleString()} USD (OFERTA AUTORIZADA)`)
-                        : (lang === 'en' ? `BID $${nextBidAmount.toLocaleString()} USD` : `PUJAR $${nextBidAmount.toLocaleString()} USD (OFERTA BROKER)`)}
+                          ? (lang === 'en' ? `BID $${authorizedBidAmount.toLocaleString()} USD (AUTHORIZED)` : `PUJAR $${authorizedBidAmount.toLocaleString()} USD (OFERTA AUTORIZADA)`)
+                          : (lang === 'en' ? `BID $${nextBidAmount.toLocaleString()} USD` : `PUJAR $${nextBidAmount.toLocaleString()} USD (OFERTA BROKER)`)}
                     </span>
                   </button>
                 )}
@@ -2199,26 +2205,24 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
           {/* REGISTRO DE ACTIVIDAD Y PARTICIPANTES REALES */}
           <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3 flex-1 flex flex-col min-h-[240px] shadow-xl text-xs">
-            
+
             <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setActiveTab('bids')}
-                  className={`font-bold pb-1 transition border-b-2 ${
-                    activeTab === 'bids'
+                  className={`font-bold pb-1 transition border-b-2 ${activeTab === 'bids'
                       ? 'border-amber-400 text-amber-400'
                       : 'border-transparent text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   {t('tabBidHistory')} ({bids.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('participants')}
-                  className={`font-bold pb-1 transition border-b-2 ${
-                    activeTab === 'participants'
+                  className={`font-bold pb-1 transition border-b-2 ${activeTab === 'participants'
                       ? 'border-amber-400 text-amber-400'
                       : 'border-transparent text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   {t('tabParticipants')} ({participants.length})
                 </button>
@@ -2240,11 +2244,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   bids.map((b) => (
                     <div
                       key={b.id}
-                      className={`flex items-center justify-between p-2 rounded text-xs border ${
-                        (b as any).paddle_number?.includes('101')
+                      className={`flex items-center justify-between p-2 rounded text-xs border ${(b as any).paddle_number?.includes('101')
                           ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-200'
                           : 'bg-[#050912] border-slate-800/80 text-slate-200'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[9.5px] font-mono bg-blue-950 text-blue-300 border border-blue-800 px-1.5 py-0.5 rounded font-bold">
@@ -2288,11 +2291,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   return (
                     <div
                       key={p.paddle}
-                      className={`flex items-center justify-between p-2 rounded border text-xs ${
-                        isLeading 
+                      className={`flex items-center justify-between p-2 rounded border text-xs ${isLeading
                           ? 'bg-emerald-950/60 border-emerald-500/80 shadow'
                           : 'bg-[#050912] border-slate-800/80'
-                      }`}
+                        }`}
                     >
                       <div>
                         <div className="font-bold text-white flex items-center gap-1.5">
@@ -2308,11 +2310,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         <span className="text-[10px] text-slate-400">{p.loc}</span>
                       </div>
 
-                      <span className={`px-2 py-0.5 rounded text-[9.5px] font-bold uppercase border ${
-                        isLeading 
+                      <span className={`px-2 py-0.5 rounded text-[9.5px] font-bold uppercase border ${isLeading
                           ? 'bg-emerald-500 text-slate-950 border-emerald-300 font-black animate-pulse'
                           : 'bg-emerald-950 border-emerald-700/60 text-emerald-300'
-                      }`}>
+                        }`}>
                         {isLeading ? (lang === 'en' ? 'HIGH BIDDER' : 'LÍDER') : (lang === 'en' ? 'AUTHORIZED' : 'AUTORIZADO')}
                       </span>
                     </div>
@@ -2379,9 +2380,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     }}
                     className="w-full h-full object-cover opacity-85 hover:opacity-100 transition"
                   />
-                  <span className={`absolute top-1.5 left-1.5 font-bold text-[9px] px-2 py-0.5 rounded shadow uppercase ${
-                    idx === 0 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'
-                  }`}>
+                  <span className={`absolute top-1.5 left-1.5 font-bold text-[9px] px-2 py-0.5 rounded shadow uppercase ${idx === 0 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'
+                    }`}>
                     {idx === 0 ? 'ON DECK (NEXT)' : `IN LINE #${idx + 2}`}
                   </span>
                   <span className="absolute bottom-1.5 right-1.5 bg-black/80 text-slate-300 font-mono font-bold text-[10px] px-1.5 py-0.5 rounded">
@@ -2406,7 +2406,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       {/* 3. CONSOLA DEL OPERADOR/BROKER ("LO MANEJO YO") */}
       {isBroker && (
         <div className="sticky bottom-0 z-50 bg-[#080d18]/95 backdrop-blur-md border-t-2 border-amber-500 shadow-2xl">
-          
+
           {/* BANNER ATENCIÓN SIGUIENTE CLIENTE TRAS FINALIZAR */}
           {(session.status === 'sold' || session.status === 'closed') && (
             <div className="bg-gradient-to-r from-amber-950/90 via-[#002855] to-[#0e1828] border-b border-amber-500/50 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xl animate-fadeIn">
@@ -2539,7 +2539,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               {/* Sección 2: Gestión de Fotografías */}
               <div className="border-t border-slate-800 pt-3">
                 <h4 className="font-bold text-amber-400 uppercase tracking-wider text-[11px] mb-2">Administrar Fotografías ({editVehicleState.images?.length || 0})</h4>
-                
+
                 {/* Formulario para agregar foto */}
                 <div className="bg-[#070e1a] p-2.5 rounded-lg border border-slate-800 space-y-2 mb-3">
                   <div className="flex gap-2">
@@ -2587,13 +2587,13 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   {editVehicleState.images?.map((img: VehicleImage, i: number) => (
                     <div key={img.id || i} className="relative group rounded border border-slate-800 overflow-hidden bg-black aspect-[4/3]">
                       <img
-                      src={img.url}
-                      alt=""
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
-                      }}
-                      className="w-full h-full object-cover"
-                    />
+                        src={img.url}
+                        alt=""
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
+                        }}
+                        className="w-full h-full object-cover"
+                      />
                       <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] text-center font-bold text-amber-300 uppercase truncate">
                         {img.category}
                       </span>
@@ -3120,6 +3120,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         brokerName={activeParticipant?.name || 'Broker Oficial Copart'}
         paddleNumber={activeParticipant?.paddleNumber || '101'}
         currentPrice={Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)}
+      />
+
+      {/* MODAL OFICIAL: GUÍA DE INDUCCIÓN AL COMPRADOR */}
+      <BuyerGuideModal
+        isOpen={isBuyerGuideOpen}
+        onClose={() => setIsBuyerGuideOpen(false)}
+        brokerName={activeParticipant?.name || 'Broker Oficial Copart'}
+        paddleNumber={activeParticipant?.paddleNumber || '101'}
+        lotNumber={vehicle?.lot_number || '48291032'}
       />
     </div>
   );

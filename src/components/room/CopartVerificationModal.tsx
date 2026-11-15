@@ -1,17 +1,17 @@
 import React from 'react';
-import { 
-  ShieldCheck, 
-  Car, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  UserCheck, 
-  Gavel, 
-  FileCheck2, 
-  CreditCard, 
-  ExternalLink, 
-  X, 
-  CheckCircle2, 
+import {
+  ShieldCheck,
+  Car,
+  Calendar,
+  Clock,
+  MapPin,
+  UserCheck,
+  Gavel,
+  FileCheck2,
+  CreditCard,
+  ExternalLink,
+  X,
+  CheckCircle2,
   AlertTriangle,
   Building2,
   Lock
@@ -43,8 +43,8 @@ export const CopartVerificationModal: React.FC<CopartVerificationModalProps> = (
   const cleanLot = lotNumber.replace(/[^0-9]/g, '');
   const vin = vehicle?.vin || '1FA6P8CF8N5103982';
   const yardLocation = vehicle?.location || 'Atlanta East Yard 12 (Georgia, USA)';
-  const copartUrl = vehicle?.reference_url?.trim() 
-    ? vehicle.reference_url.trim() 
+  const copartUrl = vehicle?.reference_url?.trim()
+    ? vehicle.reference_url.trim()
     : `https://www.copart.com/es/lot/${cleanLot}`;
 
   const checks = [
@@ -254,8 +254,8 @@ export const CopartVerificationModal: React.FC<CopartVerificationModalProps> = (
                 Protocolo Anti-Fraude y Garantía Contractual:
               </strong>
               <span>
-                Para proteger tu inversión, asegúrate siempre de que las 6 comprobaciones coincidan exactamente con tu contrato de intermediación. 
-                Los pagos fiduciarios se dirigen con exclusividad a la cuenta bancaria de la entidad contractual acreditada en Estados Unidos. 
+                Para proteger tu inversión, asegúrate siempre de que las 6 comprobaciones coincidan exactamente con tu contrato de intermediación.
+                Los pagos fiduciarios se dirigen con exclusividad a la cuenta bancaria de la entidad contractual acreditada en Estados Unidos.
                 Jamás realice giros a nombres personales o cuentas no avaladas contractualmente.
               </span>
             </div>

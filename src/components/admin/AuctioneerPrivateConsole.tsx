@@ -38,6 +38,7 @@ import { CopartLogo } from '../common/CopartLogo';
 import { VehiclesView } from './VehiclesView';
 import { VehicleBadgesModal } from './VehicleBadgesModal';
 import { CopartVerificationModal } from '../room/CopartVerificationModal';
+import { WhatsAppInviteModal } from './WhatsAppInviteModal';
 
 interface AuctioneerPrivateConsoleProps {
   session: AuctionSession;
@@ -95,6 +96,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [activeDocToken, setActiveDocToken] = useState<string | null>(null);
   const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
 
   const handleToggleAudio = () => {
     const next = !isAudioMuted;
@@ -557,6 +559,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             <span>Monitor Cliente</span>
             <ExternalLink className="w-3 h-3" />
           </a>
+
+          {/* Botón Invitar por WhatsApp */}
+          <button
+            type="button"
+            onClick={() => setIsWhatsAppModalOpen(true)}
+            className="bg-[#25D366] hover:bg-[#1EBE5D] text-slate-950 font-black px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer"
+            title="Enviar invitación por WhatsApp con el enlace de la sala en vivo al cliente"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline">Invitar por WhatsApp</span>
+            <span className="xl:hidden">WhatsApp</span>
+          </button>
         </div>
       </header>
 
@@ -1281,6 +1295,14 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               {copiedKey === 'buyer' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
               <span>Copiar Enlace Monitor Cliente (VB3)</span>
             </button>
+            <button
+              onClick={() => setIsWhatsAppModalOpen(true)}
+              className="bg-[#25D366] hover:bg-[#1EBE5D] text-slate-950 font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
+              title="Abrir ventana para enviar la invitación por WhatsApp al cliente con 1 clic"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Enviar por WhatsApp 📲</span>
+            </button>
           </div>
 
         </div>
@@ -1486,6 +1508,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         brokerName={lotBrokerName || 'Broker Oficial Copart'}
         paddleNumber="101"
         currentPrice={currentPrice}
+      />
+
+      {/* MODAL PARA ENVIAR INVITACIÓN POR WHATSAPP AL CLIENTE */}
+      <WhatsAppInviteModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        buyerUrl={buyerUrl}
+        vehicle={session.vehicle_snapshot || (session as any).vehicle}
+        buyerName={lotBuyerName || 'Cliente VIP'}
+        lotNumber={(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}
+        yardLocation={session.vehicle_snapshot?.location || 'Atlanta East Yard 12 (Georgia, USA)'}
+        paddleNumber="101"
       />
     </div>
   );
