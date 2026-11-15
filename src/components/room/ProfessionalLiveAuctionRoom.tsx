@@ -168,11 +168,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     if (isSubmittingBid) return;
     setIsSubmittingBid(true);
     try {
-      const token = initialBidderToken || activeParticipant?.token || 'part-101';
-      await store.submitRealBid(session.id, token, amount);
-      try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch {}
-      setClientBidFeedback(`✓ ¡Oferta de $${amount.toLocaleString()} USD enviada a sala!`);
+      const res = await store.submitManualBid(session.id, 'Paleta #101', amount);
+      if (res && res.success) {
+        try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch {}
+        setClientBidFeedback(`✓ ¡Oferta de $${amount.toLocaleString()} USD enviada a sala con Paleta #101!`);
+      } else {
+        // Fallback vía submitRealBid
+        const token = initialBidderToken || activeParticipant?.token || 'bdr_broker_m729k1';
+        await store.submitRealBid(session.id, token, amount);
+        try { sounds.playBidVoice(amount, 'Paleta #101', true); } catch {}
+        setClientBidFeedback(`✓ ¡Oferta de $${amount.toLocaleString()} USD enviada a sala!`);
+      }
       setTimeout(() => setClientBidFeedback(null), 3500);
+      await fetchStateFromServer();
     } catch {}
     setIsSubmittingBid(false);
   };
@@ -1793,6 +1801,24 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </div>
 
                 {/* BOTÓN OFICIAL DE PUJA DIRECTA COPART PARA EL COMPRADOR */}
+                {session.status === 'prepared' && (
+                  <div className="pt-2 border-t border-blue-900/60">
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full bg-slate-800/80 border border-slate-700 text-slate-400 font-bold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                    >
+                      <Clock className="w-4 h-4 text-amber-400 animate-spin" />
+                      <span>{lang === 'en' ? '⏳ WAITING FOR AUCTIONEER TO OPEN LOT' : '⏳ ESPERANDO QUE EL MARTILLERO ABRA EL LOTE'}</span>
+                    </button>
+                    <p className="text-[10px] text-slate-500 text-center mt-1">
+                      {lang === 'en'
+                        ? 'Inspection phase. Bidding unlocks when auctioneer starts the live round.'
+                        : 'Fase de inspección. El botón de puja se activará al iniciar la ronda en vivo.'}
+                    </p>
+                  </div>
+                )}
+
                 {['open', 'bidding', 'last_call'].includes(session.status) && (
                   <div className="space-y-2 pt-2 border-t border-blue-900/60">
                     {clientBidFeedback && (
