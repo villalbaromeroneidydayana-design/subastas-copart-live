@@ -513,9 +513,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             target="_blank"
             rel="noopener noreferrer"
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1 transition shadow"
-            title="Abrir transmisión en vivo para el Cliente (Espectador VIP emocionante, sin botones de puja)"
+            title="Abrir monitor de transmisión en vivo para el Cliente (Transmisión oficial Copart VB3)"
           >
-            <span>En Vivo Cliente</span>
+            <span>Monitor Cliente</span>
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
@@ -1185,10 +1185,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             <button
               onClick={() => copyToClipboard(buyerUrl, 'buyer')}
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
-              title="Copiar enlace de Transmisión en Vivo para el Cliente (Espectador VIP emocionante, sin botones de puja)"
+              title="Copiar enlace de Transmisión Oficial Copart VB3 para el Cliente (Monitor de Telemetría sin botones de puja)"
             >
               {copiedKey === 'buyer' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Copiar Enlace Transmisión (Cliente VIP)</span>
+              <span>Copiar Enlace Monitor Cliente (VB3)</span>
             </button>
           </div>
 

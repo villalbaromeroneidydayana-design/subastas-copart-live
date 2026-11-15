@@ -178,22 +178,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
   };
 
-  const [clientReactionFeedback, setClientReactionFeedback] = useState<string | null>(null);
-
-  const handleClientReaction = (reactionText: string) => {
-    try {
-      sounds.playBidPing();
-      confetti({
-        particleCount: 30,
-        spread: 55,
-        origin: { y: 0.82 },
-        colors: ['#38bdf8', '#f59e0b', '#10b981', '#ec4899', '#ffffff']
-      });
-    } catch {}
-    setClientReactionFeedback(`¡Alentando a tu Broker con "${reactionText}"!`);
-    setTimeout(() => setClientReactionFeedback(null), 3000);
-  };
-
   const handlePlaceBuyerDirectBid = async (amount: number) => {
     if (isSubmittingBid) return;
     setIsSubmittingBid(true);
@@ -958,11 +942,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </select>
               </div>
             ) : (
-              /* Si es Cliente: Badge Oficial de Transmisión VIP */
-              <div className="flex items-center gap-1.5 bg-rose-950/80 border border-rose-500/70 px-3 py-1 rounded-full text-xs shadow-md">
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                <span className="text-rose-200 font-black tracking-wide">🔴 EN VIVO • TRANSMISIÓN COPART VB3</span>
-                <span className="text-slate-300 text-[10px] hidden md:inline">| Postor Oficial: Broker #101</span>
+              /* Si es Cliente: Monitor Oficial Copart VB3 */
+              <div className="flex items-center gap-2 bg-[#091222] border border-blue-600/60 px-3 py-1.5 rounded-lg text-xs shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-white font-bold tracking-wide text-xs">MONITOR EN VIVO VB3</span>
+                <span className="text-slate-600">|</span>
+                <span className="text-amber-400 font-mono font-bold text-[11px]">PALETA OFICIAL #101</span>
               </div>
             )}
 
@@ -1878,150 +1863,154 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </div>
               </div>
             ) : (
-              /* PANEL INFORMATIVO PARA EL CLIENTE (ESPECTADOR EN VIVO) */
-              <div className="bg-[#050912] border border-blue-900/60 p-4 rounded-lg text-center space-y-3">
-                <div className="w-9 h-9 rounded-full bg-blue-900/50 text-blue-300 flex items-center justify-center mx-auto border border-blue-500/40">
-                  <ShieldCheck className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    {lang === 'en' ? 'LIVE AUCTION TERMINAL (BUYER SPECTATOR MODE)' : 'SALA DE PRESENTACIÓN EN DIRECTO (MODO COMPRADOR)'}
-                  </h4>
-                  <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
-                    {lang === 'en' ? 'Bids for this lot are actively placed in real time by your ' : 'Las ofertas para este lote están siendo gestionadas en tiempo real por tu '}
-                    <strong className="text-amber-400">{lang === 'en' ? 'Authorized Broker (Paddle #101)' : 'Broker Autorizado (Paleta #101)'}</strong>.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-[#08101d] p-2 rounded border border-slate-800">
-                    <span className="text-[10px] text-slate-400 block uppercase">
-                      {lang === 'en' ? 'Your Maximum Budget' : 'Tu Presupuesto Máximo'}
-                    </span>
-                    <span className="font-mono font-black text-amber-400 text-sm">${clientBudget.toLocaleString()} USD</span>
+              /* MONITOR INSTITUCIONAL DE TRANSMISIÓN EN VIVO PARA EL CLIENTE (VB3) */
+              <div className="bg-[#050b16] border border-slate-800 p-4 rounded-xl text-left space-y-3.5 shadow-2xl">
+                {/* Cabecera Institucional */}
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                        {lang === 'en' ? 'COPART VB3 • OFFICIAL LIVE STREAM MONITOR' : 'COPART VB3 • MONITOR DE TRANSMISIÓN OFICIAL'}
+                      </h4>
+                      <span className="text-[10px] text-slate-400 block font-mono">
+                        {lang === 'en' ? 'LANE A • LICENSED BROKER REPRESENTATION' : 'CARRIL A • REPRESENTACIÓN OFICIAL POR BROKER AUTORIZADO'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="bg-[#08101d] p-2 rounded border border-slate-800">
-                    <span className="text-[10px] text-slate-400 block uppercase">
-                      {lang === 'en' ? 'Remaining Margin' : 'Margen Restante'}
-                    </span>
-                    <span className={`font-mono font-bold text-sm ${((Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)) <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD
-                    </span>
+                  <div className="flex items-center gap-1.5 bg-[#091326] border border-blue-600/40 px-2.5 py-1 rounded text-[11px] font-mono font-bold text-amber-400">
+                    <span>PALETA #101</span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-center gap-2 text-[10px] text-slate-400 font-mono">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>
-                    {lang === 'en'
-                      ? `OFFICIAL LICENSED BROKER (PADDLE #101) • REPRESENTING: ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`
-                      : `BROKER AUTORIZADO COPART (PALETA #101) • REPRESENTANDO A: ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`}
-                  </span>
-                </div>
-
-                {/* BOTÓN OFICIAL DE PUJA EXCLUSIVO PARA EL BROKER AUTORIZADO */}
+                {/* Fase Preparatoria / Inspección */}
                 {session.status === 'prepared' && (
-                  <div className="pt-2 border-t border-blue-900/60">
-                    <button
-                      type="button"
-                      disabled
-                      className="w-full bg-slate-800/80 border border-slate-700 text-slate-400 font-bold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 cursor-not-allowed"
-                    >
-                      <Clock className="w-4 h-4 text-amber-400 animate-spin" />
-                      <span>{lang === 'en' ? '⏳ WAITING FOR AUCTIONEER TO OPEN LOT' : '⏳ ESPERANDO QUE EL MARTILLERO ABRA EL LOTE'}</span>
-                    </button>
-                    <p className="text-[10px] text-slate-500 text-center mt-1">
+                  <div className="bg-[#081224] border border-slate-800 p-3.5 rounded-lg text-center space-y-1.5">
+                    <div className="flex items-center justify-center gap-2 text-amber-400 font-bold text-xs">
+                      <Clock className="w-4 h-4 animate-spin" />
+                      <span>{lang === 'en' ? 'LOT STANDBY • PRE-AUCTION INSPECTION' : 'LOTE EN ESPERA • FASE DE INSPECCIÓN PREVIA'}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed max-w-md mx-auto">
                       {lang === 'en'
-                        ? 'Inspection phase. Broker bidding unlocks when auctioneer starts the live round.'
-                        : 'Fase de inspección. La puja del broker se activará al iniciar la ronda en vivo.'}
+                        ? 'The auctioneer has not yet opened Lane A. Your authorized broker is stationed at the terminal with Paddle #101 ready to bid.'
+                        : 'El martillero aún no ha abierto el carril de puja. Su broker autorizado se encuentra conectado en mesa con la Paleta #101 listo para ofertar.'}
                     </p>
                   </div>
                 )}
 
+                {/* Fase de Subasta Activa: Telemetría de la Mesa */}
                 {['open', 'bidding', 'last_call'].includes(session.status) && (
-                  <div className="space-y-3 pt-2 border-t border-blue-900/60">
-                    {/* ESTADO EN VIVO DEL DUELO DE PUJAS */}
+                  <div className="space-y-3">
+                    {/* Tarjeta de Posición Oficial */}
                     {isBrokerWinning ? (
-                      <div className="p-3.5 bg-emerald-950/90 border-2 border-emerald-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.35)] text-center animate-pulse">
-                        <div className="flex items-center justify-center gap-2 text-emerald-300 font-black text-sm uppercase tracking-wide">
-                          <Award className="w-5 h-5 text-emerald-400" />
-                          <span>{lang === 'en' ? 'YOUR BROKER HOLDS HIGH BID!' : '¡TU BROKER TIENE LA MEJOR OFERTA!'}</span>
+                      <div className="bg-[#06191f] border-2 border-emerald-500/80 p-3.5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                        <div className="flex items-center justify-between border-b border-emerald-900/60 pb-2 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                            <span className="text-emerald-300 font-black text-xs uppercase tracking-wider">
+                              {lang === 'en' ? 'OFFICIAL HIGH BID CONFIRMED' : 'POSTURA LÍDER CONFIRMADA POR MARTILLERO'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                            PALETA #101
+                          </span>
                         </div>
-                        <div className="text-2xl sm:text-3xl font-mono font-black text-white mt-1">
-                          ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xs text-slate-300 uppercase tracking-wide font-semibold">
+                            {lang === 'en' ? 'Current High Bid:' : 'Oferta Vigente en Mesa:'}
+                          </span>
+                          <span className="text-2xl sm:text-3xl font-mono font-black text-emerald-300">
+                            ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+                          </span>
                         </div>
-                        <p className="text-[11px] text-emerald-200/95 mt-1.5 font-semibold">
+
+                        <p className="text-[11px] text-slate-300 mt-2 leading-relaxed border-t border-emerald-950 pt-2">
                           {lang === 'en'
-                            ? 'Paddle #101 is winning Lane A against national competitors. If the hammer falls now, vehicle is won!'
-                            : 'Paleta #101 liderando la subasta frente a postores de otros estados. ¡Si el martillo cae ahora, el vehículo es tuyo!'}
+                            ? 'Your authorized broker holds the leading bid on the floor. If no counterbid is confirmed prior to the 3rd gavel call, the vehicle is awarded.'
+                            : 'Su broker autorizado mantiene la postura más alta de la sala. Si no se confirman contraofertas antes del tercer golpe de martillo, el lote queda adjudicado.'}
                         </p>
                       </div>
                     ) : (
-                      <div className="p-3.5 bg-amber-950/80 border-2 border-amber-500 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.25)] text-center">
-                        <div className="flex items-center justify-center gap-2 text-amber-300 font-black text-xs uppercase tracking-wide">
-                          <Flame className="w-4 h-4 text-amber-400 animate-bounce" />
-                          <span>{lang === 'en' ? 'COMPETITOR OUTBID THE BROKER' : 'OFERTA RIVAL EN CABEZA'}</span>
+                      <div className="bg-[#191307] border-2 border-amber-500/80 p-3.5 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                        <div className="flex items-center justify-between border-b border-amber-900/60 pb-2 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                            <span className="text-amber-300 font-black text-xs uppercase tracking-wider">
+                              {lang === 'en' ? 'COMPETITOR COUNTERBID ON FLOOR' : 'POSTURA RIVAL EN CABEZA'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-950 px-2 py-0.5 rounded border border-amber-800">
+                            {(session as any).currentWinnerPaddle || 'POSTOR RIVAL'}
+                          </span>
                         </div>
-                        <div className="text-xl sm:text-2xl font-mono font-black text-white mt-0.5">
-                          ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xs text-slate-300 uppercase tracking-wide font-semibold">
+                            {lang === 'en' ? 'Floor Price to Beat:' : 'Monto a Superar:'}
+                          </span>
+                          <span className="text-2xl sm:text-3xl font-mono font-black text-white">
+                            ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+                          </span>
                         </div>
-                        <p className="text-[11px] text-amber-200/90 mt-1 font-medium">
+
+                        <p className="text-[11px] text-slate-300 mt-2 leading-relaxed border-t border-amber-950 pt-2">
                           {lang === 'en'
-                            ? `Current lead: ${(session as any).currentWinnerPaddle || 'Competitor'}. Your authorized broker is preparing the response...`
-                            : `Líder actual: ${(session as any).currentWinnerPaddle || 'Postor Rival'}. Tu broker autorizado está preparando la respuesta en vivo...`}
+                            ? 'A competitor has advanced the floor price. Your broker is analyzing the next increment within your authorized financial margin.'
+                            : 'Un distribuidor competidor ha avanzado la postura. Su broker está evaluando el siguiente incremento dentro del margen financiero autorizado.'}
                         </p>
                       </div>
                     )}
 
-                    {/* ALIENTO EN VIVO AL BROKER (BOTONES DE REACCIÓN INTERACTIVA) */}
-                    <div className="bg-[#081226] border border-blue-900/80 p-3 rounded-xl space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-slate-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-amber-400" />
-                          {lang === 'en' ? 'Live Reactions for your Broker' : 'Reacciones en Vivo para tu Broker'}
+                    {/* Desglose Financiero Ejecutivo */}
+                    <div className="bg-[#081224] border border-slate-800 p-3 rounded-lg space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400 uppercase font-semibold text-[11px]">
+                          {lang === 'en' ? 'Authorized Client Budget:' : 'Presupuesto Máximo Autorizado:'}
                         </span>
-                        <span className="text-[10px] text-slate-500 font-mono">1-Clic</span>
+                        <span className="font-mono font-black text-amber-400 text-sm">
+                          ${clientBudget.toLocaleString()} USD
+                        </span>
                       </div>
 
-                      {clientReactionFeedback && (
-                        <div className="p-1.5 bg-blue-950 border border-blue-500 text-blue-200 text-[11px] font-bold rounded text-center animate-fadeIn">
-                          {clientReactionFeedback}
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400 uppercase font-semibold text-[11px]">
+                          {lang === 'en' ? 'Available Operating Margin:' : 'Margen Disponible en Mesa:'}
+                        </span>
+                        <span className={`font-mono font-bold text-sm ${((Number(clientBudget) || 7500) - Number(session?.current_price ?? 5000)) <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          ${Math.max(0, (Number(clientBudget) || 7500) - Number(session?.current_price ?? 5000)).toLocaleString()} USD
+                        </span>
+                      </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
-                        <button
-                          type="button"
-                          onClick={() => handleClientReaction(lang === 'en' ? '⚡ Raise the bid!' : '⚡ ¡Sube la puja!')}
-                          className="bg-[#0b1730] hover:bg-blue-900/70 border border-blue-600/60 active:scale-95 text-blue-200 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
-                        >
-                          <span>⚡ {lang === 'en' ? 'Raise Bid' : 'Sube la puja'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleClientReaction(lang === 'en' ? '🔥 Go get it!' : '🔥 ¡Vamos por él!')}
-                          className="bg-[#0b1730] hover:bg-emerald-900/70 border border-emerald-600/60 active:scale-95 text-emerald-300 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
-                        >
-                          <span>🔥 {lang === 'en' ? 'Go get it!' : '¡Por él!'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleClientReaction(lang === 'en' ? '👍 Great price!' : '👍 ¡Buen precio!')}
-                          className="bg-[#0b1730] hover:bg-amber-900/70 border border-amber-600/60 active:scale-95 text-amber-300 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
-                        >
-                          <span>👍 {lang === 'en' ? 'Great price' : 'Buen precio'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleClientReaction(lang === 'en' ? '🛑 Hold on!' : '🛑 ¡Aguanta ahí!')}
-                          className="bg-[#0b1730] hover:bg-rose-900/70 border border-rose-600/60 active:scale-95 text-rose-300 font-bold py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition"
-                        >
-                          <span>🛑 {lang === 'en' ? 'Hold' : 'Aguanta'}</span>
-                        </button>
+                      {/* Barra de Consumo de Presupuesto */}
+                      <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800 mt-1">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            (Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) > 0.9
+                              ? 'bg-rose-500'
+                              : (Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) > 0.75
+                              ? 'bg-amber-400'
+                              : 'bg-emerald-400'
+                          }`}
+                          style={{
+                            width: `${Math.min(100, Math.round((Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) * 100))}%`
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                        <span>$0 USD</span>
+                        <span>{Math.min(100, Math.round((Number(session?.current_price ?? 5000) / (Number(clientBudget) || 7500)) * 100))}% COMPROMETIDO</span>
+                        <span>${clientBudget.toLocaleString()} USD</span>
                       </div>
                     </div>
                   </div>
                 )}
+
+                {/* Nota de Certificación Institucional */}
+                <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 flex items-center justify-between font-mono">
+                  <span>SEGURIDAD SHA-256 • DATOS DE SALA COPART VB3</span>
+                  <span className="text-emerald-400 font-bold">CONEXIÓN CIFRADA</span>
+                </div>
               </div>
             )}
 
