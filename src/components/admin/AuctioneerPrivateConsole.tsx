@@ -84,6 +84,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [viewersCount, setViewersCount] = useState<number>(14);
   const [announcementText, setAnnouncementText] = useState<string>('');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState<boolean>(false);
+  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(sounds.isMuted);
+
+  const handleToggleAudio = () => {
+    const next = !isAudioMuted;
+    sounds.setMuted(next);
+    setIsAudioMuted(next);
+    if (!next) {
+      try { sounds.playBidPing(); } catch {}
+    }
+  };
 
   // Sincronización continua de datos en tiempo real
   const syncSessionData = async () => {
@@ -259,10 +269,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   // 3. LLAMADAS DEL SUBASTADOR (GOING ONCE, GOING TWICE, FAIR WARNING)
   const handleAuctioneerCall = async (callType: 'going_once' | 'going_twice' | 'fair_warning' | 'clear') => {
     setActiveCall(callType === 'clear' ? null : callType);
-    await store.sendAuctioneerCall(session.id, callType);
     if (callType !== 'clear') {
+      try {
+        sounds.playAuctioneerCall(callType);
+      } catch {}
       showFeedback(`📢 Aviso emitido a la sala: ${callType.toUpperCase().replace('_', ' ')}`);
     }
+    await store.sendAuctioneerCall(session.id, callType);
   };
 
   // 4. ADJUDICACIÓN MANUAL (SOLD / UNSOLD)
@@ -366,6 +379,21 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           >
             <Sliders className="w-3.5 h-3.5 text-amber-400" />
             <span>Parámetros</span>
+          </button>
+
+          {/* Control de Audio del Subastador */}
+          <button
+            type="button"
+            onClick={handleToggleAudio}
+            className={`px-2.5 py-1.5 rounded text-xs font-bold border flex items-center gap-1.5 transition shadow ${
+              isAudioMuted
+                ? 'bg-rose-950/80 border-rose-600 text-rose-300 hover:bg-rose-900'
+                : 'bg-emerald-950/80 border-emerald-500 text-emerald-300 hover:bg-emerald-900'
+            }`}
+            title={isAudioMuted ? 'Activar sonido en consola' : 'Silenciar sonido en consola'}
+          >
+            {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
+            <span className="font-bold">{isAudioMuted ? '🔇 Audio OFF' : '🔊 Audio ON'}</span>
           </button>
 
           {/* Estado de conexión con Backend */}

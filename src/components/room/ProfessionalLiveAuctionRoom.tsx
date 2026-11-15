@@ -825,18 +825,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </div>
             )}
 
-            {/* Botón de Audio */}
+            {/* Botón de Audio Visible y Claro */}
             <button
               onClick={handleToggleAudio}
-              className={`p-1.5 sm:px-2.5 sm:py-1 rounded text-xs font-semibold border flex items-center gap-1.5 transition ${
+              className={`px-2.5 py-1.5 rounded text-xs font-black border flex items-center gap-1.5 transition shadow ${
                 isAudioMuted
-                  ? 'bg-rose-950/60 border-rose-800 text-rose-300'
-                  : 'bg-emerald-950/60 border-emerald-700 text-emerald-300'
+                  ? 'bg-rose-950/80 border-rose-600 text-rose-300 hover:bg-rose-900'
+                  : 'bg-emerald-950/80 border-emerald-500 text-emerald-300 hover:bg-emerald-900'
               }`}
-              title={isAudioMuted ? t('unmuteTitle') : t('muteTitle')}
+              title={isAudioMuted ? 'Activar sonido de la subasta' : 'Silenciar sonido'}
             >
-              {isAudioMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              <span className="hidden sm:inline">{isAudioMuted ? t('mutedButton') : t('audioButton')}</span>
+              {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
+              <span className="font-bold">{isAudioMuted ? '🔇 Audio OFF' : '🔊 Audio ON'}</span>
             </button>
 
             {/* Enlace para Compartir con el Cliente (Espectador) */}

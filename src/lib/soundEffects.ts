@@ -4,6 +4,22 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   public isMuted: boolean = false;
 
+  constructor() {
+    if (typeof window !== 'undefined') {
+      const unlock = () => {
+        try {
+          const c = this.getContext();
+          if (c && c.state === 'suspended') {
+            c.resume();
+          }
+        } catch {}
+      };
+      window.addEventListener('click', unlock, { passive: true });
+      window.addEventListener('touchstart', unlock, { passive: true });
+      window.addEventListener('keydown', unlock, { passive: true });
+    }
+  }
+
   private getContext(): AudioContext | null {
     if (this.isMuted) return null;
     if (!this.ctx) {
