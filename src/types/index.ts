@@ -14,6 +14,32 @@ export interface VehicleImage {
   caption?: string;
 }
 
+export interface CustomBadgeItem {
+  id: string;
+  label: string;
+  action: 'engine_sound' | '360_view' | 'carfax' | 'custom_modal' | 'none';
+  color?: 'amber' | 'blue' | 'emerald' | 'purple' | 'slate';
+  modalTitle?: string;
+  modalContent?: string;
+}
+
+export interface CustomVehicleBadges {
+  engineSoundEnabled?: boolean;
+  engineSoundText?: string;
+  threeSixtyEnabled?: boolean;
+  threeSixtyText?: string;
+  carfaxEnabled?: boolean;
+  carfaxText?: string;
+  carfaxAccidents?: string;
+  carfaxOwners?: string;
+  carfaxServiceRecords?: string;
+  carfaxTitleStatus?: string;
+  carfaxVerifiedNotes?: string;
+  runDriveText?: string;
+  titleTypeText?: string;
+  extraBadges?: CustomBadgeItem[];
+}
+
 export interface Vehicle {
   id: string;
   brand: string;
@@ -45,6 +71,7 @@ export interface Vehicle {
   equipment?: string[];
   notes?: string;
   est_retail_value?: number;
+  custom_badges?: CustomVehicleBadges;
 
   images: VehicleImage[];
   created_at: string;

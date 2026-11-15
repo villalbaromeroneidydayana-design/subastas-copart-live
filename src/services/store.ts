@@ -123,7 +123,7 @@ class RealAuctionStore {
             this.notify();
           } else if (data.type === 'CLOCK_TICK') {
             this.notify();
-          } else if (data.type === 'STATUS_CHANGE' || data.type === 'AUCTION_RESET' || data.type === 'AUCTIONEER_CALL' || data.type === 'ROOM_ANNOUNCEMENT') {
+          } else if (data.type === 'STATUS_CHANGE' || data.type === 'AUCTION_RESET' || data.type === 'AUCTIONEER_CALL' || data.type === 'ROOM_ANNOUNCEMENT' || data.type === 'VEHICLE_UPDATED') {
             this.notify();
           }
         } catch {

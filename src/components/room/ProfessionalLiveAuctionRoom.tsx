@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AuctionSession, AuctionBid, VehicleImage, PhotoCategory } from '../../types';
+import { AuctionSession, AuctionBid, VehicleImage, PhotoCategory, CustomBadgeItem, CustomVehicleBadges } from '../../types';
 import { store, ParticipantInfo } from '../../services/store';
 import { sounds } from '../../lib/soundEffects';
 import { CopartLogo } from '../common/CopartLogo';
@@ -8,6 +8,7 @@ import { ImageGalleryModal } from '../common/ImageGalleryModal';
 import { RoomAccessExpiredView } from './RoomAccessExpiredView';
 import confetti from 'canvas-confetti';
 import { NextLotModal } from './NextLotModal';
+import { VehicleBadgesModal } from '../admin/VehicleBadgesModal';
 import { useTranslation, Language } from '../../lib/i18n';
 import { 
   Volume2, VolumeX, Eye, EyeOff, Play, Pause, CheckCircle2,
@@ -17,7 +18,7 @@ import {
   FastForward, User, Lock, ChevronLeft, ChevronRight,
   Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send,
   ArrowRightCircle, CheckCircle, Sparkles, ChevronDown, ChevronUp, Zap, Calculator,
-  ExternalLink as LinkIcon
+  ExternalLink as LinkIcon, Tag
 } from 'lucide-react';
 import { INITIAL_VEHICLES } from '../../services/seedData';
 
@@ -141,6 +142,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
   const [is360Active, setIs360Active] = useState<boolean>(false);
   const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
+  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState<boolean>(false);
+  const [activeExtraBadgeModal, setActiveExtraBadgeModal] = useState<CustomBadgeItem | null>(null);
+
+  const handleSaveBadges = async (updatedBadges: CustomVehicleBadges) => {
+    const currVeh = vehicle || {};
+    const updatedVeh = {
+      ...currVeh,
+      custom_badges: updatedBadges,
+    };
+    await store.updateSessionVehicle(session.id, updatedVeh);
+    await fetchStateFromServer();
+  };
 
   const handleTriggerEngineSound = () => {
     setIsEngineRunning(true);
@@ -1036,14 +1049,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 {t('lotPrefix')} #{vehicle?.lot_number || '48291032'}
               </span>
               <span className={`text-xs font-black px-2.5 py-1 rounded shadow backdrop-blur ${
-                vehicle?.vehicle_condition === 'run_and_drive'
+                (vehicle?.custom_badges?.runDriveText || vehicle?.vehicle_condition) === 'run_and_drive' || (vehicle?.custom_badges?.runDriveText && vehicle.custom_badges.runDriveText.toLowerCase().includes('run'))
                   ? 'bg-emerald-600 text-white'
                   : 'bg-amber-600 text-white'
               }`}>
-                {vehicle?.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS'}
+                {vehicle?.custom_badges?.runDriveText || (vehicle?.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS')}
               </span>
               <span className="bg-slate-900/90 text-amber-300 border border-amber-400/40 font-mono text-xs px-2.5 py-1 rounded shadow">
-                {(vehicle?.title_type || 'clean').toUpperCase()} TITLE
+                {vehicle?.custom_badges?.titleTypeText || `${(vehicle?.title_type || 'clean').toUpperCase()} TITLE`}
               </span>
               {activeImage?.category && (
                 <span className="bg-blue-950/90 text-blue-300 border border-blue-600/50 uppercase font-bold text-[10px] px-2 py-0.5 rounded shadow">
@@ -1052,61 +1065,102 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               )}
             </div>
 
-            {/* INSIGNIAS EXCLUSIVAS COPART: 360° View, Engine Sound, Carfax */}
+            {/* INSIGNIAS EXCLUSIVAS COPART: 360° View, Engine Sound, Carfax y Personalizadas */}
             <div className="absolute top-11 left-2.5 z-20 flex flex-wrap gap-1.5">
               {/* Botón Engine Sound */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleTriggerEngineSound();
-                }}
-                className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
-                  isEngineRunning
-                    ? 'bg-amber-500 text-slate-950 border-amber-300 animate-pulse ring-2 ring-amber-400'
-                    : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
-                }`}
-                title="Escuchar sonido de arranque y aceleración del motor V8 verificado en patio"
-              >
-                <Volume2 className={`w-3.5 h-3.5 ${isEngineRunning ? 'animate-bounce text-slate-950' : 'text-amber-400'}`} />
-                <span>{isEngineRunning ? 'V8 Revving...' : 'Engine Sound 🔊'}</span>
-              </button>
+              {vehicle?.custom_badges?.engineSoundEnabled !== false && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTriggerEngineSound();
+                  }}
+                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
+                    isEngineRunning
+                      ? 'bg-amber-500 text-slate-950 border-amber-300 animate-pulse ring-2 ring-amber-400'
+                      : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
+                  }`}
+                  title="Escuchar sonido de arranque y aceleración del motor verificado en patio"
+                >
+                  <Volume2 className={`w-3.5 h-3.5 ${isEngineRunning ? 'animate-bounce text-slate-950' : 'text-amber-400'}`} />
+                  <span>{isEngineRunning ? 'Revving...' : (vehicle?.custom_badges?.engineSoundText || 'Engine Sound 🔊')}</span>
+                </button>
+              )}
 
               {/* Botón 360° Walkaround */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggle360();
-                }}
-                className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
-                  is360Active
-                    ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-300 animate-pulse'
-                    : 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
-                }`}
-                title="Activar vista panorámica y giro 360° de las fotografías"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${is360Active ? 'animate-spin' : ''}`} />
-                <span>{is360Active ? '360° Active...' : '360° View 🔄'}</span>
-              </button>
+              {vehicle?.custom_badges?.threeSixtyEnabled !== false && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggle360();
+                  }}
+                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
+                    is360Active
+                      ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-300 animate-pulse'
+                      : 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
+                  }`}
+                  title="Activar vista panorámica y giro 360° de las fotografías"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${is360Active ? 'animate-spin' : ''}`} />
+                  <span>{is360Active ? '360° Active...' : (vehicle?.custom_badges?.threeSixtyText || '360° View 🔄')}</span>
+                </button>
+              )}
 
               {/* Botón Carfax Report */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsCarfaxModalOpen(true);
-                }}
-                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400 transition active:scale-95"
-                title="Consultar reporte oficial de historial Carfax / AutoCheck"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Carfax Clean ✓</span>
-              </button>
+              {vehicle?.custom_badges?.carfaxEnabled !== false && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCarfaxModalOpen(true);
+                  }}
+                  className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400 transition active:scale-95"
+                  title="Consultar reporte oficial de historial Carfax / AutoCheck"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{vehicle?.custom_badges?.carfaxText || 'Carfax Clean ✓'}</span>
+                </button>
+              )}
+
+              {/* Botones e Insignias Extra Configuradas por el Usuario */}
+              {vehicle?.custom_badges?.extraBadges && vehicle.custom_badges.extraBadges.map((badge) => (
+                <button
+                  key={badge.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveExtraBadgeModal(badge);
+                  }}
+                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${
+                    badge.color === 'emerald'
+                      ? 'bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400'
+                      : badge.color === 'blue'
+                      ? 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
+                      : badge.color === 'purple'
+                      ? 'bg-black/85 hover:bg-black text-purple-300 border-purple-500/50 hover:border-purple-400'
+                      : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
+                  }`}
+                  title={badge.modalTitle || badge.label}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>{badge.label}</span>
+                </button>
+              ))}
             </div>
 
             {/* Botones de Acción sobre la Foto */}
             <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsBadgesModalOpen(true)}
+                className="bg-amber-600/90 hover:bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1.5 rounded-lg backdrop-blur border border-amber-400/60 shadow flex items-center gap-1 transition"
+                title="Editar los botones e insignias debajo y sobre la foto del vehículo"
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Editar Botones</span>
+              </button>
+
               {isBroker && (
                 <button
                   onClick={handleOpenEditVehicle}
@@ -2850,27 +2904,27 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                 <div>
-                  <strong className="text-emerald-300 block font-bold">Historial de Título Verificado</strong>
-                  <span className="text-slate-300 text-[11px]">Sin reporte de inundación, sin reporte de robo, odómetro original verificado.</span>
+                  <strong className="text-emerald-300 block font-bold">{vehicle?.custom_badges?.carfaxTitleStatus || 'Historial de Título Verificado'}</strong>
+                  <span className="text-slate-300 text-[11px]">{vehicle?.custom_badges?.carfaxVerifiedNotes || 'Sin reporte de inundación, sin reporte de robo, odómetro original verificado.'}</span>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-[#060b17] border border-slate-800 space-y-1.5 font-mono text-[11px]">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Propietarios Registrados:</span>
-                  <strong className="text-white">1 Dueño Particular (Florida Title)</strong>
+                  <strong className="text-white">{vehicle?.custom_badges?.carfaxOwners || '1 Dueño Particular (Florida Title)'}</strong>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Historial de Mantenimientos:</span>
-                  <span className="text-emerald-400 font-bold">14 Registros en Concesionario</span>
+                  <span className="text-emerald-400 font-bold">{vehicle?.custom_badges?.carfaxServiceRecords || '14 Registros en Concesionario'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Despliegue de Airbags:</span>
-                  <span className="text-slate-300">Ningún Airbag Desplegado</span>
+                  <span className="text-slate-400">Accidentes Reportados:</span>
+                  <span className="text-emerald-400 font-bold">{vehicle?.custom_badges?.carfaxAccidents || '0 Accidentes / 0 Pérdidas'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Estatus de Llaves:</span>
-                  <span className="text-emerald-400 font-bold">Llaves Originales Incluidas (Yes)</span>
+                  <span className="text-emerald-400 font-bold">{vehicle?.has_keys ? 'Llaves Originales Incluidas (Yes)' : 'Sin Llaves (No Keys)'}</span>
                 </div>
               </div>
             </div>
@@ -2884,6 +2938,47 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </button>
           </div>
         </div>
+      )}
+
+      {/* MODAL PARA INSIGNIAS EXTRA PERSONALIZADAS */}
+      {activeExtraBadgeModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+          <div className="bg-[#0b1323] border border-amber-500/60 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Tag className="w-5 h-5 text-amber-400" />
+                <h3 className="text-sm font-black text-white uppercase">{activeExtraBadgeModal.modalTitle || activeExtraBadgeModal.label}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveExtraBadgeModal(null)}
+                className="p-1 rounded text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed bg-[#060c18] p-3.5 rounded-xl border border-slate-800">
+              {activeExtraBadgeModal.modalContent || 'Información verificada en patio Copart para este lote.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveExtraBadgeModal(null)}
+              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition"
+            >
+              Cerrar Detalle
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EDICIÓN DE BOTONES E INSIGNIAS DEL VEHÍCULO */}
+      {isBadgesModalOpen && (
+        <VehicleBadgesModal
+          vehicle={(vehicle || {}) as any}
+          isOpen={isBadgesModalOpen}
+          onClose={() => setIsBadgesModalOpen(false)}
+          onSave={handleSaveBadges}
+        />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { store } from '../../services/store';
-import { AuctionSession } from '../../types';
+import { AuctionSession, CustomVehicleBadges } from '../../types';
 import { sounds } from '../../lib/soundEffects';
 import confetti from 'canvas-confetti';
 import {
@@ -30,11 +30,13 @@ import {
   X,
   FileText,
   CheckCircle2,
-  Share2
+  Share2,
+  Tag
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
 import { VehiclesView } from './VehiclesView';
+import { VehicleBadgesModal } from './VehicleBadgesModal';
 
 interface AuctioneerPrivateConsoleProps {
   session: AuctionSession;
@@ -72,6 +74,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [isNextLotModalOpen, setIsNextLotModalOpen] = useState<boolean>(false);
   const [isVehiclesModalOpen, setIsVehiclesModalOpen] = useState<boolean>(false);
   const [isParamsModalOpen, setIsParamsModalOpen] = useState<boolean>(false);
+  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState<boolean>(false);
   const [brokerOnline, setBrokerOnline] = useState<boolean>(false);
   const [buyerOnline, setBuyerOnline] = useState<boolean>(false);
   const [lotStartingPrice, setLotStartingPrice] = useState<number>(5000);
@@ -286,6 +289,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     setAnnouncementText('');
   };
 
+  // ACTUALIZACIÓN DE INSIGNIAS Y BOTONES DEL VEHÍCULO
+  const handleSaveBadges = async (updatedBadges: CustomVehicleBadges) => {
+    const currVeh = session.vehicle_snapshot || (session as any).vehicle || {};
+    const updatedVeh = {
+      ...currVeh,
+      custom_badges: updatedBadges,
+    };
+    await store.updateSessionVehicle(session.id, updatedVeh);
+    showFeedback('✓ Insignias y botones del vehículo actualizados en la sala en vivo');
+    await syncSessionData();
+  };
+
   // 2. INCREMENTOS RÁPIDOS
   const applyIncrement = (incrementValue: number) => {
     const curr = Number(bidAmountInput) || Number(session.current_price || 5000);
@@ -421,6 +436,17 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           >
             <Sliders className="w-3.5 h-3.5 text-amber-400" />
             <span>Parámetros</span>
+          </button>
+
+          {/* Botón Insignias y Botones de la Foto del Vehículo */}
+          <button
+            type="button"
+            onClick={() => setIsBadgesModalOpen(true)}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 border border-indigo-400/50 transition shadow"
+            title="Editar los botones e insignias sobre y debajo de la foto del vehículo"
+          >
+            <Tag className="w-3.5 h-3.5 text-amber-300" />
+            <span>Insignias / Botones</span>
           </button>
 
           {/* Control de Audio del Subastador */}
@@ -1302,6 +1328,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL PARA EDITAR BOTONES E INSIGNIAS DEL VEHÍCULO */}
+      {isBadgesModalOpen && (
+        <VehicleBadgesModal
+          vehicle={(session.vehicle_snapshot || (session as any).vehicle || {}) as any}
+          isOpen={isBadgesModalOpen}
+          onClose={() => setIsBadgesModalOpen(false)}
+          onSave={handleSaveBadges}
+        />
       )}
     </div>
   );
