@@ -271,7 +271,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     setActiveCall(callType === 'clear' ? null : callType);
     if (callType !== 'clear') {
       try {
-        sounds.playAuctioneerCall(callType);
+        sounds.playAuctioneerCall(callType, Number(session.current_price || 5000));
       } catch {}
       showFeedback(`📢 Aviso emitido a la sala: ${callType.toUpperCase().replace('_', ' ')}`);
     }
@@ -286,6 +286,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     if (decision === 'sold') {
       const confirmSold = window.confirm(`¿Confirmas adjudicar el lote (SOLD) a ${winner} por $${price.toLocaleString()} USD?`);
       if (!confirmSold) return;
+
+      try {
+        sounds.playSoldFanfare(price);
+      } catch {}
       try {
         sounds.playSoldFanfare();
         confetti({
@@ -732,7 +736,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   onClick={async () => {
                     const targetId = session.id || 'ses-live-001';
                     setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
-                    try { sounds.playCountdownTick(1.2); } catch {}
+                    try {
+                      sounds.playCountdownTick(1.2);
+                      sounds.speak('Auction open! Starting bids!');
+                    } catch {}
                     showFeedback('🟢 SALA ABIERTA EN VIVO — Subasta iniciada');
                     await store.serverStartAuction(targetId);
                     await syncSessionData();
@@ -755,7 +762,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   onClick={async () => {
                     const targetId = session.id || 'ses-live-001';
                     setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
-                    try { sounds.playCountdownTick(1.2); } catch {}
+                    try {
+                      sounds.playCountdownTick(1.2);
+                      sounds.speak('Auction open! Starting bids!');
+                    } catch {}
                     showFeedback('🟢 Subasta iniciada en vivo');
                     await store.serverStartAuction(targetId);
                     await syncSessionData();

@@ -135,7 +135,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   const triggerSoldConfettiCelebration = useCallback(() => {
     try {
-      sounds.playSoldFanfare();
+      const price = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
+      sounds.playSoldFanfare(price);
       // Cañón central con colores vibrantes
       confetti({
         particleCount: 160,
@@ -380,7 +381,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         } else if (msg.type === 'AUCTIONEER_CALL') {
           setLiveAuctioneerCall(msg.call === 'clear' ? null : msg.call);
           if (msg.call && msg.call !== 'clear') {
-            try { sounds.playAuctioneerCall(msg.call); } catch {}
+            const currentPrice = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
+            try { sounds.playAuctioneerCall(msg.call, currentPrice); } catch {}
           }
         } else if (msg.type === 'NEW_REAL_BID') {
           setIsRoomAccessExpired(false);

@@ -131,40 +131,77 @@ class SoundManager {
     }
   }
 
-  // Llamadas oficiales del martillero (Going Once, Going Twice, Fair Warning)
-  public playAuctioneerCall(type: 'going_once' | 'going_twice' | 'fair_warning' | string) {
+  // Locución por voz del subastador en inglés (Copart Live Auctioneer Voice)
+  public speak(phrase: string, rate: number = 1.05) {
+    if (this.isMuted) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    try {
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(phrase);
+      utterance.lang = 'en-US';
+      utterance.rate = rate; // Ritmo auténtico de subastador
+      utterance.pitch = 1.02;
+      utterance.volume = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const usVoice = voices.find((v) => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('David') || v.name.includes('Guy') || v.name.includes('Natural') || v.name.includes('Mark') || v.name.includes('Matthew')))
+        || voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
+
+      if (usVoice) {
+        utterance.voice = usVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      // speech synthesis error ignore
+    }
+  }
+
+  // Llamadas oficiales del martillero (Going Once, Going Twice, Fair Warning) con voz en inglés
+  public playAuctioneerCall(type: 'going_once' | 'going_twice' | 'fair_warning' | string, currentPrice?: number) {
     const ctx = this.getContext();
-    if (!ctx) return;
 
     try {
       if (type === 'going_once') {
         this.playGavel();
         setTimeout(() => this.playCountdownTick(1.2), 120);
+        setTimeout(() => {
+          const priceText = currentPrice ? ` at ${currentPrice.toLocaleString()} dollars` : '';
+          this.speak(`Going once${priceText}!`, 1.05);
+        }, 180);
       } else if (type === 'going_twice') {
         this.playGavel();
         setTimeout(() => this.playCountdownTick(1.5), 100);
         setTimeout(() => this.playCountdownTick(1.8), 220);
+        setTimeout(() => {
+          this.speak('Going twice! Last call!', 1.08);
+        }, 180);
       } else {
         // fair_warning
         this.playGavel();
         setTimeout(() => this.playGavel(), 150);
         setTimeout(() => this.playCountdownTick(2.0), 300);
+        setTimeout(() => {
+          this.speak('Fair warning! Final call!', 1.05);
+        }, 200);
       }
     } catch {
       // audio context error ignore
     }
   }
 
-  // Fanfarria de victoria / adjudicación (Sold!)
-  public playSoldFanfare() {
+  // Fanfarria de victoria / adjudicación (Sold!) con voz en inglés
+  public playSoldFanfare(price?: number, paddle?: string) {
     const ctx = this.getContext();
-    if (!ctx) return;
 
     try {
       this.playGavel();
 
       const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
       notes.forEach((freq, idx) => {
+        if (!ctx) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         const startTime = ctx.currentTime + 0.15 + (idx * 0.12);
@@ -181,6 +218,15 @@ class SoundManager {
         osc.start(startTime);
         osc.stop(startTime + 0.45);
       });
+
+      // Voz de Sold al estilo Copart
+      setTimeout(() => {
+        if (price) {
+          this.speak(`Sold! Sold for ${price.toLocaleString()} dollars!`, 1.02);
+        } else {
+          this.speak('Sold! Sold!', 1.02);
+        }
+      }, 700);
     } catch {
       // ignore
     }
