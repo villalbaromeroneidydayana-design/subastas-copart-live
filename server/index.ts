@@ -217,6 +217,31 @@ interface ClientMetadata {
 
 const socketMetadata = new Map<WebSocket, ClientMetadata>();
 const activeAuctioneerCalls = new Map<string, string>();
+const auctioneerCallTimeouts = new Map<string, NodeJS.Timeout>();
+
+function setAuctioneerCall(sessionId: string, call: string | null) {
+  if (auctioneerCallTimeouts.has(sessionId)) {
+    clearTimeout(auctioneerCallTimeouts.get(sessionId)!);
+    auctioneerCallTimeouts.delete(sessionId);
+  }
+  if (!call || call === 'clear') {
+    activeAuctioneerCalls.delete(sessionId);
+  } else {
+    activeAuctioneerCalls.set(sessionId, call);
+    // En Copart la advertencia de martillo dura 7.5 segundos y se retira automáticamente
+    const t = setTimeout(() => {
+      activeAuctioneerCalls.delete(sessionId);
+      auctioneerCallTimeouts.delete(sessionId);
+      broadcast({
+        type: 'AUCTIONEER_CALL',
+        sessionId,
+        call: 'clear',
+        timestamp: new Date().toISOString()
+      });
+    }, 7500);
+    auctioneerCallTimeouts.set(sessionId, t);
+  }
+}
 
 function broadcast(message: object) {
   const payload = JSON.stringify(message);
@@ -338,11 +363,7 @@ wss.on('connection', (ws) => {
       } else if (msg.type === 'AUCTIONEER_CALL') {
         const session = findSession(msg.sessionId);
         if (session) {
-          if (msg.call === 'clear' || !msg.call) {
-            activeAuctioneerCalls.delete(session.id);
-          } else {
-            activeAuctioneerCalls.set(session.id, msg.call);
-          }
+          setAuctioneerCall(session.id, msg.call);
           broadcast({
             type: 'AUCTIONEER_CALL',
             sessionId: session.id,
@@ -1389,7 +1410,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
   `).run(bidAmount, paddle, bidderName, participantId, newStatus, now, session.id);
 
   startServerClock(session.id);
-  activeAuctioneerCalls.delete(session.id);
+  setAuctioneerCall(session.id, 'clear');
 
   const createdBid = {
     id: bidId,
@@ -1435,11 +1456,7 @@ app.post('/api/sessions/:id/call', (req, res) => {
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-  if (call === 'clear' || !call) {
-    activeAuctioneerCalls.delete(session.id);
-  } else {
-    activeAuctioneerCalls.set(session.id, call);
-  }
+  setAuctioneerCall(session.id, call);
 
   broadcast({
     type: 'AUCTIONEER_CALL',
@@ -2070,6 +2087,8 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
     return res.status(400).json({ error: result.error });
   }
 
+  setAuctioneerCall(session.id, 'clear');
+
   // Difundir inmediatamente vía WebSocket a todos los dispositivos conectados
   broadcast({
     type: 'NEW_REAL_BID',
@@ -2161,6 +2180,8 @@ app.post('/api/bids', (req, res) => {
   if (!result.success) {
     return res.status(400).json({ error: result.error });
   }
+
+  setAuctioneerCall(sessionId, 'clear');
 
   broadcast({
     type: 'NEW_REAL_BID',

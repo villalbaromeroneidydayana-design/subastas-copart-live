@@ -131,6 +131,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   } | null>(null);
   const [copiedNextKey, setCopiedNextKey] = useState<string | null>(null);
   const [liveAuctioneerCall, setLiveAuctioneerCall] = useState<string | null>(null);
+  const auctioneerCallTimeoutRef = useRef<any>(null);
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
   const [usTime, setUsTime] = useState<string>('');
   const hasCelebratedSoldRef = useRef<boolean>(false);
@@ -286,7 +287,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       }
 
       if (data.activeCall !== undefined) {
-        setLiveAuctioneerCall(data.activeCall);
+        const call = data.activeCall === 'clear' ? null : data.activeCall;
+        setLiveAuctioneerCall(call);
+        if (call) {
+          if (auctioneerCallTimeoutRef.current) clearTimeout(auctioneerCallTimeoutRef.current);
+          auctioneerCallTimeoutRef.current = setTimeout(() => {
+            setLiveAuctioneerCall(null);
+          }, 7500);
+        }
       }
 
       if (data.links) {
@@ -449,13 +457,25 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             setIsRoomAccessExpired(false);
           }
         } else if (msg.type === 'AUCTIONEER_CALL') {
-          setLiveAuctioneerCall(msg.call === 'clear' ? null : msg.call);
-          if (msg.call && msg.call !== 'clear') {
+          if (auctioneerCallTimeoutRef.current) {
+            clearTimeout(auctioneerCallTimeoutRef.current);
+            auctioneerCallTimeoutRef.current = null;
+          }
+          const call = msg.call === 'clear' ? null : msg.call;
+          setLiveAuctioneerCall(call);
+          if (call) {
             const currentPrice = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
-            try { sounds.playAuctioneerCall(msg.call, currentPrice); } catch {}
+            try { sounds.playAuctioneerCall(call, currentPrice); } catch {}
+            auctioneerCallTimeoutRef.current = setTimeout(() => {
+              setLiveAuctioneerCall(null);
+            }, 7500);
           }
         } else if (msg.type === 'NEW_REAL_BID') {
           setIsRoomAccessExpired(false);
+          if (auctioneerCallTimeoutRef.current) {
+            clearTimeout(auctioneerCallTimeoutRef.current);
+            auctioneerCallTimeoutRef.current = null;
+          }
           setLiveAuctioneerCall(null);
           if (msg.bid) {
             const isClient = msg.bid.paddleNumber?.includes('101');

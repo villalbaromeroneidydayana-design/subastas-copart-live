@@ -315,6 +315,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         sounds.playAuctioneerCall(callType, Number(session.current_price || 5000));
       } catch {}
       showFeedback(`📢 Aviso emitido a la sala: ${callType.toUpperCase().replace('_', ' ')}`);
+      setTimeout(() => {
+        setActiveCall((prev) => (prev === callType ? null : prev));
+      }, 7500);
     }
     await store.sendAuctioneerCall(session.id, callType);
   };
