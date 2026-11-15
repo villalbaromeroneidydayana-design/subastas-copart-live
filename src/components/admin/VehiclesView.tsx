@@ -431,14 +431,17 @@ export const VehiclesView: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-300 font-semibold mb-1">Enlace de Referencia Copart</label>
+                      <label className="block text-slate-300 font-semibold mb-1">Enlace de Referencia Copart (Lote Real Vigente)</label>
                       <input
                         type="text"
                         value={editingVehicle.reference_url || ''}
                         onChange={(e) => setEditingVehicle({ ...editingVehicle, reference_url: e.target.value })}
-                        placeholder="https://www.copart.com/lot/..."
+                        placeholder="https://www.copart.com/es/lot/65012146"
                         className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
                       />
+                      <span className="text-[10px] text-amber-400/90 mt-1 block">
+                        Pega aquí el link oficial de Copart del auto real que vas a subastar para que tu cliente lo vea directamente sin error 410 (lote eliminado/inexistente).
+                      </span>
                     </div>
                   </div>
                 </div>
