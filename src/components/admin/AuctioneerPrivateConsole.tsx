@@ -218,6 +218,23 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     }
   };
 
+  // Ajuste rápido en 1-clic del presupuesto del cliente
+  const handleQuickUpdateBudget = async (newBudget: number) => {
+    setLotClientBudget(newBudget);
+    const res = await store.updateLotParameters(session.id, {
+      startingPrice: Number(lotStartingPrice),
+      minIncrement: Number(lotMinIncrement),
+      reservePrice: Number(lotReservePrice),
+      clientMaxBudget: Number(newBudget),
+      brokerName: lotBrokerName,
+      buyerName: lotBuyerName,
+    });
+    if (res.success) {
+      showFeedback(`✓ Presupuesto del cliente ajustado a $${newBudget.toLocaleString()} USD`);
+      await syncSessionData();
+    }
+  };
+
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
@@ -687,6 +704,52 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <div className="text-sm text-slate-300 flex items-center justify-center gap-2 mt-1">
                 <span className="text-slate-400">Líder actual:</span>
                 <strong className="text-amber-300 font-mono text-base font-black">{currentLeader}</strong>
+              </div>
+
+              {/* CONTROL RÁPIDO DE PRESUPUESTO DEL CLIENTE */}
+              <div className="mt-2.5 pt-2.5 border-t border-slate-800 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400 uppercase font-semibold text-[11px]">Presupuesto Cliente:</span>
+                    <strong className="text-blue-300 font-mono font-bold text-sm">
+                      ${lotClientBudget.toLocaleString()} USD
+                    </strong>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400 uppercase font-semibold text-[11px]">Margen:</span>
+                    <strong className={`font-mono font-bold text-sm ${(lotClientBudget - currentPrice) <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      ${Math.max(0, lotClientBudget - currentPrice).toLocaleString()} USD
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Botones de Presupuesto Rápido (1 Clic) */}
+                <div className="flex items-center gap-1 mt-2 flex-wrap justify-between">
+                  <span className="text-[10px] text-slate-500 font-mono">Ajustar:</span>
+                  {[5000, 7500, 10000, 12500, 15000, 20000].map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => handleQuickUpdateBudget(b)}
+                      className={`px-1.5 py-0.5 rounded font-mono text-[10px] font-bold border transition ${
+                        lotClientBudget === b
+                          ? 'bg-blue-600 border-blue-400 text-white shadow'
+                          : 'bg-[#081224] border-slate-700 text-slate-300 hover:bg-slate-700'
+                      }`}
+                      title={`Fijar presupuesto del cliente en $${b.toLocaleString()} USD`}
+                    >
+                      ${(b / 1000)}k
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsParamsModalOpen(true)}
+                    className="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold bg-slate-800 border border-slate-700 text-amber-300 hover:text-white"
+                    title="Escribir cantidad exacta personalizada en parámetros"
+                  >
+                    + Personalizar
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1275,7 +1338,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Presupuesto Máximo Autorizado del Cliente ($ USD):</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-slate-300 font-bold block">Presupuesto Máximo Autorizado del Cliente ($ USD):</label>
+                  <span className="text-xs text-blue-400 font-mono font-bold">${lotClientBudget.toLocaleString()} USD</span>
+                </div>
                 <input
                   type="number"
                   step="250"
@@ -1283,6 +1349,23 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   onChange={(e) => setLotClientBudget(Number(e.target.value) || 0)}
                   className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-blue-300 font-bold"
                 />
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="text-[11px] text-slate-400 font-mono">Atajos rápidos:</span>
+                  {[5000, 7500, 9000, 10000, 12000, 15000, 20000, 25000].map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setLotClientBudget(b)}
+                      className={`px-2 py-0.5 text-xs rounded border font-mono font-bold transition ${
+                        lotClientBudget === b
+                          ? 'bg-blue-600 border-blue-400 text-white'
+                          : 'bg-slate-800 hover:bg-slate-700 text-blue-300 border-slate-700'
+                      }`}
+                    >
+                      ${b.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="pt-2 border-t border-slate-800">
