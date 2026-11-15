@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Vehicle, VehicleImage, PhotoCategory } from '../../types';
 import { store } from '../../services/store';
 import { ImageGalleryModal } from '../common/ImageGalleryModal';
-import { 
-  Car, Plus, Search, Edit2, Trash2, Copy, 
-  ExternalLink, Upload, Image as ImageIcon, Eye, 
+import {
+  Car, Plus, Search, Edit2, Trash2, Copy,
+  ExternalLink, Upload, Image as ImageIcon, Eye,
   Check, Star, X, AlertTriangle, Key, Gauge
 } from 'lucide-react';
 
@@ -215,11 +215,10 @@ export const VehiclesView: React.FC = () => {
                   <span className="bg-black/80 backdrop-blur text-amber-300 border border-amber-400/30 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
                     LOTE #{vehicle.lot_number}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded shadow ${
-                    vehicle.vehicle_condition === 'run_and_drive'
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded shadow ${vehicle.vehicle_condition === 'run_and_drive'
                       ? 'bg-emerald-600 text-white'
                       : 'bg-amber-600 text-white'
-                  }`}>
+                    }`}>
                     {vehicle.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS'}
                   </span>
                 </div>
@@ -312,7 +311,7 @@ export const VehiclesView: React.FC = () => {
       {editingVehicle && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#0e1828] border border-[#1b3152] rounded-xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl animate-fadeIn max-h-[92vh] overflow-y-auto flex flex-col">
-            
+
             {/* Header del Modal */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
               <div className="flex items-center gap-2">
@@ -333,21 +332,19 @@ export const VehiclesView: React.FC = () => {
             <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-4">
               <button
                 onClick={() => setActiveTab('info')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  activeTab === 'info'
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${activeTab === 'info'
                     ? 'bg-amber-500 text-slate-950'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 1. Datos y Especificaciones
               </button>
               <button
                 onClick={() => setActiveTab('photos')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
-                  activeTab === 'photos'
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'photos'
                     ? 'bg-amber-500 text-slate-950'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>2. Galería de Fotografías ({editingVehicle.images?.length || 0})</span>
@@ -726,9 +723,8 @@ export const VehiclesView: React.FC = () => {
                       {editingVehicle.images.map((img) => (
                         <div
                           key={img.id}
-                          className={`relative bg-[#070e1a] rounded-lg border-2 overflow-hidden group ${
-                            img.is_primary ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-800'
-                          }`}
+                          className={`relative bg-[#070e1a] rounded-lg border-2 overflow-hidden group ${img.is_primary ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-800'
+                            }`}
                         >
                           <div className="aspect-[4/3] bg-black">
                             <img src={img.url} alt="" className="w-full h-full object-cover" />
@@ -743,11 +739,10 @@ export const VehiclesView: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setPrimaryImage(img.id)}
-                                className={`p-1 rounded ${
-                                  img.is_primary
+                                className={`p-1 rounded ${img.is_primary
                                     ? 'text-amber-400'
                                     : 'text-slate-500 hover:text-amber-400'
-                                }`}
+                                  }`}
                                 title={img.is_primary ? 'Foto principal' : 'Establecer como foto principal'}
                               >
                                 <Star className="w-3.5 h-3.5 fill-current" />

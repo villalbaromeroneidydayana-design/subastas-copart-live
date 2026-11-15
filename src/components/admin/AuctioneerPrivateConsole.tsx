@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { store } from '../../services/store';
 import { AuctionSession, CustomVehicleBadges } from '../../types';
 import { sounds } from '../../lib/soundEffects';
@@ -31,7 +31,9 @@ import {
   FileText,
   CheckCircle2,
   Share2,
-  Tag
+  Tag,
+  Bot,
+  Zap
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
@@ -97,6 +99,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
+  const [isAutoBrokerEnabled, setIsAutoBrokerEnabled] = useState<boolean>(false);
+  const autoBrokerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleToggleAudio = () => {
     const next = !isAudioMuted;
@@ -398,6 +402,83 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         : ((session as any).currentWinnerPaddle && (session as any).currentWinnerPaddle !== 'N/A'
             ? (session as any).currentWinnerPaddle
             : 'Esperando apertura'));
+
+  // PUJA RÁPIDA DEDICADA DEL BROKER #101
+  const handleQuickBrokerBid = async (customIncrement = 250) => {
+    const targetId = session.id || 'ses-live-001';
+    const currPrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
+    const amount = currPrice + customIncrement;
+
+    if (amount > lotClientBudget) {
+      showFeedback(`⚠️ La oferta de $${amount.toLocaleString()} USD supera el presupuesto del cliente ($${lotClientBudget.toLocaleString()} USD)`, 'error');
+      return false;
+    }
+
+    setSession((prev) => ({
+      ...prev,
+      status: 'open',
+      current_price: amount,
+      currentPrice: amount,
+      current_winner_paddle: 'Paleta #101',
+      currentWinnerPaddle: 'Paleta #101',
+      time_remaining_seconds: 10,
+    }));
+    try {
+      sounds.playBidVoice(amount, 'Paleta #101', true);
+    } catch {}
+
+    setIsSubmittingBid(true);
+    if (session.status !== 'open') {
+      await store.serverStartAuction(targetId);
+    }
+    const res = await store.submitManualBid(targetId, 'Paleta #101', amount);
+    setIsSubmittingBid(false);
+
+    if (res.success) {
+      showFeedback(`⚡ Broker #101 ofertó $${amount.toLocaleString()} USD`);
+      setBidAmountInput(String(amount + (session.bid_increment || 250)));
+      await syncSessionData();
+      return true;
+    } else {
+      showFeedback(res.error || 'Error al procesar la oferta del Broker', 'error');
+      return false;
+    }
+  };
+
+  // AUTO-PUJA INTELIGENTE DEL BROKER #101
+  useEffect(() => {
+    if (!isAutoBrokerEnabled) {
+      if (autoBrokerTimeoutRef.current) clearTimeout(autoBrokerTimeoutRef.current);
+      return;
+    }
+
+    const isSessionActive = ['open', 'bidding', 'last_call'].includes(session.status);
+    if (!isSessionActive) return;
+
+    const currentLeaderIsBroker = currentLeader.includes('101');
+    if (currentLeaderIsBroker || currentLeader === 'Esperando apertura' || currentLeader === 'N/A') {
+      return;
+    }
+
+    const currPrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
+    const nextAmount = currPrice + Number(session.bid_increment || 250);
+
+    if (nextAmount > lotClientBudget) {
+      showFeedback(`⚠️ Auto-Broker detenido: $${nextAmount.toLocaleString()} USD supera el tope de capital ($${lotClientBudget.toLocaleString()} USD)`);
+      return;
+    }
+
+    const randomDelay = Math.floor(1200 + Math.random() * 800);
+    if (autoBrokerTimeoutRef.current) clearTimeout(autoBrokerTimeoutRef.current);
+
+    autoBrokerTimeoutRef.current = setTimeout(() => {
+      handleQuickBrokerBid(Number(session.bid_increment || 250));
+    }, randomDelay);
+
+    return () => {
+      if (autoBrokerTimeoutRef.current) clearTimeout(autoBrokerTimeoutRef.current);
+    };
+  }, [session.current_price, currentLeader, session.status, isAutoBrokerEnabled, lotClientBudget]);
 
   return (
     <div className="min-h-screen bg-[#050914] text-slate-100 flex flex-col font-sans select-none">
@@ -864,16 +945,72 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               type="button"
               onClick={handleSendManualBid}
               disabled={isSubmittingBid}
-              className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-black py-5 px-4 rounded-2xl shadow-2xl text-lg sm:text-xl flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-emerald-800"
+              className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-black py-4 px-4 rounded-2xl shadow-2xl text-base sm:text-lg flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-emerald-800"
             >
-              <div className="flex items-center gap-2.5">
-                <Flame className="w-6 h-6 text-slate-950" />
-                <span>ENVIAR OFERTA A SALA EN VIVO</span>
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-slate-950" />
+                <span>ENVIAR OFERTA CON {selectedPaddle}</span>
               </div>
-              <span className="text-sm font-mono font-black text-slate-950/85 mt-1">
-                ${Number(bidAmountInput || 0).toLocaleString()} USD • con {selectedPaddle}
+              <span className="text-xs font-mono font-black text-slate-950/85 mt-0.5">
+                ${Number(bidAmountInput || 0).toLocaleString()} USD
               </span>
             </button>
+          </div>
+
+          {/* SECCIÓN ESPECIAL: ACCIONES DIRECTAS DEL BROKER #101 (TU CLIENTE) */}
+          <div className="mt-3 bg-[#040e1d] border-2 border-blue-500/70 p-3 rounded-xl space-y-2 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-blue-400" />
+                <span className="font-black text-xs text-white uppercase tracking-wider">
+                  OPERACIÓN BROKER #101
+                </span>
+              </div>
+
+              {/* Switch Auto-Puja Inteligente */}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isAutoBrokerEnabled;
+                  setIsAutoBrokerEnabled(next);
+                  showFeedback(next ? '🤖 Auto-Puja Inteligente del Broker #101 ACTIVADA' : 'Auto-Puja Broker #101 DESACTIVADA');
+                }}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 border cursor-pointer ${
+                  isAutoBrokerEnabled
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)] animate-pulse'
+                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+                title="Al activar, el Broker #101 responde automáticamente superando ofertas competidoras hasta el límite del cliente"
+              >
+                <Bot className="w-3.5 h-3.5" />
+                <span>Auto-Puja:</span>
+                <span>{isAutoBrokerEnabled ? 'ON (ACTIVO)' : 'OFF (MANUAL)'}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickBrokerBid(Number(session.bid_increment || 250))}
+                disabled={isSubmittingBid}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-black py-2.5 px-3 rounded-lg text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition shadow active:scale-95 cursor-pointer"
+                title="Pujar de inmediato con la Paleta #101 sumando el incremento oficial"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-300 fill-current" />
+                <span>Pujar #101 (+${session.bid_increment || 250})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickBrokerBid(500)}
+                disabled={isSubmittingBid}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-2.5 px-3 rounded-lg text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition shadow active:scale-95 cursor-pointer"
+                title="Pujar de inmediato con la Paleta #101 sumando +$500 USD"
+              >
+                <Flame className="w-3.5 h-3.5 text-amber-300" />
+                <span>Pujar #101 (+$500)</span>
+              </button>
+            </div>
           </div>
         </div>
 
