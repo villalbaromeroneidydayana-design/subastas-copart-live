@@ -521,11 +521,21 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const vehicle = session.vehicle_snapshot || (session as any).vehicle;
   const allImages: VehicleImage[] = vehicle?.images || [];
   
-  const displayedImages = selectedCategory === 'todas'
+  const filteredCategoryImages = selectedCategory === 'todas'
     ? allImages
     : allImages.filter((img) => img.category === selectedCategory);
+  
+  const displayedImages = filteredCategoryImages.length > 0 ? filteredCategoryImages : (allImages.length > 0 ? allImages : [{
+    id: 'img-default',
+    vehicle_id: vehicle?.id || 'veh-001',
+    url: 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=1200&q=80',
+    category: 'exterior' as const,
+    is_primary: true,
+    order: 1,
+    caption: 'Fotografía Oficial Copart'
+  }]);
 
-  const activeImage: VehicleImage | undefined = displayedImages[selectedImageIdx] || displayedImages[0] || allImages[0];
+  const activeImage: VehicleImage = displayedImages[selectedImageIdx] || displayedImages[0];
 
   const handlePrevPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -1188,7 +1198,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               {activeImage ? (
                 <img
                   src={activeImage.url}
-                  alt={vehicle?.model}
+                  alt={vehicle?.model || 'Vehículo'}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=1200&q=80';
+                  }}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               ) : (
@@ -1282,7 +1295,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       idx === selectedImageIdx ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-slate-800 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={img.url}
+                      alt=""
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
+                      }}
+                      className="w-full h-full object-cover"
+                    />
                     {img.category && (
                       <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[7.5px] text-center font-bold text-slate-300 uppercase truncate">
                         {img.category}
@@ -2229,6 +2249,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <img
                   src={activeImage?.url || vehicle?.images?.[0]?.url || 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=600&q=80'}
                   alt={vehicle?.model}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=600&q=80';
+                  }}
                   className="w-full h-full object-cover"
                 />
                 <span className="absolute top-1.5 left-1.5 bg-emerald-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded shadow uppercase">
@@ -2254,6 +2277,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <img
                     src={veh.images?.[0]?.url || 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80'}
                     alt={veh.model}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80';
+                    }}
                     className="w-full h-full object-cover opacity-85 hover:opacity-100 transition"
                   />
                   <span className={`absolute top-1.5 left-1.5 font-bold text-[9px] px-2 py-0.5 rounded shadow uppercase ${
@@ -2463,7 +2489,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-[#050912] rounded border border-slate-800">
                   {editVehicleState.images?.map((img: VehicleImage, i: number) => (
                     <div key={img.id || i} className="relative group rounded border border-slate-800 overflow-hidden bg-black aspect-[4/3]">
-                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                      <img
+                      src={img.url}
+                      alt=""
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
+                      }}
+                      className="w-full h-full object-cover"
+                    />
                       <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] text-center font-bold text-amber-300 uppercase truncate">
                         {img.category}
                       </span>

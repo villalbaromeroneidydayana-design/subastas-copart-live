@@ -449,3 +449,4 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
     </div>
   );
 };
+
