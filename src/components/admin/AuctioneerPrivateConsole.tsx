@@ -27,7 +27,10 @@ import {
   Settings,
   Sliders,
   Send,
-  X
+  X,
+  FileText,
+  CheckCircle2,
+  Share2
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
@@ -85,6 +88,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [announcementText, setAnnouncementText] = useState<string>('');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState<boolean>(false);
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(sounds.isMuted);
+  const [activeDocToken, setActiveDocToken] = useState<string | null>(null);
+  const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
 
   const handleToggleAudio = () => {
     const next = !isAudioMuted;
@@ -97,11 +102,28 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     }
   };
 
+  const handleCopyDocumentLink = () => {
+    if (!activeDocToken) return;
+    const url = `${window.location.origin}${window.location.pathname}#/documento/${activeDocToken}`;
+    navigator.clipboard.writeText(url);
+    setCopiedDocLink(true);
+    showFeedback('✓ Enlace del Certificado Oficial copiado al portapapeles');
+    setTimeout(() => setCopiedDocLink(false), 2500);
+  };
+
   // Sincronización continua de datos en tiempo real
   const syncSessionData = async () => {
     try {
       const data = await store.fetchServerSession(session.id || 'ses-live-001', { isAuctioneer: true });
       if (data && data.session) {
+        if (data.session.status === 'sold') {
+          store.fetchSessionDocuments(data.session.id).then((docs) => {
+            if (docs && docs.length > 0) {
+              const active = docs.find((d: any) => !d.isRevoked);
+              if (active) setActiveDocToken(active.docToken);
+            }
+          });
+        }
         setSession((prev) => ({
           ...prev,
           ...data.session,
@@ -299,6 +321,17 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           origin: { y: 0.6 },
           colors: ['#22c55e', '#eab308', '#3b82f6', '#ec4899', '#ffffff']
         });
+      } catch {}
+
+      try {
+        const docRes = await store.createDocumentLink(session.id, {
+          clientName: (session as any).currentWinnerName || lotBuyerName || 'Carlos Mendoza (Comprador)',
+          clientEmail: 'cliente@subastas.com',
+          expiresInDays: 7,
+        });
+        if (docRes && docRes.docToken) {
+          setActiveDocToken(docRes.docToken);
+        }
       } catch {}
     } else {
       try {
@@ -894,6 +927,52 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 </button>
               </div>
             </div>
+
+            {/* PANEL DE CERTIFICADO Y COMPROBANTE OFICIAL PDF (SOLD) */}
+            {session.status === 'sold' && (
+              <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/80 border-2 border-emerald-500/70 rounded-2xl p-4 space-y-3 mb-4 shadow-2xl animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-emerald-800/60 pb-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <div>
+                      <span className="text-xs font-black text-white uppercase tracking-wider block">
+                        LOTE ADJUDICADO OFICIALMENTE
+                      </span>
+                      <span className="text-[10px] text-emerald-300">
+                        Ganador: {currentLeader} • ${(Number(session.current_price || 5000)).toLocaleString()} USD
+                      </span>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500 text-slate-950 font-black uppercase">
+                    SOLD
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <a
+                    href={activeDocToken ? `#/documento/${activeDocToken}` : `#/sala/${session.room_token}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow transition"
+                    title="Abrir e imprimir el Comprobante Oficial de Adjudicación en PDF"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Ver / Imprimir PDF</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyDocumentLink}
+                    disabled={!activeDocToken}
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                    title="Copiar enlace seguro para enviarlo por WhatsApp o correo al cliente"
+                  >
+                    <Share2 className="w-4 h-4 text-amber-400" />
+                    <span>{copiedDocLink ? '¡Enlace Copiado!' : 'Copiar Enlace PDF'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* SECCIÓN D: ESPECTADORES Y CINTILLO DE AVISOS EN VIVO */}
             <div className="space-y-2.5 mb-3.5 pt-3 border-t border-slate-800">
