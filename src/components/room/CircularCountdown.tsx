@@ -32,7 +32,15 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
   let glowColor = 'rgba(0, 168, 77, 0.4)';
   let label = lang === 'es' ? 'OFERTAS' : 'BIDDING';
 
-  if (status === 'sold') {
+  if (status === 'prepared') {
+    strokeColor = '#0284c7'; // Copart Blue
+    glowColor = 'rgba(2, 132, 199, 0.25)';
+    label = lang === 'es' ? 'EN ESPERA' : 'PRE-BID';
+  } else if (status === 'paused') {
+    strokeColor = '#f59e0b';
+    glowColor = 'rgba(245, 158, 11, 0.3)';
+    label = lang === 'es' ? 'PAUSADA' : 'PAUSED';
+  } else if (status === 'sold') {
     strokeColor = '#eab308'; // Sold gold
     glowColor = 'rgba(234, 179, 8, 0.5)';
     label = lang === 'es' ? '¡VENDIDO!' : 'SOLD!';
@@ -77,7 +85,7 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
+          strokeDashoffset={status === 'prepared' ? 0 : strokeDashoffset}
           strokeLinecap="round"
           className="transition-all duration-300 ease-linear"
         />
@@ -85,7 +93,31 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
 
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        {status === 'sold' ? (
+        {status === 'prepared' ? (
+          <>
+            <span className="text-sm font-black font-mono text-cyan-300 tracking-wider">
+              STANDBY
+            </span>
+            <span
+              className="text-[9px] font-bold tracking-widest uppercase mt-0.5 px-1 py-0.2 rounded"
+              style={{ color: strokeColor }}
+            >
+              {label}
+            </span>
+          </>
+        ) : status === 'paused' ? (
+          <>
+            <span className="text-sm font-black font-mono text-amber-300 tracking-wider">
+              PAUSA
+            </span>
+            <span
+              className="text-[9px] font-bold tracking-widest uppercase mt-0.5 px-1 py-0.2 rounded"
+              style={{ color: strokeColor }}
+            >
+              {label}
+            </span>
+          </>
+        ) : status === 'sold' ? (
           <span className="text-xl font-black text-amber-400 tracking-wider animate-bounce">
             SOLD!
           </span>

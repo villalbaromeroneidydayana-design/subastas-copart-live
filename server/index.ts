@@ -401,7 +401,7 @@ function startServerClock(sessionId: string) {
 
   const timer = setInterval(() => {
     const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(sessionId) as any;
-    if (!session || session.status === 'paused' || session.status === 'sold' || session.status === 'unsold' || session.status === 'closed') {
+    if (!session || session.status === 'prepared' || session.status === 'paused' || session.status === 'sold' || session.status === 'unsold' || session.status === 'closed') {
       return;
     }
 
@@ -2244,17 +2244,15 @@ app.post('/api/admin/maintenance/cleanup', (req, res) => {
   res.json({ success: true, ...result });
 });
 
-// 14. RECUPERACIÓN DE ESTADO TRAS REINICIO DEL SERVIDOR (REGLA 9)
+// 14. INICIALIZACIÓN CONTROLADA: SALA EN REPOSO HASTA APERTURA MANUAL DEL SUBASTADOR
 function restoreActiveSessions() {
-  const activeSessions = db.prepare(`
-    SELECT id, status, time_remaining_seconds FROM auction_sessions 
-    WHERE status IN ('open', 'bidding', 'last_call') AND is_token_revoked = 0
-  `).all() as any[];
-
-  for (const s of activeSessions) {
-    console.log(`[Recovery Engine] Reanudando reloj de subasta activa #${s.id} tras reinicio`);
-    startServerClock(s.id);
-  }
+  // Aseguramos que la sesión inicie en 'prepared' (inspección) con reloj detenido
+  db.prepare(`
+    UPDATE auction_sessions 
+    SET status = 'prepared', time_remaining_seconds = 60 
+    WHERE id = 'ses-live-001' AND status NOT IN ('sold', 'unsold')
+  `).run();
+  console.log(`[Auction Engine] Sala configurada en fase de inspección (prepared). Reloj detenido hasta apertura del martillero.`);
 }
 
 // 15. PUBLICACIÓN DE FRONTEND ESTÁTICO (SPA PARA HTTPS / WSS UNIFICADO)
