@@ -401,19 +401,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
         </div>
 
-        {/* Presencia de Participantes Reales */}
+        {/* Presencia del Broker Autorizado en Sala */}
         <div className="flex items-center gap-2 text-[11px] font-mono">
-          <div className={`px-2 py-0.5 rounded border flex items-center gap-1.5 ${
-            brokerOnline ? 'bg-emerald-950/60 text-emerald-300 border-emerald-600/50' : 'bg-slate-900/60 text-slate-400 border-slate-800'
+          <div className={`px-2.5 py-1 rounded border flex items-center gap-1.5 transition ${
+            brokerOnline ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500 shadow-[0_0_10px_rgba(52,211,153,0.3)]' : 'bg-slate-900/60 text-slate-400 border-slate-800'
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${brokerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-            <span>Broker #101: {brokerOnline ? 'En sala' : 'Offline'}</span>
-          </div>
-          <div className={`px-2 py-0.5 rounded border flex items-center gap-1.5 ${
-            buyerOnline ? 'bg-emerald-950/60 text-emerald-300 border-emerald-600/50' : 'bg-slate-900/60 text-slate-400 border-slate-800'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${buyerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-            <span>Cliente: {buyerOnline ? 'En sala' : 'Offline'}</span>
+            <span className={`w-2 h-2 rounded-full ${brokerOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+            <span>Broker Oficial (Paleta #101): {brokerOnline ? 'Conectado en Sala' : 'Esperando Conexión'}</span>
           </div>
         </div>
 
@@ -1171,18 +1165,11 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => copyToClipboard(brokerUrl, 'broker')}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded text-xs flex items-center gap-1 transition"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
+              title="Copiar enlace oficial de la Sala Copart para el Broker Autorizado"
             >
-              {copiedKey === 'broker' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Link Broker</span>
-            </button>
-
-            <button
-              onClick={() => copyToClipboard(buyerUrl, 'buyer')}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded text-xs flex items-center gap-1 transition"
-            >
-              {copiedKey === 'buyer' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Link Cliente</span>
+              {copiedKey === 'broker' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>Copiar Enlace de Sala (Broker #101)</span>
             </button>
           </div>
 

@@ -1898,12 +1898,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span>
                     {lang === 'en'
-                      ? 'PALETTE #101 ASSIGNED • YOU CAN BID DIRECTLY OR LET YOUR BROKER MANAGE'
-                      : 'PALETA #101 ASIGNADA • PUEDES PUJAR DIRECTAMENTE O DEJAR QUE TU BROKER GESTIONE'}
+                      ? `OFFICIAL LICENSED BROKER (PADDLE #101) • REPRESENTING: ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`
+                      : `BROKER AUTORIZADO COPART (PALETA #101) • REPRESENTANDO A: ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`}
                   </span>
                 </div>
 
-                {/* BOTÓN OFICIAL DE PUJA DIRECTA COPART PARA EL COMPRADOR */}
+                {/* BOTÓN OFICIAL DE PUJA EXCLUSIVO PARA EL BROKER AUTORIZADO */}
                 {session.status === 'prepared' && (
                   <div className="pt-2 border-t border-blue-900/60">
                     <button
@@ -1916,8 +1916,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     </button>
                     <p className="text-[10px] text-slate-500 text-center mt-1">
                       {lang === 'en'
-                        ? 'Inspection phase. Bidding unlocks when auctioneer starts the live round.'
-                        : 'Fase de inspección. El botón de puja se activará al iniciar la ronda en vivo.'}
+                        ? 'Inspection phase. Broker bidding unlocks when auctioneer starts the live round.'
+                        : 'Fase de inspección. La puja del broker se activará al iniciar la ronda en vivo.'}
                     </p>
                   </div>
                 )}
@@ -1943,12 +1943,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       <Zap className="w-5 h-5 text-slate-950" />
                       <span>
                         {isBrokerWinning
-                          ? (lang === 'en' ? "YOU'RE HIGH BIDDER!" : '¡YA ERES EL MEJOR POSTOR!')
+                          ? (lang === 'en' ? "BROKER IS HIGH BIDDER!" : '¡BROKER ES EL MEJOR POSTOR!')
                           : isSubmittingBid
                           ? t('submittingBid')
-                          : (lang === 'en' ? `BID $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD NOW` : `PUJAR $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD (OFERTA EN VIVO)`)}
+                          : (lang === 'en' ? `BID $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD (BROKER #101)` : `PUJAR $${(Number(session?.current_price ?? 5000) + (session?.bid_increment || 250)).toLocaleString()} USD (BROKER #101)`)}
                       </span>
                     </button>
+                    <p className="text-[10px] text-slate-400 text-center font-mono">
+                      {lang === 'en'
+                        ? `Official Copart licensed broker bid representing ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`
+                        : `Puja oficial de Broker Autorizado Copart en representación de ${(session as any).buyer_name || (session as any).buyerName || 'Carlos Mendoza'}`}
+                    </p>
 
                     <div className="grid grid-cols-3 gap-1.5 pt-1">
                       <button
