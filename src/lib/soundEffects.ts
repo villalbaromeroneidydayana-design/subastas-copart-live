@@ -248,16 +248,39 @@ class SoundManager {
     }, 110);
   }
 
-  // Locución de inicio de subasta
-  public playStartVoice(startPrice?: number) {
-    this.playCountdownTick(1.2);
+  // Locución auténtica de inicio de subasta estilo Copart VB3 (Auctioneer Welcome & Vehicle Praise Chant)
+  public playStartVoice(startPrice?: number, vehicleInfo?: {
+    year?: number | string;
+    brand?: string;
+    model?: string;
+    version?: string;
+    condition?: string;
+    odometer?: number | string;
+    hasKeys?: boolean;
+    titleType?: string;
+    customChant?: string;
+  }) {
+    this.playGavel();
+    setTimeout(() => this.playCountdownTick(1.2), 160);
+
     setTimeout(() => {
-      if (startPrice) {
-        this.speak(`Auction open! Starting at ${startPrice.toLocaleString()} dollars, who'll bid?`, 1.08);
-      } else {
-        this.speak('Auction open! Place your bids now!', 1.08);
+      if (vehicleInfo?.customChant && vehicleInfo.customChant.trim()) {
+        this.speak(vehicleInfo.customChant.trim(), 1.08);
+        return;
       }
-    }, 150);
+
+      const year = vehicleInfo?.year || 2023;
+      const brand = vehicleInfo?.brand || 'Ford';
+      const model = vehicleInfo?.model || 'Mustang GT';
+      const price = startPrice ? Number(startPrice).toLocaleString() : '5,000';
+      const miles = vehicleInfo?.odometer ? `${Number(vehicleInfo.odometer).toLocaleString()} miles` : 'low miles';
+      const condition = vehicleInfo?.condition === 'run_and_drive' ? 'run and drive' : 'starts';
+
+      // Canto auténtico de bienvenida y elogio del vehículo al estilo Copart VB3
+      const welcomeChant = `Welcome bidders to Lane A! Coming up on the block, we have an incredible ${year} ${brand} ${model}! Verified ${condition}, with only ${miles}, keys in hand! Beautiful unit, folks! Who'll give me ${price} dollars to open? Let's start the bidding at ${price} dollars!`;
+
+      this.speak(welcomeChant, 1.08);
+    }, 220);
   }
 
   // Locución de subasta en pausa

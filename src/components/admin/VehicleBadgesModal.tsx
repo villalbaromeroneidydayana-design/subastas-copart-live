@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Tag, Volume2, RefreshCw, ShieldCheck, Plus, Trash2, Check, X, Sparkles, AlertCircle } from 'lucide-react';
+import { Tag, Volume2, RefreshCw, ShieldCheck, Plus, Trash2, Check, X, Sparkles, AlertCircle, Play, Radio, Mic } from 'lucide-react';
 import { CustomBadgeItem, CustomVehicleBadges, Vehicle } from '../../types';
+import { sounds } from '../../lib/soundEffects';
 
 interface VehicleBadgesModalProps {
   vehicle: Vehicle;
@@ -56,6 +57,20 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
     }
   ]);
 
+  const [auctioneerWelcomeChant, setAuctioneerWelcomeChant] = useState<string>(
+    existing.auctioneerWelcomeChant ||
+    `Welcome bidders to Lane A! Coming up right now on the block, we have an incredible ${vehicle.year || 2023} ${vehicle.brand || 'Ford'} ${vehicle.model || 'Mustang GT'}! Clean run and drive, verified with only ${vehicle.odometer ? Number(vehicle.odometer).toLocaleString() : '14,000'} miles, keys in hand! Beautiful unit, folks! Who'll give me 5,000 dollars to open? Let's start the bidding!`
+  );
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+
+  const handlePlayVoicePreview = () => {
+    setIsPlayingPreview(true);
+    try {
+      sounds.speak(auctioneerWelcomeChant.trim(), 1.08);
+    } catch {}
+    setTimeout(() => setIsPlayingPreview(false), 4500);
+  };
+
   const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
@@ -101,6 +116,7 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
         runDriveText: runDriveText.trim() || 'RUN & DRIVE',
         titleTypeText: titleTypeText.trim() || 'CLEAN TITLE',
         extraBadges,
+        auctioneerWelcomeChant: auctioneerWelcomeChant.trim(),
       };
 
       await onSave(updatedBadges);
@@ -423,6 +439,65 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* SECCIÓN 4: CANTO Y SALUDO DE BIENVENIDA DEL MARTILLERO (COPART AUCTION CHANT) */}
+          <div className="bg-[#070e1c] p-4 rounded-xl border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div>
+                <span className="font-bold text-amber-400 uppercase tracking-wider text-xs flex items-center gap-2">
+                  <Mic className="w-4 h-4" /> 4. Saludo y Canto de Bienvenida del Martillero (Apertura de Subasta)
+                </span>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  El subastador canta esta bienvenida con voz profesional en inglés al abrir la subasta, elogiando las características del auto y pidiendo la primera puja.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handlePlayVoicePreview}
+                disabled={isPlayingPreview}
+                className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-black px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>{isPlayingPreview ? 'Reproduciendo...' : 'Escuchar Voz'}</span>
+              </button>
+            </div>
+
+            <div>
+              <label className="text-[10px] text-slate-300 font-bold block mb-1">
+                Frase Oficial del Martillero en Inglés (Chant):
+              </label>
+              <textarea
+                rows={3}
+                value={auctioneerWelcomeChant}
+                onChange={(e) => setAuctioneerWelcomeChant(e.target.value)}
+                placeholder="Welcome bidders to Lane A! Coming up on the block..."
+                className="w-full bg-[#030712] border border-slate-700 rounded-lg p-2.5 text-white font-mono text-xs leading-relaxed"
+              />
+            </div>
+
+            {/* Plantillas rápidas */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="text-[10px] text-slate-400 self-center">Plantillas rápidas:</span>
+              <button
+                type="button"
+                onClick={() => setAuctioneerWelcomeChant(
+                  `Welcome bidders to Lane A! Coming up right now on the block, we have an incredible ${vehicle.year || 2023} ${vehicle.brand || 'Ford'} ${vehicle.model || 'Mustang GT'}! Clean run and drive, verified with only ${vehicle.odometer ? Number(vehicle.odometer).toLocaleString() : '14,000'} miles, keys in hand! Beautiful unit, folks! Who'll give me 5,000 dollars to open? Let's start the bidding!`
+                )}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-1 rounded border border-slate-700 transition"
+              >
+                Copart Clásico (Elogio Completo)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuctioneerWelcomeChant(
+                  `Alright buyers, welcome to Lane A! Look at this clean ${vehicle.year || 2023} ${vehicle.brand || 'Ford'} ${vehicle.model || 'Mustang GT'}! Verified run and drive, mint interior, ready to roll! Starting the bids at 5,000 dollars, let's go!`
+                )}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-1 rounded border border-slate-700 transition"
+              >
+                Venta Rápida y Agresiva
+              </button>
+            </div>
           </div>
         </form>
 

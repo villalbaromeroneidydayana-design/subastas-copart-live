@@ -502,8 +502,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               sounds.playPauseVoice();
             } else if (msg.status === 'unsold') {
               sounds.playUnsoldVoice();
-            } else if (msg.type === 'AUCTION_STARTED') {
-              sounds.playStartVoice(Number(session?.current_price ?? 5000));
+            } else if (msg.type === 'AUCTION_STARTED' || msg.status === 'open') {
+              sounds.playStartVoice(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000), {
+                year: vehicle?.year,
+                brand: vehicle?.brand,
+                model: vehicle?.model,
+                version: vehicle?.version,
+                odometer: vehicle?.odometer,
+                condition: vehicle?.vehicle_condition,
+                hasKeys: vehicle?.has_keys,
+                customChant: vehicle?.custom_badges?.auctioneerWelcomeChant,
+              });
             } else if (msg.type === 'AUCTION_RESUMED') {
               sounds.playResumeVoice();
             }

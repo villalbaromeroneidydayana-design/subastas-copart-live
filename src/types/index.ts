@@ -38,6 +38,7 @@ export interface CustomVehicleBadges {
   runDriveText?: string;
   titleTypeText?: string;
   extraBadges?: CustomBadgeItem[];
+  auctioneerWelcomeChant?: string;
 }
 
 export interface Vehicle {

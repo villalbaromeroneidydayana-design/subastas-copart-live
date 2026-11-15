@@ -802,10 +802,19 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   type="button"
                   onClick={async () => {
                     const targetId = session.id || 'ses-live-001';
+                    const veh = session.vehicle_snapshot || (session as any).vehicle;
                     setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
                     try {
-                      sounds.playCountdownTick(1.2);
-                      sounds.speak('Auction open! Starting bids!');
+                      sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
+                        year: veh?.year,
+                        brand: veh?.brand,
+                        model: veh?.model,
+                        version: veh?.version,
+                        odometer: veh?.odometer,
+                        condition: veh?.vehicle_condition,
+                        hasKeys: veh?.has_keys,
+                        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
+                      });
                     } catch {}
                     showFeedback('🟢 SALA ABIERTA EN VIVO — Subasta iniciada');
                     await store.serverStartAuction(targetId);
@@ -828,10 +837,19 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   type="button"
                   onClick={async () => {
                     const targetId = session.id || 'ses-live-001';
+                    const veh = session.vehicle_snapshot || (session as any).vehicle;
                     setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
                     try {
-                      sounds.playCountdownTick(1.2);
-                      sounds.speak('Auction open! Starting bids!');
+                      sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
+                        year: veh?.year,
+                        brand: veh?.brand,
+                        model: veh?.model,
+                        version: veh?.version,
+                        odometer: veh?.odometer,
+                        condition: veh?.vehicle_condition,
+                        hasKeys: veh?.has_keys,
+                        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
+                      });
                     } catch {}
                     showFeedback('🟢 Subasta iniciada en vivo');
                     await store.serverStartAuction(targetId);
