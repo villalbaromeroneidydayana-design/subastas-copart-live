@@ -277,9 +277,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         }));
 
         if (formattedBids.length > 0 && formattedBids[0].id !== lastBidId) {
-          setLastBidId(formattedBids[0].id);
+          const newest = formattedBids[0];
+          const isInitialLoad = lastBidId === null;
+          setLastBidId(newest.id);
           setBidFlash(true);
           setTimeout(() => setBidFlash(false), 800);
+          if (!isInitialLoad) {
+            sounds.playBidVoice(newest.amount, newest.paddle_number, newest.is_client);
+          }
         }
         setBids(formattedBids);
       }
@@ -387,7 +392,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         } else if (msg.type === 'NEW_REAL_BID') {
           setIsRoomAccessExpired(false);
           setLiveAuctioneerCall(null);
-          try { sounds.playBidPing(); } catch {}
+          if (msg.bid) {
+            const isClient = msg.bid.paddleNumber?.includes('101');
+            sounds.playBidVoice(msg.bid.amount, msg.bid.paddleNumber, isClient);
+          } else {
+            try { sounds.playBidPing(); } catch {}
+          }
           fetchStateFromServer();
         } else if (msg.type === 'AUCTION_FINALIZED') {
           setIsRoomAccessExpired(false);
@@ -403,6 +413,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             triggerSoldConfettiCelebration();
           } else if (msg.status !== 'sold') {
             hasCelebratedSoldRef.current = false;
+            if (msg.status === 'paused') {
+              sounds.playPauseVoice();
+            } else if (msg.status === 'unsold') {
+              sounds.playUnsoldVoice();
+            } else if (msg.type === 'AUCTION_STARTED') {
+              sounds.playStartVoice(Number(session?.current_price ?? 5000));
+            } else if (msg.type === 'AUCTION_RESUMED') {
+              sounds.playResumeVoice();
+            }
           }
           fetchStateFromServer();
         } else if (msg.type === 'ROOM_ANNOUNCEMENT') {

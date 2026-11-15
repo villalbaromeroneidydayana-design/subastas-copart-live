@@ -231,6 +231,56 @@ class SoundManager {
       // ignore
     }
   }
+
+  // Locución de nueva puja en inglés al estilo Copart (VB3 Auction Chant)
+  public playBidVoice(amount: number, paddleNumber?: string, isClient?: boolean) {
+    this.playBidPing();
+
+    setTimeout(() => {
+      if (isClient) {
+        this.speak(`Bid is ${amount.toLocaleString()} dollars, bidder one-o-one!`, 1.15);
+      } else if (paddleNumber) {
+        const digits = paddleNumber.replace(/[^\d]/g, '');
+        this.speak(`Bid is ${amount.toLocaleString()} dollars, bidder ${digits || paddleNumber}!`, 1.15);
+      } else {
+        this.speak(`Bid is ${amount.toLocaleString()} dollars!`, 1.15);
+      }
+    }, 110);
+  }
+
+  // Locución de inicio de subasta
+  public playStartVoice(startPrice?: number) {
+    this.playCountdownTick(1.2);
+    setTimeout(() => {
+      if (startPrice) {
+        this.speak(`Auction open! Starting at ${startPrice.toLocaleString()} dollars, who'll bid?`, 1.08);
+      } else {
+        this.speak('Auction open! Place your bids now!', 1.08);
+      }
+    }, 150);
+  }
+
+  // Locución de subasta en pausa
+  public playPauseVoice() {
+    this.speak('Auction paused, please hold your bids.', 1.05);
+  }
+
+  // Locución de reanudación
+  public playResumeVoice() {
+    this.playCountdownTick(1.2);
+    setTimeout(() => {
+      this.speak('Auction resumed, get your bids in!', 1.08);
+    }, 120);
+  }
+
+  // Locución de lote no vendido / por reserva
+  public playUnsoldVoice() {
+    this.playGavel();
+    setTimeout(() => this.playGavel(), 150);
+    setTimeout(() => {
+      this.speak('Lot passed, reserve not met.', 1.05);
+    }, 250);
+  }
 }
 
 export const sounds = new SoundManager();

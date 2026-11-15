@@ -91,7 +91,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     sounds.setMuted(next);
     setIsAudioMuted(next);
     if (!next) {
-      try { sounds.playBidPing(); } catch {}
+      try {
+        sounds.playBidPing();
+      } catch {}
     }
   };
 
@@ -217,7 +219,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       currentWinnerPaddle: selectedPaddle,
       time_remaining_seconds: 10,
     }));
-    try { sounds.playBidPing(); } catch {}
+    try {
+      sounds.playBidVoice(amount, selectedPaddle, selectedPaddle.includes('101'));
+    } catch {}
 
     setIsSubmittingBid(true);
     // Si la sala no estaba abierta, aseguramos su apertura inmediata
@@ -289,15 +293,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
       try {
         sounds.playSoldFanfare(price);
-      } catch {}
-      try {
-        sounds.playSoldFanfare();
         confetti({
           particleCount: 160,
           spread: 90,
           origin: { y: 0.6 },
           colors: ['#22c55e', '#eab308', '#3b82f6', '#ec4899', '#ffffff']
         });
+      } catch {}
+    } else {
+      try {
+        sounds.playUnsoldVoice();
       } catch {}
     }
 
@@ -782,6 +787,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     onClick={async () => {
                       const targetId = session.id || 'ses-live-001';
                       setSession((prev) => ({ ...prev, status: 'bidding' }));
+                      try { sounds.playResumeVoice(); } catch {}
                       showFeedback('▶ Subasta reanudada');
                       await store.serverResumeAuction(targetId);
                       await syncSessionData();
@@ -797,6 +803,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     onClick={async () => {
                       const targetId = session.id || 'ses-live-001';
                       setSession((prev) => ({ ...prev, status: 'paused' }));
+                      try { sounds.playPauseVoice(); } catch {}
                       showFeedback('⏸ Subasta en pausa');
                       await store.serverPauseAuction(targetId);
                       await syncSessionData();
