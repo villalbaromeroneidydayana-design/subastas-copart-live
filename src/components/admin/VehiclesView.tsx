@@ -8,6 +8,41 @@ import {
   Check, Star, X, AlertTriangle, Key, Gauge, Gavel
 } from 'lucide-react';
 
+// Función auxiliar para optimizar y comprimir imágenes locales en navegador antes de persistir
+const compressImageFile = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (!base64) return resolve('');
+      const img = new Image();
+      img.onload = () => {
+        const maxWidth = 1280;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        } else {
+          resolve(base64);
+        }
+      };
+      img.onerror = () => resolve(base64);
+      img.src = base64;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+};
+
 export const VehiclesView: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(store.getVehicles());
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,15 +68,16 @@ export const VehiclesView: React.FC = () => {
   });
 
   const handleDuplicate = (v: Vehicle) => {
-    const cloned: Partial<Vehicle> = {
+    if (!confirm(`¿Desea crear una plantilla basada en ${v.year} ${v.brand} ${v.model}? Deberá ingresar el Lote y VIN reales de Copart.`)) return;
+    setEditingVehicle({
       ...v,
       id: undefined,
-      lot_number: Math.floor(10000000 + Math.random() * 90000000).toString(),
-      vin: v.vin.slice(0, 10) + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      lot_number: '',
+      vin: '',
       model: `${v.model} (Copia)`,
-    };
-    store.saveVehicle(cloned as any);
-    refreshVehicles();
+      images: [...(v.images || [])],
+    });
+    setActiveTab('info');
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -51,26 +87,48 @@ export const VehiclesView: React.FC = () => {
     }
   };
 
-  const handleAuctionVehicle = async (vehicle: Vehicle) => {
+  // OPERACIÓN 2: CARGAR A SUBASTA (DEJA EL LOTE EN PREPARADO / STANDBY SIN INICIAR EL CRONÓMETRO)
+  const handleLoadToAuction = async (vehicle: Vehicle) => {
     try {
-      await store.updateSessionVehicle('ses-live-001', vehicle);
-      await store.serverStartAuction('ses-live-001');
+      await store.loadVehicleToSession('ses-live-001', vehicle);
+      alert(`✓ VEHÍCULO CARGADO A SALA:\n\n${vehicle.year} ${vehicle.brand} ${vehicle.model} (Lote #${vehicle.lot_number})\n\nEstado de Sala: PREPARADO / STANDBY.\nEl reloj está fijado en 15 segundos y NO se iniciará hasta que el subastador pulse SUBASTAR.`);
+      refreshVehicles();
     } catch (err: any) {
-      console.error('Error al subastar vehículo:', err);
+      console.error('Error al cargar vehículo a sala:', err);
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingVehicle?.brand || !editingVehicle?.model || !editingVehicle?.year || !editingVehicle?.lot_number || !editingVehicle?.vin) {
+  // OPERACIÓN 1: GUARDAR VEHÍCULO ÚNICAMENTE EN INVENTARIO (Sin tocar la sala activa)
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editingVehicle?.brand?.trim() || !editingVehicle?.model?.trim() || !editingVehicle?.year || !editingVehicle?.lot_number?.trim() || !editingVehicle?.vin?.trim()) {
       alert('Por favor complete los campos obligatorios: Marca, Modelo, Año, Lote y VIN.');
       return;
     }
 
-    const saved = store.saveVehicle(editingVehicle as any);
-    try {
-      await store.updateSessionVehicle('ses-live-001', saved);
-    } catch {}
+    const cleanLot = editingVehicle.lot_number.trim();
+    const cleanVin = editingVehicle.vin.trim().toUpperCase();
+    const currentVehicles = store.getVehicles();
+
+    // Protección de duplicados involuntarios
+    const duplicateLot = currentVehicles.find(v => v.id !== editingVehicle.id && v.lot_number.trim().toLowerCase() === cleanLot.toLowerCase());
+    if (duplicateLot) {
+      alert(`AVISO DE SEGURIDAD: Ya existe un vehículo registrado con el Número de Lote #${cleanLot} (${duplicateLot.year} ${duplicateLot.brand} ${duplicateLot.model}).\n\nNo se permite duplicar números de lote de Copart.`);
+      return;
+    }
+
+    const duplicateVin = currentVehicles.find(v => v.id !== editingVehicle.id && v.vin.trim().toUpperCase() === cleanVin);
+    if (duplicateVin) {
+      alert(`AVISO DE SEGURIDAD: Ya existe un vehículo registrado con el VIN ${cleanVin} (${duplicateVin.year} ${duplicateVin.brand} ${duplicateVin.model}).\n\nVerifique el número de chasis.`);
+      return;
+    }
+
+    store.saveVehicle({
+      ...editingVehicle,
+      lot_number: cleanLot,
+      vin: cleanVin,
+    } as any);
+
     setEditingVehicle(null);
     refreshVehicles();
   };
@@ -95,33 +153,32 @@ export const VehiclesView: React.FC = () => {
     setNewImageUrl('');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !editingVehicle) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        if (base64) {
-          const currentImages = editingVehicle.images || [];
+    for (const file of Array.from(files)) {
+      const optimizedBase64 = await compressImageFile(file);
+      if (optimizedBase64) {
+        setEditingVehicle((prev) => {
+          if (!prev) return null;
+          const currentImages = prev.images || [];
           const newImg: VehicleImage = {
             id: 'img-' + Math.random().toString(36).substring(2, 8),
-            vehicle_id: editingVehicle.id || 'temp',
-            url: base64,
+            vehicle_id: prev.id || 'temp',
+            url: optimizedBase64,
             category: newImageCategory,
             is_primary: currentImages.length === 0,
             order: currentImages.length + 1,
             caption: file.name,
           };
-          setEditingVehicle((prev) => prev ? {
+          return {
             ...prev,
-            images: [...(prev.images || []), newImg],
-          } : null);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+            images: [...currentImages, newImg],
+          };
+        });
+      }
+    }
   };
 
   const setPrimaryImage = (imgId: string) => {
@@ -162,17 +219,19 @@ export const VehiclesView: React.FC = () => {
               brand: '',
               model: '',
               year: new Date().getFullYear(),
-              lot_number: Math.floor(10000000 + Math.random() * 90000000).toString(),
-              vin: '1HGCR2F8' + Math.random().toString(36).substring(2, 11).toUpperCase(),
-              odometer: 15000,
+              lot_number: '',
+              vin: '',
+              odometer: 0,
               odometer_unit: 'mi',
               title_type: 'salvage',
               vehicle_condition: 'run_and_drive',
-              primary_damage: 'Front End',
-              secondary_damage: 'None',
+              primary_damage: '',
+              secondary_damage: '',
               has_keys: true,
-              location: 'Yard 12 - Atlanta East',
-              est_retail_value: 28000,
+              location: '',
+              est_retail_value: 0,
+              reference_url: '',
+              notes: '',
               images: [],
               equipment: [],
             });
@@ -203,10 +262,14 @@ export const VehiclesView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredVehicles.map((vehicle) => {
           const primaryImg = vehicle.images?.find((i) => i.is_primary) || vehicle.images?.[0];
+          const liveSession = store.getSessions().find((s) => s.id === 'ses-live-001');
+          const activeLot = liveSession?.vehicle_snapshot?.lot_number || (liveSession as any)?.lot_number;
+          const isCurrentActive = String(vehicle.lot_number).trim() === String(activeLot).trim();
+
           return (
             <div
               key={vehicle.id}
-              className="bg-[#0e1828] border border-[#1b3152] hover:border-amber-500/60 rounded-xl overflow-hidden shadow-lg transition flex flex-col group"
+              className={`bg-[#0e1828] border ${isCurrentActive ? 'border-emerald-500/80 ring-1 ring-emerald-500/30' : 'border-[#1b3152] hover:border-amber-500/60'} rounded-xl overflow-hidden shadow-lg transition flex flex-col group`}
             >
               {/* Imagen del vehículo */}
               <div className="relative aspect-[16/10] bg-slate-950 overflow-hidden">
@@ -233,6 +296,11 @@ export const VehiclesView: React.FC = () => {
                     }`}>
                     {vehicle.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS'}
                   </span>
+                  {isCurrentActive && (
+                    <span className="bg-emerald-500/90 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded shadow animate-pulse">
+                      ACTIVO EN SALA
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -313,12 +381,20 @@ export const VehiclesView: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleAuctionVehicle(vehicle)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black px-2.5 py-1 rounded text-[11px] flex items-center gap-1 transition shadow active:scale-95 cursor-pointer ml-1"
-                      title="Cargar y Subastar este vehículo en vivo en la sala central"
+                      onClick={() => handleLoadToAuction(vehicle)}
+                      className={`font-black px-2.5 py-1 rounded text-[11px] flex items-center gap-1 transition shadow active:scale-95 cursor-pointer ml-1 ${
+                        isCurrentActive
+                          ? 'bg-emerald-950 border border-emerald-500/80 text-emerald-300'
+                          : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950'
+                      }`}
+                      title={
+                        isCurrentActive
+                          ? 'Este vehículo ya está en la sala en modo PREPARADO / STANDBY'
+                          : 'Cargar este vehículo en la sala en modo PREPARADO / STANDBY (sin iniciar el reloj)'
+                      }
                     >
                       <Gavel className="w-3.5 h-3.5 text-amber-300" />
-                      <span>SUBASTAR</span>
+                      <span>{isCurrentActive ? 'En Sala' : 'Cargar a Sala'}</span>
                     </button>
                   </div>
                 </div>

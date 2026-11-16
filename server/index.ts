@@ -43,7 +43,8 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Endpoint de salud del backend para diagnósticos y uptime
 app.get('/api/health', (_req, res) => {
@@ -2182,13 +2183,19 @@ const handleUpdateBudget = (req: any, res: any) => {
 app.patch('/api/sessions/:id/budget', handleUpdateBudget);
 app.post('/api/sessions/:id/budget', handleUpdateBudget);
 
-// 12. ACTUALIZAR FICHA TÉCNICA Y FOTOGRAFÍAS DEL VEHÍCULO EN TIEMPO REAL
+// 12. ACTUALIZAR FICHA TÉCNICA Y FOTOGRAFÍAS DEL VEHÍCULO EN TIEMPO REAL (CARGA EN MODO PREPARADO / STANDBY)
 app.patch('/api/sessions/:id/vehicle', (req, res) => {
-  const { vehicle } = req.body;
+  const { vehicle, startingPrice } = req.body;
   if (!vehicle) return res.status(400).json({ error: 'Ficha de vehículo requerida' });
 
-  const session = db.prepare('SELECT id FROM auction_sessions WHERE id = ?').get(req.params.id);
+  const session = db.prepare('SELECT id, total_duration_seconds FROM auction_sessions WHERE id = ?').get(req.params.id) as any;
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  stopServerClock(session.id);
+  const startPrice = Number(startingPrice) || (vehicle.est_retail_value ? Math.max(1000, Math.round((vehicle.est_retail_value * 0.20) / 500) * 500) : 5000);
+
+  // Limpiar ofertas anteriores y dejar la sesión en modo PREPARADO
+  db.prepare('DELETE FROM auction_bids WHERE session_id = ?').run(session.id);
 
   db.prepare(`
     UPDATE auction_sessions 
@@ -2198,6 +2205,18 @@ app.patch('/api/sessions/:id/vehicle', (req, res) => {
       model = ?,
       year = ?,
       lot_number = ?,
+      title = ?,
+      status = 'prepared',
+      starting_price = ?,
+      current_price = ?,
+      current_winner_paddle = NULL,
+      current_winner_name = NULL,
+      current_winner_id = NULL,
+      bid_count = 0,
+      time_remaining_seconds = 15,
+      is_token_revoked = 0,
+      broker_token_revoked = 0,
+      buyer_token_revoked = 0,
       updated_at = ?
     WHERE id = ?
   `).run(
@@ -2206,6 +2225,9 @@ app.patch('/api/sessions/:id/vehicle', (req, res) => {
     vehicle.model || 'Modelo',
     vehicle.year || 2024,
     vehicle.lot_number || '48291032',
+    `${vehicle.year || 2024} ${vehicle.brand || 'Vehículo'} ${vehicle.model || 'Modelo'}`,
+    startPrice,
+    startPrice,
     new Date().toISOString(),
     req.params.id
   );
@@ -2216,6 +2238,10 @@ app.patch('/api/sessions/:id/vehicle', (req, res) => {
     vehicle,
     lotNumber: vehicle.lot_number || '48291032',
     title: `${vehicle.year} ${vehicle.brand} ${vehicle.model}`,
+    status: 'prepared',
+    startingPrice: startPrice,
+    currentPrice: startPrice,
+    timeRemaining: 15,
   });
 
   broadcast({
@@ -2224,14 +2250,22 @@ app.patch('/api/sessions/:id/vehicle', (req, res) => {
     vehicle,
     lotNumber: vehicle.lot_number || '48291032',
     title: `${vehicle.year} ${vehicle.brand} ${vehicle.model}`,
+    status: 'prepared',
+    startingPrice: startPrice,
+    currentPrice: startPrice,
+    timeRemaining: 15,
   });
 
   broadcast({
     type: 'STATUS_CHANGE',
     sessionId: req.params.id,
+    status: 'prepared',
+    startingPrice: startPrice,
+    currentPrice: startPrice,
+    timeRemaining: 15,
   });
 
-  res.json({ success: true, vehicle });
+  res.json({ success: true, vehicle, status: 'prepared', startingPrice: startPrice });
 });
 
 // 11. MOTOR DE OFERTAS: ÚNICA RUTA AUTORIZADA PARA OFERTAS REALES

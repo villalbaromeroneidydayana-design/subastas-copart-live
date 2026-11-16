@@ -1208,8 +1208,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* INSIGNIAS EXCLUSIVAS COPART: 360° View, Engine Sound, Carfax y Personalizadas */}
             <div className="absolute top-11 left-2.5 z-20 flex flex-wrap gap-1.5">
-              {/* Botón Engine Sound */}
-              {vehicle?.custom_badges?.engineSoundEnabled !== false && (
+              {/* Botón Engine Sound - Solo si está expresamente habilitado con audio verificado */}
+              {vehicle?.custom_badges?.engineSoundEnabled === true && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -1227,8 +1227,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </button>
               )}
 
-              {/* Botón 360° Walkaround */}
-              {vehicle?.custom_badges?.threeSixtyEnabled !== false && (
+              {/* Botón 360° Walkaround - Solo si está expresamente habilitado */}
+              {vehicle?.custom_badges?.threeSixtyEnabled === true && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -1246,8 +1246,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </button>
               )}
 
-              {/* Botón Carfax Report */}
-              {vehicle?.custom_badges?.carfaxEnabled !== false && (
+              {/* Botón Carfax Report - Solo si cuenta con documentación respaldada */}
+              {vehicle?.custom_badges?.carfaxEnabled === true && (
                 <button
                   type="button"
                   onClick={(e) => {

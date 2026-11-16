@@ -705,26 +705,63 @@ class RealAuctionStore {
     }
   }
 
-  public async updateSessionVehicle(sessionId: string, vehicle: any): Promise<boolean> {
+  public async loadVehicleToSession(sessionId: string, vehicle: any, customStartingPrice?: number): Promise<boolean> {
     const target = sessionId || 'ses-live-001';
+    
+    // 1. Detener cualquier reloj activo
+    this.stopLocalClock();
+    
+    // 2. Establecer estado PREPARADO / STANDBY a 15 segundos sin arrancar cronómetro
+    this.localTimeRemaining = 15;
+    this.localSessionState.status = 'prepared';
+    this.localSessionState.currentWinnerPaddle = null;
+    this.localSessionState.currentWinnerName = null;
+    
+    const startPrice = customStartingPrice || (vehicle?.est_retail_value 
+      ? Math.max(1000, Math.round((vehicle.est_retail_value * 0.20) / 500) * 500)
+      : 5000);
+    this.localSessionState.startingPrice = startPrice;
+    this.localSessionState.currentPrice = startPrice;
+
+    // 3. Notificar a todas las pantallas inmediatamente
     this.dispatchSyncEvent({
       type: 'VEHICLE_UPDATED',
       sessionId: target,
       vehicle,
       lotNumber: vehicle?.lot_number,
       title: vehicle ? `${vehicle.year} ${vehicle.brand} ${vehicle.model}` : undefined,
+      status: 'prepared',
+      timeRemaining: 15,
+      startingPrice: startPrice,
+      currentPrice: startPrice,
     }, true);
 
+    this.dispatchSyncEvent({
+      type: 'STATUS_CHANGE',
+      sessionId: target,
+      status: 'prepared',
+      timeRemaining: 15,
+      startingPrice: startPrice,
+      currentPrice: startPrice,
+    }, true);
+
+    this.notify();
+
+    // 4. Persistir en el servidor Node.js / SQLite
     try {
       const res = await fetch(`${SERVER_URL}/api/sessions/${target}/vehicle`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vehicle }),
+        body: JSON.stringify({ vehicle, startingPrice: startPrice }),
       });
       return res.ok;
     } catch {
       return true;
     }
+  }
+
+  public async updateSessionVehicle(sessionId: string, vehicle: any): Promise<boolean> {
+    return this.loadVehicleToSession(sessionId, vehicle);
   }
 
   public async serverStartAuction(sessionId: string) {

@@ -218,3 +218,4 @@ runProductionCrossDeviceTest().catch((err) => {
   console.error('Error durante la validación en producción:', err);
   process.exit(1);
 });
+

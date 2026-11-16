@@ -18,13 +18,13 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
 }) => {
   const existing = vehicle.custom_badges || {};
 
-  const [engineSoundEnabled, setEngineSoundEnabled] = useState<boolean>(existing.engineSoundEnabled ?? true);
+  const [engineSoundEnabled, setEngineSoundEnabled] = useState<boolean>(existing.engineSoundEnabled ?? false);
   const [engineSoundText, setEngineSoundText] = useState<string>(existing.engineSoundText || 'Engine Sound 🔊');
 
-  const [threeSixtyEnabled, setThreeSixtyEnabled] = useState<boolean>(existing.threeSixtyEnabled ?? true);
+  const [threeSixtyEnabled, setThreeSixtyEnabled] = useState<boolean>(existing.threeSixtyEnabled ?? false);
   const [threeSixtyText, setThreeSixtyText] = useState<string>(existing.threeSixtyText || '360° View 🔄');
 
-  const [carfaxEnabled, setCarfaxEnabled] = useState<boolean>(existing.carfaxEnabled ?? true);
+  const [carfaxEnabled, setCarfaxEnabled] = useState<boolean>(existing.carfaxEnabled ?? false);
   const [carfaxText, setCarfaxText] = useState<string>(existing.carfaxText || 'Carfax Clean ✓');
 
   const [carfaxTitleStatus, setCarfaxTitleStatus] = useState<string>(existing.carfaxTitleStatus || 'Título Limpio / Clean Title');
