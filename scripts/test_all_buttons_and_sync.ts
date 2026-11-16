@@ -271,3 +271,4 @@ runAllTests().catch((err) => {
   console.error('Error durante la prueba:', err);
   process.exit(1);
 });
+
