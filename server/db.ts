@@ -155,6 +155,21 @@ export function initDatabase(dbPath: string = path.join(DB_DIR, 'auction.db')) {
     );
   `);
 
+  // 7. Catálogo centralizado y persistente de inventario de vehículos y fotografías
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS vehicles_inventory (
+      id TEXT PRIMARY KEY,
+      lot_number TEXT UNIQUE NOT NULL,
+      vin TEXT UNIQUE NOT NULL,
+      brand TEXT NOT NULL,
+      model TEXT NOT NULL,
+      year INTEGER NOT NULL,
+      data_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+
   return db;
 }
 

@@ -52,6 +52,14 @@ export const VehiclesView: React.FC = () => {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [newImageCategory, setNewImageCategory] = useState<PhotoCategory>('exterior');
 
+  React.useEffect(() => {
+    store.fetchServerVehicles().then((serverVehicles) => {
+      if (serverVehicles && serverVehicles.length > 0) {
+        setVehicles([...serverVehicles]);
+      }
+    });
+  }, []);
+
   const refreshVehicles = () => {
     setVehicles([...store.getVehicles()]);
   };

@@ -111,6 +111,22 @@ class RealAuctionStore {
     this.initBroadcastChannel();
     this.initWebSocket();
     this.checkServerHealth();
+    this.fetchServerVehicles();
+  }
+
+  public async fetchServerVehicles(): Promise<Vehicle[]> {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/vehicles`);
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          localStorage.setItem('copart_vehicles_v1', JSON.stringify(rows));
+          this.notify();
+          return rows;
+        }
+      }
+    } catch {}
+    return this.getVehicles();
   }
 
   private initBroadcastChannel() {
@@ -350,6 +366,14 @@ class RealAuctionStore {
         vehicles[idx] = updated;
         localStorage.setItem('copart_vehicles_v1', JSON.stringify(vehicles));
         this.notify();
+
+        // Persistir en SQLite central en servidor
+        fetch(`${SERVER_URL}/api/vehicles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        }).catch(() => {});
+
         return updated;
       }
     }
@@ -397,6 +421,14 @@ class RealAuctionStore {
     vehicles.unshift(newVehicle);
     localStorage.setItem('copart_vehicles_v1', JSON.stringify(vehicles));
     this.notify();
+
+    // Persistir en SQLite central en servidor
+    fetch(`${SERVER_URL}/api/vehicles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newVehicle),
+    }).catch(() => {});
+
     return newVehicle;
   }
 
@@ -404,6 +436,11 @@ class RealAuctionStore {
     const vehicles = this.getVehicles().filter((v) => v.id !== id);
     localStorage.setItem('copart_vehicles_v1', JSON.stringify(vehicles));
     this.notify();
+
+    // Eliminar de SQLite central en servidor
+    fetch(`${SERVER_URL}/api/vehicles/${id}`, {
+      method: 'DELETE',
+    }).catch(() => {});
   }
 
   // --- SUBASTAS Y COMUNICACIÓN CON SERVIDOR BACKEND ---

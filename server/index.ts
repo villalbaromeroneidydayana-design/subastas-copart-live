@@ -2347,6 +2347,69 @@ app.post('/api/admin/maintenance/cleanup', (req, res) => {
   res.json({ success: true, ...result });
 });
 
+// 13b. API CENTRALIZADA DE INVENTARIO DE VEHÍCULOS Y FOTOGRAFÍAS (PERSISTENCIA TOTAL EN SQLITE)
+app.get('/api/vehicles', (_req, res) => {
+  try {
+    const rows = db.prepare('SELECT data_json FROM vehicles_inventory ORDER BY created_at DESC').all() as any[];
+    const vehicles = rows.map((r) => {
+      try { return JSON.parse(r.data_json); } catch { return null; }
+    }).filter(Boolean);
+    res.json(vehicles);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/vehicles', (req, res) => {
+  try {
+    const vehicle = req.body;
+    if (!vehicle || !vehicle.lot_number || !vehicle.vin || !vehicle.brand || !vehicle.model) {
+      return res.status(400).json({ error: 'Datos obligatorios del vehículo incompletos' });
+    }
+
+    const id = vehicle.id || 'veh-' + crypto.randomBytes(4).toString('hex');
+    vehicle.id = id;
+    const now = new Date().toISOString();
+    vehicle.updated_at = now;
+    if (!vehicle.created_at) vehicle.created_at = now;
+
+    db.prepare(`
+      INSERT INTO vehicles_inventory (id, lot_number, vin, brand, model, year, data_json, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(lot_number) DO UPDATE SET
+        vin = excluded.vin,
+        brand = excluded.brand,
+        model = excluded.model,
+        year = excluded.year,
+        data_json = excluded.data_json,
+        updated_at = excluded.updated_at
+    `).run(
+      id,
+      String(vehicle.lot_number).trim(),
+      String(vehicle.vin).trim().toUpperCase(),
+      vehicle.brand,
+      vehicle.model,
+      Number(vehicle.year) || 2024,
+      JSON.stringify(vehicle),
+      vehicle.created_at,
+      now
+    );
+
+    res.json({ success: true, vehicle });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/vehicles/:id', (req, res) => {
+  try {
+    db.prepare('DELETE FROM vehicles_inventory WHERE id = ? OR lot_number = ?').run(req.params.id, req.params.id);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 14. INICIALIZACIÓN CONTROLADA: SALA EN REPOSO HASTA APERTURA MANUAL DEL SUBASTADOR
 function restoreActiveSessions() {
   // Aseguramos que la sesión inicie en 'prepared' (inspección) con reloj detenido
