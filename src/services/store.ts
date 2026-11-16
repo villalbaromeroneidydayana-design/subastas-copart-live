@@ -27,6 +27,13 @@ const getDynamicBackendUrls = () => {
   // 2. Si está configurada una variable de entorno personalizada, usarla (ideal para Vercel)
   let customHttp = (import.meta as any).env?.VITE_BACKEND_URL;
   let customWs = (import.meta as any).env?.VITE_WS_URL;
+
+  // Si la variable de Vercel contiene un túnel trycloudflare obsoleto, priorizar el túnel activo actual
+  if (customHttp && customHttp.includes('trycloudflare.com') && !customHttp.includes('yard-vice-preston-proposals')) {
+    customHttp = CLOUDFLARE_TUNNEL_URL;
+    customWs = CLOUDFLARE_TUNNEL_URL.replace(/^http/i, 'ws');
+  }
+
   if (customHttp) {
     customHttp = customHttp.trim().replace(/\/+$/, '');
     if (!customWs) {
