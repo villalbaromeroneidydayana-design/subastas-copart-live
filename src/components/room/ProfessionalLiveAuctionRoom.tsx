@@ -546,22 +546,87 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             auctioneerCallTimeoutRef.current = null;
           }
           setLiveAuctioneerCall(null);
+          const newPrice = msg.currentPrice !== undefined ? Number(msg.currentPrice) : (msg.bid?.amount ? Number(msg.bid.amount) : session?.current_price);
+          const newWinner = msg.currentWinnerPaddle || msg.bid?.paddleNumber || msg.bid?.paddle_number;
+          const newWinnerName = msg.currentWinnerName || msg.bid?.bidderName;
+          
+          setSession((prev) => ({
+            ...prev,
+            status: 'open',
+            current_price: newPrice,
+            currentPrice: newPrice,
+            current_winner_paddle: newWinner,
+            currentWinnerPaddle: newWinner,
+            current_winner_name: newWinnerName,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : 15,
+            bid_count: ((prev as any).bid_count || 0) + 1,
+          }));
+
           if (msg.bid) {
-            const isClient = msg.bid.paddleNumber?.includes('101');
-            sounds.playBidVoice(msg.bid.amount, msg.bid.paddleNumber, isClient);
+            const formatted = {
+              id: msg.bid.id || 'bid-' + Date.now(),
+              session_id: msg.sessionId || session.id,
+              amount: msg.bid.amount || newPrice,
+              bidder_id: msg.bid.participantId,
+              bidder_name: msg.bid.bidderName || newWinnerName,
+              bidder_location: msg.bid.location || 'Miami, FL',
+              is_client: (msg.bid.paddleNumber || newWinner)?.includes('101'),
+              timestamp: msg.serverTimestamp || msg.bid.serverTimestamp || new Date().toISOString(),
+              sequence_number: msg.bid.sequenceNumber || 1,
+              paddle_number: msg.bid.paddleNumber || newWinner,
+            };
+            setBids((prev) => [formatted, ...prev.filter((b) => b.id !== formatted.id)]);
+            sounds.playBidVoice(formatted.amount, formatted.paddle_number, formatted.is_client);
           } else {
             try { sounds.playBidPing(); } catch { }
           }
           fetchStateFromServer();
         } else if (msg.type === 'AUCTION_FINALIZED') {
           setIsRoomAccessExpired(false);
-          if ((msg.status === 'sold' || !msg.status) && !hasCelebratedSoldRef.current) {
+          const finalDecision = msg.decision || msg.status || 'sold';
+          setSession((prev) => ({
+            ...prev,
+            status: finalDecision as any,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+            current_winner_paddle: msg.winnerPaddle || (prev as any).current_winner_paddle,
+            time_remaining_seconds: 0,
+          }));
+          if ((finalDecision === 'sold') && !hasCelebratedSoldRef.current) {
             hasCelebratedSoldRef.current = true;
             triggerSoldConfettiCelebration();
           }
           fetchStateFromServer();
-        } else if (msg.type === 'STATUS_CHANGE' || msg.type === 'AUCTION_STARTED' || msg.type === 'AUCTION_RESET' || msg.type === 'AUCTION_RESUMED') {
+        } else if (msg.type === 'AUCTION_RESET') {
           setIsRoomAccessExpired(false);
+          hasCelebratedSoldRef.current = false;
+          setLiveAuctioneerCall(null);
+          setBids([]);
+          const resetPrice = msg.startingPrice !== undefined ? Number(msg.startingPrice) : 5000;
+          setSession((prev) => ({
+            ...prev,
+            status: 'prepared',
+            current_price: resetPrice,
+            currentPrice: resetPrice,
+            starting_price: resetPrice,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : 15,
+            current_winner_paddle: null,
+            currentWinnerPaddle: null,
+            current_winner_name: null,
+            current_bid_count: 0,
+            bid_count: 0,
+          }));
+          fetchStateFromServer();
+        } else if (msg.type === 'STATUS_CHANGE' || msg.type === 'AUCTION_STARTED' || msg.type === 'AUCTION_RESUMED') {
+          setIsRoomAccessExpired(false);
+          const nextStatus = msg.status || (msg.type === 'AUCTION_STARTED' ? 'open' : undefined);
+          setSession((prev) => ({
+            ...prev,
+            status: (nextStatus || prev.status) as any,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : prev.time_remaining_seconds,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+            current_winner_paddle: msg.currentWinnerPaddle !== undefined ? msg.currentWinnerPaddle : (prev as any).current_winner_paddle,
+          }));
+
           if (msg.status === 'sold' && !hasCelebratedSoldRef.current) {
             hasCelebratedSoldRef.current = true;
             triggerSoldConfettiCelebration();
@@ -575,7 +640,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               if (vehicle?.custom_badges?.auctioneerVoiceGender) {
                 sounds.setVoiceGender(vehicle.custom_badges.auctioneerVoiceGender);
               }
-              sounds.playStartVoice(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000), {
+              sounds.playStartVoice(Number(msg.currentPrice || session?.current_price || 5000), {
                 year: vehicle?.year,
                 brand: vehicle?.brand,
                 model: vehicle?.model,
@@ -585,7 +650,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 hasKeys: vehicle?.has_keys,
                 customChant: vehicle?.custom_badges?.auctioneerWelcomeChant,
               });
-            } else if (msg.type === 'AUCTION_RESUMED') {
+            } else if (msg.type === 'AUCTION_RESUMED' || msg.status === 'bidding') {
               sounds.playResumeVoice();
             }
           }
@@ -1772,33 +1837,33 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </p>
 
                 {/* EXPEDIENTE TÉCNICO Y AUDITORÍA DEL LOTE */}
-                <div className="bg-[#002855]/70 border border-blue-500/60 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 mt-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0">
+                <div className="bg-[#002855]/70 border border-blue-500/60 p-3 rounded-lg flex flex-col gap-2.5 mt-2">
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0 mt-0.5">
                       <ExternalLink className="w-4 h-4" />
                     </div>
-                    <div>
-                      <span className="font-bold text-white text-xs block">
+                    <div className="min-w-0 flex-1">
+                      <span className="font-bold text-white text-xs block leading-snug">
                         Expediente Oficial de Patio (Copart Yard Facility):
                       </span>
-                      <span className="text-[10px] text-slate-300">
+                      <span className="text-[10px] text-slate-300 block leading-tight mt-0.5">
                         Registro técnico original del lote #{vehicle?.lot_number || '48291032'} en patio antes de la apertura de sala.
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                  <div className="grid grid-cols-2 gap-2 w-full pt-1 border-t border-blue-500/20">
                     <a
                       href={copartLotUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
+                      className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-[11px] sm:text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
                     >
                       <span>{lang === 'en' ? 'Lot Record ↗' : 'Expediente de Lote ↗'}</span>
                     </a>
                     <button
                       type="button"
                       onClick={() => setIsBuyerGuideOpen(true)}
-                      className="px-3 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-200 border border-blue-600/60 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition whitespace-nowrap"
+                      className="px-2.5 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-200 border border-blue-600/60 font-bold text-[11px] sm:text-xs rounded-lg flex items-center justify-center gap-1.5 transition whitespace-nowrap"
                       title="Ver explicación de cómo opera tu broker en esta sala"
                     >
                       <HelpCircle className="w-3.5 h-3.5 text-amber-400" />

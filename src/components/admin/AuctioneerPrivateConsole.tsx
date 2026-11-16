@@ -33,7 +33,10 @@ import {
   Share2,
   Tag,
   Bot,
-  Zap
+  Zap,
+  ArrowLeft,
+  ArrowRight,
+  Minus
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
@@ -198,6 +201,85 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     await syncSessionData();
   };
 
+  // Control de Pausa
+  const handlePauseAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    setSession((prev) => ({ ...prev, status: 'paused' }));
+    try { sounds.playPauseVoice(); } catch {}
+    showFeedback('⏸ Subasta en pausa — Reloj detenido');
+    await store.serverPauseAuction(targetId);
+    await syncSessionData();
+  };
+
+  // Control de Reanudación
+  const handleResumeAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    setSession((prev) => ({ ...prev, status: 'bidding' }));
+    try { sounds.playResumeVoice(); } catch {}
+    showFeedback('▶ Subasta reanudada — Cuenta regresiva activa');
+    await store.serverResumeAuction(targetId);
+    await syncSessionData();
+  };
+
+  // Control de Reseteo Completo
+  const handleResetAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    setSession((prev) => ({
+      ...prev,
+      status: 'prepared',
+      current_price: 5000,
+      currentPrice: 5000,
+      starting_price: 5000,
+      time_remaining_seconds: 15,
+      current_winner_paddle: null,
+      currentWinnerPaddle: null,
+      current_winner_name: null,
+      current_bid_count: 0,
+      bid_count: 0,
+    }));
+    setBids([]);
+    setActiveCall(null);
+    setBidAmountInput('5250');
+    showFeedback('🔄 Subasta reseteada a estado inicial ($5,000 USD / 15s)');
+    await store.serverResetAuction(targetId);
+    await syncSessionData();
+  };
+
+  // Control de Disminución de Puja
+  const applyDecrement = (decrementValue: number) => {
+    const curr = Number(bidAmountInput) || Number(session.current_price || 5000);
+    const minVal = Number(session.current_price || 5000);
+    const nextVal = Math.max(minVal, curr - decrementValue);
+    setBidAmountInput(String(nextVal));
+  };
+
+  // Navegación de Lotes (Anterior / Siguiente)
+  const handlePrevLot = async () => {
+    const vehicles = store.getVehicles();
+    const currLot = (session as any).lot_number || session.vehicle_snapshot?.lot_number;
+    const currIdx = vehicles.findIndex((v) => v.lot_number === currLot);
+    const prevIdx = currIdx > 0 ? currIdx - 1 : vehicles.length - 1;
+    const targetVeh = vehicles[prevIdx];
+    if (targetVeh) {
+      await store.updateSessionVehicle(session.id, targetVeh);
+      showFeedback(`◀ Lote anterior cargado: ${targetVeh.year} ${targetVeh.brand} #${targetVeh.lot_number}`);
+      await syncSessionData();
+    }
+  };
+
+  const handleNextLot = async () => {
+    const vehicles = store.getVehicles();
+    const currLot = (session as any).lot_number || session.vehicle_snapshot?.lot_number;
+    const currIdx = vehicles.findIndex((v) => v.lot_number === currLot);
+    const nextIdx = (currIdx + 1) % vehicles.length;
+    const targetVeh = vehicles[nextIdx];
+    if (targetVeh) {
+      await store.updateSessionVehicle(session.id, targetVeh);
+      showFeedback(`▶ Siguiente lote cargado: ${targetVeh.year} ${targetVeh.brand} #${targetVeh.lot_number}`);
+      await syncSessionData();
+    }
+  };
+
   useEffect(() => {
     syncSessionData();
     const interval = setInterval(syncSessionData, 1000);
@@ -215,12 +297,69 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           if (msg.viewersCount !== undefined) {
             setViewersCount(Number(msg.viewersCount));
           }
+        } else if (msg.type === 'NEW_REAL_BID') {
+          const newPrice = msg.currentPrice !== undefined ? Number(msg.currentPrice) : (msg.bid?.amount ? Number(msg.bid.amount) : session.current_price);
+          const newWinner = msg.currentWinnerPaddle || msg.bid?.paddleNumber;
+          const newWinnerName = msg.currentWinnerName || msg.bid?.bidderName;
+          setSession((prev) => ({
+            ...prev,
+            status: 'open',
+            current_price: newPrice,
+            currentPrice: newPrice,
+            current_winner_paddle: newWinner,
+            currentWinnerPaddle: newWinner,
+            current_winner_name: newWinnerName,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : 15,
+          }));
+          if (msg.bid) {
+            const formatted = {
+              id: msg.bid.id || 'bid-' + Date.now(),
+              sessionId: msg.sessionId || session.id,
+              amount: msg.bid.amount || newPrice,
+              participantId: msg.bid.participantId,
+              bidderName: msg.bid.bidderName || newWinnerName,
+              location: msg.bid.location || 'Miami, FL',
+              isClient: (msg.bid.paddleNumber || newWinner)?.includes('101'),
+              serverTimestamp: msg.serverTimestamp || new Date().toISOString(),
+              sequenceNumber: msg.bid.sequenceNumber || 1,
+              paddleNumber: msg.bid.paddleNumber || newWinner,
+              paddle_number: msg.bid.paddleNumber || newWinner,
+            };
+            setBids((prev) => [formatted, ...prev.filter((b) => b.id !== formatted.id)]);
+          }
+        } else if (msg.type === 'AUCTION_RESET') {
+          const resetPrice = msg.startingPrice !== undefined ? Number(msg.startingPrice) : 5000;
+          setSession((prev) => ({
+            ...prev,
+            status: 'prepared',
+            current_price: resetPrice,
+            currentPrice: resetPrice,
+            starting_price: resetPrice,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : 15,
+            current_winner_paddle: null,
+            currentWinnerPaddle: null,
+            current_winner_name: null,
+            current_bid_count: 0,
+            bid_count: 0,
+          }));
+          setBids([]);
+          setActiveCall(null);
+        } else if (msg.type === 'AUCTION_FINALIZED') {
+          const finalDecision = msg.decision || msg.status || 'sold';
+          setSession((prev) => ({
+            ...prev,
+            status: finalDecision,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+            current_winner_paddle: msg.winnerPaddle || (prev as any).current_winner_paddle,
+            time_remaining_seconds: 0,
+          }));
         } else if (msg.type === 'AUCTION_STARTED' || msg.type === 'STATUS_CHANGE') {
           setSession((prev) => ({
             ...prev,
             status: msg.status || prev.status,
             time_remaining_seconds: msg.timeRemaining !== undefined ? msg.timeRemaining : prev.time_remaining_seconds,
             current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+            current_winner_paddle: msg.currentWinnerPaddle !== undefined ? msg.currentWinnerPaddle : (prev as any).current_winner_paddle,
           }));
           syncSessionData();
         } else if (msg.type === 'NEXT_LOT_LOADED' || msg.type === 'VEHICLE_UPDATED') {
@@ -408,13 +547,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
   // 4. ADJUDICACIÓN MANUAL (SOLD / UNSOLD)
   const handleAdjudicate = async (decision: 'sold' | 'unsold') => {
-    const winner = (session as any).currentWinnerPaddle || session.current_bidder_name || 'Sin postor';
+    const winner = (session as any).currentWinnerPaddle || session.current_bidder_name || (bids.length > 0 ? bids[0].paddleNumber : 'Paleta #101');
     const price = Number(session.current_price || 5000);
+
+    setSession((prev) => ({
+      ...prev,
+      status: decision,
+      time_remaining_seconds: 0,
+      current_winner_paddle: decision === 'sold' ? winner : 'N/A',
+      currentWinnerPaddle: decision === 'sold' ? winner : 'N/A',
+    }));
     
     if (decision === 'sold') {
-      const confirmSold = window.confirm(`¿Confirmas adjudicar el lote (SOLD) a ${winner} por $${price.toLocaleString()} USD?`);
-      if (!confirmSold) return;
-
       try {
         sounds.playSoldFanfare(price);
         confetti({
@@ -442,7 +586,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     }
 
     await store.adjudicateAuction(session.id, decision);
-    showFeedback(decision === 'sold' ? `🔨 Lote ADJUDICADO a ${winner}!` : '⛔ Lote marcado como NO VENDIDO (UNSOLD)');
+    showFeedback(decision === 'sold' ? `🔨 Lote ADJUDICADO (SOLD) a ${winner}!` : '⛔ Lote marcado como NO VENDIDO (UNSOLD)');
     await syncSessionData();
   };
 
@@ -996,6 +1140,51 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 </button>
               </div>
             </div>
+
+            {/* BOTONES DE DISMINUCIÓN RÁPIDA DE PUJA */}
+            <div className="mt-3">
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold block mb-2">
+                Disminuir puja:
+              </span>
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  id="btn-dec-50"
+                  onClick={() => applyDecrement(50)}
+                  className="bg-[#050a16] hover:bg-slate-800 text-slate-300 font-bold py-2 rounded-xl border border-slate-700 text-xs sm:text-sm transition active:scale-95 shadow flex items-center justify-center gap-1 cursor-pointer"
+                  title="Disminuir importe en $50 USD"
+                >
+                  <Minus className="w-3.5 h-3.5 text-slate-400" /> $50
+                </button>
+                <button
+                  type="button"
+                  id="btn-dec-100"
+                  onClick={() => applyDecrement(100)}
+                  className="bg-[#050a16] hover:bg-slate-800 text-slate-300 font-bold py-2 rounded-xl border border-slate-700 text-xs sm:text-sm transition active:scale-95 shadow flex items-center justify-center gap-1 cursor-pointer"
+                  title="Disminuir importe en $100 USD"
+                >
+                  <Minus className="w-3.5 h-3.5 text-slate-400" /> $100
+                </button>
+                <button
+                  type="button"
+                  id="btn-dec-250"
+                  onClick={() => applyDecrement(250)}
+                  className="bg-[#050a16] hover:bg-slate-800 text-amber-300 font-bold py-2 rounded-xl border border-slate-700 text-xs sm:text-sm transition active:scale-95 shadow flex items-center justify-center gap-1 cursor-pointer"
+                  title="Disminuir importe en $250 USD"
+                >
+                  <Minus className="w-3.5 h-3.5 text-amber-400" /> $250
+                </button>
+                <button
+                  type="button"
+                  id="btn-dec-500"
+                  onClick={() => applyDecrement(500)}
+                  className="bg-[#050a16] hover:bg-slate-800 text-rose-300 font-bold py-2 rounded-xl border border-slate-700 text-xs sm:text-sm transition active:scale-95 shadow flex items-center justify-center gap-1 cursor-pointer"
+                  title="Disminuir importe en $500 USD"
+                >
+                  <Minus className="w-3.5 h-3.5 text-rose-400" /> $500
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* BOTÓN GIGANTE [ENVIAR OFERTA] */}
@@ -1131,15 +1320,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 {session.status === 'paused' ? (
                   <button
                     type="button"
-                    onClick={async () => {
-                      const targetId = session.id || 'ses-live-001';
-                      setSession((prev) => ({ ...prev, status: 'bidding' }));
-                      try { sounds.playResumeVoice(); } catch {}
-                      showFeedback('▶ Subasta reanudada');
-                      await store.serverResumeAuction(targetId);
-                      await syncSessionData();
-                    }}
-                    className="bg-amber-600 hover:bg-amber-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95"
+                    id="btn-reanudar"
+                    onClick={handleResumeAuction}
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95 cursor-pointer"
                   >
                     <Play className="w-4 h-4" />
                     <span>Reanudar</span>
@@ -1147,15 +1330,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 ) : (
                   <button
                     type="button"
-                    onClick={async () => {
-                      const targetId = session.id || 'ses-live-001';
-                      setSession((prev) => ({ ...prev, status: 'paused' }));
-                      try { sounds.playPauseVoice(); } catch {}
-                      showFeedback('⏸ Subasta en pausa');
-                      await store.serverPauseAuction(targetId);
-                      await syncSessionData();
-                    }}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95"
+                    id="btn-pausar"
+                    onClick={handlePauseAuction}
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95 cursor-pointer"
                   >
                     <Pause className="w-4 h-4" />
                     <span>Pausar</span>
@@ -1214,8 +1391,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
+                  id="btn-sold"
                   onClick={() => handleAdjudicate('sold')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 px-3 rounded-xl text-sm flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-emerald-800"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 px-3 rounded-xl text-sm flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-emerald-800 cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <Gavel className="w-5 h-5" />
@@ -1228,8 +1406,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
                 <button
                   type="button"
+                  id="btn-unsold"
                   onClick={() => handleAdjudicate('unsold')}
-                  className="bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold py-4 px-3 rounded-xl text-sm flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-rose-950"
+                  className="bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold py-4 px-3 rounded-xl text-sm flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-95 border-b-4 border-rose-950 cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
@@ -1389,21 +1568,46 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
 
           {/* GESTIÓN DE LOTES Y RESETEO */}
-          <div className="pt-3 border-t border-slate-800 flex items-center gap-2">
+          <div className="pt-3 border-t border-slate-800 flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <button
               type="button"
-              onClick={() => setIsNextLotModalOpen(true)}
-              className="flex-1 bg-blue-700 hover:bg-blue-600 text-white font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow"
+              id="btn-prev-lot"
+              onClick={handlePrevLot}
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer shadow"
+              title="Cargar lote anterior del catálogo"
             >
-              <ArrowRightCircle className="w-4 h-4" />
-              <span>Siguiente Lote / Cliente</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Anterior</span>
             </button>
 
             <button
               type="button"
-              onClick={() => store.serverResetAuction(session.id)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1 transition"
-              title="Resetear lote inicial"
+              id="btn-next-lot-quick"
+              onClick={handleNextLot}
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer shadow"
+              title="Cargar siguiente lote del catálogo"
+            >
+              <span>Siguiente</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              id="btn-next-lot-modal"
+              onClick={() => setIsNextLotModalOpen(true)}
+              className="flex-1 bg-blue-700 hover:bg-blue-600 text-white font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer whitespace-nowrap"
+              title="Configurar y abrir nuevo cliente / lote completo"
+            >
+              <ArrowRightCircle className="w-4 h-4" />
+              <span>Nuevo Lote / Cliente</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-reset-auction"
+              onClick={handleResetAuction}
+              className="bg-rose-950/70 hover:bg-rose-900 border border-rose-800/60 text-rose-200 font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer shadow"
+              title="Resetear lote inicial a estado de espera ($5,000 / 15s)"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Reset</span>

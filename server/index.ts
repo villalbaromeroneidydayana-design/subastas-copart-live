@@ -1324,8 +1324,13 @@ app.post('/api/sessions/:id/pause', (req, res) => {
     session.id
   );
   stopServerClock(session.id);
-  broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: 'paused' });
-  res.json({ success: true, sessionId: session.id });
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    status: 'paused',
+    timeRemaining: session.time_remaining_seconds
+  });
+  res.json({ success: true, sessionId: session.id, status: 'paused', timeRemaining: session.time_remaining_seconds });
 });
 
 // 6. Reanudar subasta
@@ -1347,8 +1352,13 @@ app.post('/api/sessions/:id/resume', (req, res) => {
   );
   startServerClock(session.id);
   activeAuctioneerCalls.delete(session.id);
-  broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: nextStatus });
-  res.json({ success: true, sessionId: session.id });
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    status: nextStatus,
+    timeRemaining: session.time_remaining_seconds
+  });
+  res.json({ success: true, sessionId: session.id, status: nextStatus, timeRemaining: session.time_remaining_seconds });
 });
 
 // 7. Bajar martillo forzado (Sold) y revocar acceso
@@ -1581,8 +1591,27 @@ app.post('/api/sessions/:id/reset', (req, res) => {
     WHERE session_id = ? AND paddle_number = 'Paleta #101'
   `).run(hashToken('bdr_broker_m729k1'), session.id);
 
-  broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
-  res.json({ success: true, sessionId: session.id });
+  broadcast({
+    type: 'AUCTION_RESET',
+    sessionId: session.id,
+    status: 'prepared',
+    startingPrice: 5000,
+    currentPrice: 5000,
+    timeRemaining: 15,
+    minIncrement: 250,
+    clientMaxBudget: 7500,
+    currentWinnerPaddle: null,
+    currentWinnerName: null,
+    bids: []
+  });
+  res.json({
+    success: true,
+    sessionId: session.id,
+    status: 'prepared',
+    startingPrice: 5000,
+    currentPrice: 5000,
+    timeRemaining: 15
+  });
 });
 
 // 8a.2 AJUSTAR PRECIO BASE / DE ARRANQUE DIRECTAMENTE
