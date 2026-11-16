@@ -1275,17 +1275,43 @@ app.post('/api/sessions/:id/start', (req, res) => {
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
+  const duration = session.total_duration_seconds || 15;
+
   db.prepare(`
     UPDATE auction_sessions 
-    SET status = 'open', is_token_revoked = 0, time_remaining_seconds = total_duration_seconds, updated_at = ? 
+    SET status = 'open', is_token_revoked = 0, time_remaining_seconds = ?, updated_at = ? 
     WHERE id = ?
-  `).run(new Date().toISOString(), session.id);
+  `).run(duration, new Date().toISOString(), session.id);
 
   startServerClock(session.id);
   activeAuctioneerCalls.delete(session.id);
-  broadcast({ type: 'STATUS_CHANGE', sessionId: session.id, status: 'open' });
+
+  // Difusión atómica inmediata a Pantalla 1 y Pantalla 2
+  broadcast({
+    type: 'AUCTION_STARTED',
+    sessionId: session.id,
+    status: 'open',
+    timeRemaining: duration,
+    currentPrice: session.current_price,
+  });
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    status: 'open',
+    timeRemaining: duration,
+    currentPrice: session.current_price,
+  });
+  broadcast({
+    type: 'CLOCK_TICK',
+    sessionId: session.id,
+    timeRemaining: duration,
+    currentPrice: session.current_price,
+    status: 'open',
+    viewersCount: connectedClientsCount,
+  });
   broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
-  res.json({ success: true, sessionId: session.id });
+
+  res.json({ success: true, sessionId: session.id, timeRemaining: duration });
 });
 
 // 5. Pausar subasta
@@ -1595,7 +1621,7 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
   const newIncrement = minIncrement !== undefined && !isNaN(Number(minIncrement)) ? Number(minIncrement) : session.min_increment;
   const newReserve = reservePrice !== undefined && !isNaN(Number(reservePrice)) ? Number(reservePrice) : session.reserve_price;
   const newBudget = clientMaxBudget !== undefined && !isNaN(Number(clientMaxBudget)) ? Number(clientMaxBudget) : session.client_max_budget;
-  const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : session.current_price;
+  const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : (session.status === 'prepared' || session.bid_count === 0 ? newStartingPrice : session.current_price);
   const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'Broker Autorizado (Representante)';
   const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Carlos Mendoza (Comprador)';
 
@@ -1790,20 +1816,7 @@ app.post('/api/sessions/:id/next-lot', (req, res) => {
     `).run('part-' + session.id + '-broker', session.id, `${finalBuyerName} (${finalBrokerName} Rep. #101)`, brokerHash, now);
   }
 
-  // Desconectar sockets antiguos de clientes/brokers
-  for (const [sock, meta] of socketMetadata.entries()) {
-    if (meta.sessionId === session.id && meta.role !== 'auctioneer') {
-      try {
-        sock.send(JSON.stringify({
-          type: 'SESSION_EXPIRED',
-          reason: 'El lote ha concluido. La sala ha pasado al siguiente lote.'
-        }));
-        sock.close();
-      } catch {}
-    }
-  }
-
-  // Notificar a todos los dispositivos conectados por WebSocket
+  // Notificar a todos los dispositivos conectados por WebSocket el nuevo lote cargado
   broadcast({
     type: 'NEXT_LOT_LOADED',
     sessionId: session.id,
@@ -1813,7 +1826,18 @@ app.post('/api/sessions/:id/next-lot', (req, res) => {
     brokerName: finalBrokerName,
     clientMaxBudget: budget,
     startingPrice: startPrice,
-    vehicle: vehicleSnapshot
+    vehicle: vehicleSnapshot,
+    status: 'prepared',
+    timeRemaining: 15,
+  });
+
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    status: 'prepared',
+    timeRemaining: 15,
+    startingPrice: startPrice,
+    currentPrice: startPrice,
   });
 
   res.json({
@@ -2161,6 +2185,21 @@ app.patch('/api/sessions/:id/vehicle', (req, res) => {
     type: 'VEHICLE_UPDATED',
     sessionId: req.params.id,
     vehicle,
+    lotNumber: vehicle.lot_number || '48291032',
+    title: `${vehicle.year} ${vehicle.brand} ${vehicle.model}`,
+  });
+
+  broadcast({
+    type: 'NEXT_LOT_LOADED',
+    sessionId: req.params.id,
+    vehicle,
+    lotNumber: vehicle.lot_number || '48291032',
+    title: `${vehicle.year} ${vehicle.brand} ${vehicle.model}`,
+  });
+
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: req.params.id,
   });
 
   res.json({ success: true, vehicle });

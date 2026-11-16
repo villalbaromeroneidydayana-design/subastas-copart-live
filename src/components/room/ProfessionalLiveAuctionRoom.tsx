@@ -384,12 +384,93 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     };
   }, [fetchStateFromServer]);
 
+  // Sincronizar estado si initialSession prop cambia desde App.tsx
+  useEffect(() => {
+    if (initialSession) {
+      setSession((prev) => ({
+        ...prev,
+        ...initialSession,
+        vehicle_snapshot: initialSession.vehicle_snapshot || (initialSession as any).vehicle,
+      }));
+    }
+  }, [initialSession]);
+
+  // Suscribirse a la sala en el WebSocket autoritativo
+  useEffect(() => {
+    store.subscribeRoom(initialSession.room_token || initialSession.id, {
+      role,
+      brokerToken: userToken,
+      buyerToken: userToken,
+      isAuctioneer: role === 'auctioneer',
+    });
+  }, [initialSession.room_token, initialSession.id, role, userToken]);
+
   // Escuchar en vivo movimientos de espectadores, presencia y autorizaciones por WebSocket
   useEffect(() => {
     const unsubscribeWs = store.onWsMessage((msg: any) => {
       try {
         if (!msg) return;
-        if (msg.type === 'SPECTATOR_JOINED') {
+        if (msg.type === 'CLOCK_TICK') {
+          if (!msg.sessionId || msg.sessionId === session.id || msg.sessionId === (session as any).sessionId) {
+            setSession((prev) => ({
+              ...prev,
+              time_remaining_seconds: msg.timeRemaining,
+              current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+              status: msg.status || prev.status,
+            }));
+            if (msg.viewersCount !== undefined) {
+              setViewersCount(msg.viewersCount);
+            }
+          }
+        } else if (msg.type === 'AUCTION_STARTED') {
+          setIsRoomAccessExpired(false);
+          hasCelebratedSoldRef.current = false;
+          setSession((prev) => ({
+            ...prev,
+            status: 'open',
+            time_remaining_seconds: msg.timeRemaining ?? 15,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+          }));
+          try {
+            if (vehicle?.custom_badges?.auctioneerVoiceGender) {
+              sounds.setVoiceGender(vehicle.custom_badges.auctioneerVoiceGender);
+            }
+            sounds.playStartVoice(Number(msg.currentPrice || session?.current_price || 5000), {
+              year: vehicle?.year,
+              brand: vehicle?.brand,
+              model: vehicle?.model,
+              version: vehicle?.version,
+              odometer: vehicle?.odometer,
+              condition: vehicle?.vehicle_condition,
+              hasKeys: vehicle?.has_keys,
+              customChant: vehicle?.custom_badges?.auctioneerWelcomeChant,
+            });
+          } catch {}
+          fetchStateFromServer();
+        } else if (msg.type === 'NEXT_LOT_LOADED' || msg.type === 'VEHICLE_UPDATED') {
+          setIsRoomAccessExpired(false);
+          hasCelebratedSoldRef.current = false;
+          setLiveAuctioneerCall(null);
+          if (msg.vehicle) {
+            setSession((prev) => ({
+              ...prev,
+              vehicle_snapshot: msg.vehicle,
+              vehicle: msg.vehicle,
+              lot_number: msg.lotNumber || msg.vehicle.lot_number || (prev as any).lot_number || prev.vehicle_snapshot?.lot_number || '48291032',
+              title: msg.title || `${msg.vehicle.year} ${msg.vehicle.brand} ${msg.vehicle.model}`,
+              starting_price: msg.startingPrice !== undefined ? Number(msg.startingPrice) : prev.starting_price,
+              current_price: msg.startingPrice !== undefined ? Number(msg.startingPrice) : prev.current_price,
+              client_max_budget: msg.clientMaxBudget !== undefined ? Number(msg.clientMaxBudget) : prev.client_max_budget,
+              status: msg.status || 'prepared',
+              time_remaining_seconds: msg.timeRemaining !== undefined ? msg.timeRemaining : 15,
+              total_duration_seconds: 15,
+              current_winner_paddle: null,
+              current_winner_name: null,
+              bid_count: 0,
+            }));
+          }
+          fetchStateFromServer();
+        } else if (msg.type === 'SPECTATOR_JOINED') {
           if (msg.viewersCount !== undefined) setViewersCount(msg.viewersCount);
           const text = 'Nuevo espectador conectado';
           setLatestSpectatorEvent(`🟢 ${text}`);

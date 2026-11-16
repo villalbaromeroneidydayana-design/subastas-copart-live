@@ -168,13 +168,71 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     }
   };
 
+  // Centralizar inicio y apertura de subasta con reloj autoritativo
+  const handleStartAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    const veh = session.vehicle_snapshot || (session as any).vehicle;
+    setSession((prev) => ({
+      ...prev,
+      status: 'open',
+      time_remaining_seconds: 15,
+      total_duration_seconds: 15,
+    }));
+    try {
+      if (veh?.custom_badges?.auctioneerVoiceGender) {
+        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
+      }
+      sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
+        year: veh?.year,
+        brand: veh?.brand,
+        model: veh?.model,
+        version: veh?.version,
+        odometer: veh?.odometer,
+        condition: veh?.vehicle_condition,
+        hasKeys: veh?.has_keys,
+        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
+      });
+    } catch {}
+    showFeedback('🟢 SUBASTA INICIADA — Reloj de 15s corriendo en ambas pantallas');
+    await store.serverStartAuction(targetId);
+    await syncSessionData();
+  };
+
   useEffect(() => {
     syncSessionData();
     const interval = setInterval(syncSessionData, 1000);
     const unsub = store.subscribe(syncSessionData);
+    const unsubWs = store.onWsMessage((msg: any) => {
+      try {
+        if (!msg) return;
+        if (msg.type === 'CLOCK_TICK') {
+          setSession((prev) => ({
+            ...prev,
+            time_remaining_seconds: msg.timeRemaining,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+            status: msg.status || prev.status,
+          }));
+          if (msg.viewersCount !== undefined) {
+            setViewersCount(Number(msg.viewersCount));
+          }
+        } else if (msg.type === 'AUCTION_STARTED' || msg.type === 'STATUS_CHANGE') {
+          setSession((prev) => ({
+            ...prev,
+            status: msg.status || prev.status,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? msg.timeRemaining : prev.time_remaining_seconds,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+          }));
+          syncSessionData();
+        } else if (msg.type === 'NEXT_LOT_LOADED' || msg.type === 'VEHICLE_UPDATED') {
+          syncSessionData();
+        }
+      } catch {}
+    });
+
     return () => {
       clearInterval(interval);
       unsub();
+      unsubWs();
     };
   }, [session.id]);
 
@@ -211,6 +269,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const handleSaveLotParameters = async () => {
     const res = await store.updateLotParameters(session.id, {
       startingPrice: Number(lotStartingPrice),
+      currentPrice: Number(lotStartingPrice),
       minIncrement: Number(lotMinIncrement),
       reservePrice: Number(lotReservePrice),
       clientMaxBudget: Number(lotClientBudget),
@@ -1035,38 +1094,19 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 <div>
                   <div className="text-sm font-black text-emerald-300 flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>SALA EN ESPERA DE APERTURA</span>
+                    <span>LOTE LISTO PARA SUBASTAR</span>
                   </div>
-                  <div className="text-xs text-slate-300 mt-0.5">Los clientes ven el lote en preparación</div>
+                  <div className="text-xs text-slate-300 mt-0.5">El lote está en preparación. Pulsa SUBASTAR para iniciar la cuenta regresiva oficial.</div>
                 </div>
                 <button
                   type="button"
-                  onClick={async () => {
-                    const targetId = session.id || 'ses-live-001';
-                    const veh = session.vehicle_snapshot || (session as any).vehicle;
-                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 15 }));
-                    try {
-                      if (veh?.custom_badges?.auctioneerVoiceGender) {
-                        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
-                      }
-                      sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
-                        year: veh?.year,
-                        brand: veh?.brand,
-                        model: veh?.model,
-                        version: veh?.version,
-                        odometer: veh?.odometer,
-                        condition: veh?.vehicle_condition,
-                        hasKeys: veh?.has_keys,
-                        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
-                      });
-                    } catch {}
-                    showFeedback('🟢 SALA ABIERTA EN VIVO — Subasta iniciada');
-                    await store.serverStartAuction(targetId);
-                    await syncSessionData();
-                  }}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow transition active:scale-95"
+                  id="btn-subastar-banner"
+                  onClick={handleStartAuction}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-2.5 rounded-lg text-sm sm:text-base uppercase tracking-wider shadow-xl transition active:scale-95 flex items-center gap-2 cursor-pointer ring-2 ring-emerald-400/50"
+                  title="Comenzar subasta oficial con temporizador de 15 segundos"
                 >
-                  Abrir Sala
+                  <Gavel className="w-5 h-5 animate-bounce" />
+                  <span>SUBASTAR</span>
                 </button>
               </div>
             )}
@@ -1079,33 +1119,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={async () => {
-                    const targetId = session.id || 'ses-live-001';
-                    const veh = session.vehicle_snapshot || (session as any).vehicle;
-                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 15 }));
-                    try {
-                      if (veh?.custom_badges?.auctioneerVoiceGender) {
-                        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
-                      }
-                      sounds.playStartVoice(Number(session.current_price || session.starting_price || 5000), {
-                        year: veh?.year,
-                        brand: veh?.brand,
-                        model: veh?.model,
-                        version: veh?.version,
-                        odometer: veh?.odometer,
-                        condition: veh?.vehicle_condition,
-                        hasKeys: veh?.has_keys,
-                        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
-                      });
-                    } catch {}
-                    showFeedback('🟢 Subasta iniciada en vivo');
-                    await store.serverStartAuction(targetId);
-                    await syncSessionData();
-                  }}
-                  className="bg-emerald-700 hover:bg-emerald-600 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow active:scale-95"
+                  id="btn-subastar-main"
+                  onClick={handleStartAuction}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg active:scale-95 cursor-pointer ring-2 ring-emerald-400/40"
+                  title="Iniciar / Subastar este lote en vivo (Reloj oficial de 15 segundos)"
                 >
-                  <Play className="w-4 h-4" />
-                  <span>Abrir / Iniciar</span>
+                  <Gavel className="w-4 h-4 text-amber-300" />
+                  <span>SUBASTAR</span>
                 </button>
 
                 {session.status === 'paused' ? (

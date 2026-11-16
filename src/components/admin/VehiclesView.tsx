@@ -5,7 +5,7 @@ import { ImageGalleryModal } from '../common/ImageGalleryModal';
 import {
   Car, Plus, Search, Edit2, Trash2, Copy,
   ExternalLink, Upload, Image as ImageIcon, Eye,
-  Check, Star, X, AlertTriangle, Key, Gauge
+  Check, Star, X, AlertTriangle, Key, Gauge, Gavel
 } from 'lucide-react';
 
 export const VehiclesView: React.FC = () => {
@@ -51,14 +51,26 @@ export const VehiclesView: React.FC = () => {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleAuctionVehicle = async (vehicle: Vehicle) => {
+    try {
+      await store.updateSessionVehicle('ses-live-001', vehicle);
+      await store.serverStartAuction('ses-live-001');
+    } catch (err: any) {
+      console.error('Error al subastar vehículo:', err);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingVehicle?.brand || !editingVehicle?.model || !editingVehicle?.year || !editingVehicle?.lot_number || !editingVehicle?.vin) {
       alert('Por favor complete los campos obligatorios: Marca, Modelo, Año, Lote y VIN.');
       return;
     }
 
-    store.saveVehicle(editingVehicle as any);
+    const saved = store.saveVehicle(editingVehicle as any);
+    try {
+      await store.updateSessionVehicle('ses-live-001', saved);
+    } catch {}
     setEditingVehicle(null);
     refreshVehicles();
   };
@@ -298,6 +310,15 @@ export const VehiclesView: React.FC = () => {
                       title="Eliminar"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAuctionVehicle(vehicle)}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black px-2.5 py-1 rounded text-[11px] flex items-center gap-1 transition shadow active:scale-95 cursor-pointer ml-1"
+                      title="Cargar y Subastar este vehículo en vivo en la sala central"
+                    >
+                      <Gavel className="w-3.5 h-3.5 text-amber-300" />
+                      <span>SUBASTAR</span>
                     </button>
                   </div>
                 </div>

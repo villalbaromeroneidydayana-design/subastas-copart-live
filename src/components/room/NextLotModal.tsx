@@ -550,10 +550,10 @@ export const NextLotModal: React.FC<NextLotModalProps> = ({
               type="button"
               disabled={isSubmitting}
               onClick={handleSubmit}
-              className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black px-5 py-2 rounded flex items-center gap-1.5 transition shadow-lg active:scale-95"
+              className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black px-5 py-2 rounded flex items-center gap-1.5 transition shadow-lg active:scale-95 cursor-pointer"
             >
-              <Flame className="w-4 h-4" />
-              <span>{isSubmitting ? (lang === 'en' ? 'Loading Lot...' : 'Cargando Lote...') : (lang === 'en' ? 'Load Lot to Lane A' : 'Cargar Lote a esta Sala')}</span>
+              <Flame className="w-4 h-4 text-amber-300" />
+              <span>{isSubmitting ? (lang === 'en' ? 'Starting Auction...' : 'Iniciando...') : (lang === 'en' ? 'SUBASTAR LOTE' : 'SUBASTAR LOTE')}</span>
             </button>
           )}
         </div>

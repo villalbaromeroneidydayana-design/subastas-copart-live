@@ -123,7 +123,7 @@ class RealAuctionStore {
             this.notify();
           } else if (data.type === 'CLOCK_TICK') {
             this.notify();
-          } else if (data.type === 'STATUS_CHANGE' || data.type === 'AUCTION_RESET' || data.type === 'AUCTIONEER_CALL' || data.type === 'ROOM_ANNOUNCEMENT' || data.type === 'VEHICLE_UPDATED') {
+          } else if (data.type === 'STATUS_CHANGE' || data.type === 'AUCTION_STARTED' || data.type === 'AUCTION_RESET' || data.type === 'AUCTIONEER_CALL' || data.type === 'ROOM_ANNOUNCEMENT' || data.type === 'VEHICLE_UPDATED' || data.type === 'NEXT_LOT_LOADED') {
             this.notify();
           }
         } catch {
@@ -944,6 +944,24 @@ class RealAuctionStore {
 
   public isOnline(): boolean {
     return this.isServerOnline;
+  }
+
+  public setServerUrl(url: string): void {
+    this.setCustomBackendUrl(url);
+  }
+
+  public subscribeRoom(roomToken: string, opts?: { role?: string; brokerToken?: string; buyerToken?: string; isAuctioneer?: boolean }): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    try {
+      this.ws.send(JSON.stringify({
+        type: 'SUBSCRIBE',
+        roomToken: roomToken || 'copart-live-m729k1',
+        role: opts?.role || (opts?.isAuctioneer ? 'auctioneer' : 'spectator'),
+        brokerToken: opts?.brokerToken,
+        buyerToken: opts?.buyerToken,
+        isAuctioneer: Boolean(opts?.isAuctioneer),
+      }));
+    } catch {}
   }
 
   public setCustomBackendUrl(url: string): void {
