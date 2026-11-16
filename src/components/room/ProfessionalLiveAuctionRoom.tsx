@@ -1121,7 +1121,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 }`}
             >
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span>LANE A • LIVE (Atlanta East Yard 12)</span>
+              <span>LANE A • LIVE ({vehicle?.location || 'FL - Miami North'})</span>
             </button>
 
             {/* LANE B (DALLAS SOUTH) */}
@@ -1198,9 +1198,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* Badges Superiores sobre la Fotografía */}
             <div className="absolute top-2.5 left-2.5 z-20 flex flex-wrap gap-1.5">
-              <span className="bg-[#002855]/95 text-white font-black text-xs px-2.5 py-1 rounded border border-blue-400/40 shadow backdrop-blur">
-                {t('lotPrefix')} #{vehicle?.lot_number || '48291032'}
-              </span>
+              <a
+                href={copartLotUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#002855]/95 hover:bg-[#003d80] text-white hover:text-amber-300 font-black text-xs px-2.5 py-1 rounded border border-blue-400/40 hover:border-amber-400 shadow backdrop-blur flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                title="Abrir expediente original en Copart.com"
+              >
+                <span>{t('lotPrefix')} #{vehicle?.lot_number || '48291032'}</span>
+                <ExternalLink className="w-3 h-3 text-amber-400" />
+              </a>
               <span className={`text-xs font-black px-2.5 py-1 rounded shadow backdrop-blur ${(vehicle?.custom_badges?.runDriveText || vehicle?.vehicle_condition) === 'run_and_drive' || (vehicle?.custom_badges?.runDriveText && vehicle.custom_badges.runDriveText.toLowerCase().includes('run'))
                   ? 'bg-emerald-600 text-white'
                   : 'bg-amber-600 text-white'
@@ -1869,7 +1877,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       rel="noopener noreferrer"
                       className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-[11px] sm:text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
                     >
-                      <span>{lang === 'en' ? 'Lot Record ↗' : 'Expediente de Lote ↗'}</span>
+                      <span>{lang === 'en' ? 'View on Copart.com ↗' : 'Ver en Copart Oficial ↗'}</span>
                     </a>
                     <button
                       type="button"
