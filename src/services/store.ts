@@ -2,7 +2,7 @@ import { Client, Vehicle, AuctionSession, AuctionBid, AuctionResult, DashboardMe
 import { INITIAL_CLIENTS, INITIAL_VEHICLES, INITIAL_SESSIONS } from './seedData';
 import { sounds } from '../lib/soundEffects';
 
-const CLOUDFLARE_TUNNEL_URL = 'https://yard-vice-preston-proposals.trycloudflare.com';
+const CLOUDFLARE_TUNNEL_URL = 'https://remainder-notebooks-production-activities.trycloudflare.com';
 
 const getDynamicBackendUrls = () => {
   if (typeof window === 'undefined') {
@@ -29,7 +29,7 @@ const getDynamicBackendUrls = () => {
   let customWs = (import.meta as any).env?.VITE_WS_URL;
 
   // Si la variable de Vercel contiene un túnel trycloudflare obsoleto, priorizar el túnel activo actual
-  if (customHttp && customHttp.includes('trycloudflare.com') && !customHttp.includes('yard-vice-preston-proposals')) {
+  if (customHttp && customHttp.includes('trycloudflare.com') && !customHttp.includes('remainder-notebooks-production-activities')) {
     customHttp = CLOUDFLARE_TUNNEL_URL;
     customWs = CLOUDFLARE_TUNNEL_URL.replace(/^http/i, 'ws');
   }
