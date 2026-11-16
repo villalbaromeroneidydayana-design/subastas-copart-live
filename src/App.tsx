@@ -132,17 +132,19 @@ export function App() {
 
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
+    
+    // Solo re-sondear si el cliente quedó en pantalla de aviso o expiración para auto-recuperar
     const unsub = store.subscribe(() => {
-      // Re-verificar si la sala fue reabierta o reactivada
-      handleHashChange();
-    });
-
-    // Sondeo de recuperación automática si el cliente quedó en pantalla de aviso
-    const interval = setInterval(() => {
-      if (window.location.hash.includes('#/sala/')) {
+      if (isRoomExpired) {
         handleHashChange();
       }
-    }, 2500);
+    });
+
+    const interval = setInterval(() => {
+      if (window.location.hash.includes('#/sala/') && isRoomExpired) {
+        handleHashChange();
+      }
+    }, 5000);
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange);

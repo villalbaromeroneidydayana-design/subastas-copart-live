@@ -264,7 +264,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         ...prev,
         ...data.session,
         current_price: data.session.currentPrice ?? prev.current_price,
-        time_remaining_seconds: data.session.timeRemainingSeconds ?? prev.time_remaining_seconds,
+        // Proteger el reloj contra saltos por latencia HTTP cuando la subasta está activa
+        time_remaining_seconds: (prev.status === 'open' || prev.status === 'bidding' || prev.status === 'last_call')
+          ? prev.time_remaining_seconds
+          : (data.session.timeRemainingSeconds ?? prev.time_remaining_seconds),
         status: data.session.status ?? prev.status,
         current_bid_count: data.session.bidCount ?? prev.current_bid_count,
         current_bidder_name: data.session.currentWinnerName,
@@ -373,9 +376,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   useEffect(() => {
     fetchStateFromServer();
-    const interval = setInterval(fetchStateFromServer, 1000);
+    // Sondeo suave solo como respaldo si se desconecta el WebSocket
+    const interval = setInterval(() => {
+      if (!store.isServerOnline) {
+        fetchStateFromServer();
+      }
+    }, 6000);
+
     const unsubscribe = store.subscribe(() => {
-      fetchStateFromServer();
+      if (!store.isServerOnline) {
+        fetchStateFromServer();
+      }
     });
 
     return () => {
@@ -384,16 +395,16 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     };
   }, [fetchStateFromServer]);
 
-  // Sincronizar estado si initialSession prop cambia desde App.tsx
+  // Sincronizar estado si initialSession prop cambia de ID/Lote desde App.tsx
   useEffect(() => {
-    if (initialSession) {
+    if (initialSession && initialSession.id !== session.id) {
       setSession((prev) => ({
         ...prev,
         ...initialSession,
         vehicle_snapshot: initialSession.vehicle_snapshot || (initialSession as any).vehicle,
       }));
     }
-  }, [initialSession]);
+  }, [initialSession?.id]);
 
   // Suscribirse a la sala en el WebSocket autoritativo
   useEffect(() => {

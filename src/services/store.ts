@@ -89,7 +89,7 @@ class RealAuctionStore {
   public ws: WebSocket | null = null;
   private listeners: Set<() => void> = new Set();
   private wsListeners: Set<(data: any) => void> = new Set();
-  private isServerOnline: boolean = false;
+  public isServerOnline: boolean = false;
   private bc: BroadcastChannel | null = null;
   private localTimer: any = null;
   private localTimeRemaining: number = 15;
