@@ -44,6 +44,114 @@ export const INITIAL_CLIENTS: Client[] = [
 
 export const INITIAL_VEHICLES: Vehicle[] = [
   {
+    id: 'veh-toyota-lc-61682336',
+    brand: 'Toyota',
+    model: 'Land Cruiser 1958',
+    year: 2025,
+    version: '1958 Edition i-FORCE MAX 4WD',
+    vin: 'JTEABFAJ6SK******',
+    lot_number: '61682336',
+    reference_url: 'https://www.copart.com/es/lot/61682336',
+    engine: 'i-FORCE MAX 2.4L Turbo Hybrid (326 HP)',
+    displacement: '2400 cc',
+    transmission: 'Automática de 8 velocidades',
+    drivetrain: '4WD con bloqueo de diferencial',
+    fuel: 'Híbrido Gasolina-Eléctrico',
+    odometer: 6322,
+    odometer_unit: 'mi',
+    exterior_color: 'Ice Cap White (Blanco)',
+    interior_color: 'Black Heritage Fabric',
+    title_type: 'salvage',
+    vehicle_condition: 'run_and_drive',
+    primary_damage: 'Missing / Altered VIN',
+    secondary_damage: 'Ninguno',
+    has_keys: true,
+    location: 'FL - Miami North (Yard 12)',
+    equipment: [
+      'Faros redondos Heritage 1958',
+      'Pantalla táctil de 8 pulgadas con Apple CarPlay',
+      'Toyota Safety Sense 3.0',
+      'Tracción 4WD con caja de transferencia',
+      'Rines de 18 pulgadas Heritage'
+    ],
+    notes: 'Vehículo enciende y avanza en patio Miami North (Opa-Locka, FL). Certificado Run and Drive.',
+    est_retail_value: 65675,
+    created_at: '2026-11-16T10:00:00Z',
+    updated_at: '2026-11-16T10:00:00Z',
+    images: [
+      {
+        id: 'img-lc-1',
+        vehicle_id: 'veh-toyota-lc-61682336',
+        url: '/vehicles/lc2025/copart_front_real.jpg',
+        category: 'exterior',
+        is_primary: true,
+        order: 1,
+        caption: 'Foto Oficial Copart - Frontal 3/4 en Patio Miami North'
+      },
+      {
+        id: 'img-lc-2',
+        vehicle_id: 'veh-toyota-lc-61682336',
+        url: '/vehicles/lc2025/copart_side_real.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 2,
+        caption: 'Foto Oficial Copart - Costado Izquierdo'
+      },
+      {
+        id: 'img-lc-3',
+        vehicle_id: 'veh-toyota-lc-61682336',
+        url: '/vehicles/lc2025/copart_rear_real.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 3,
+        caption: 'Foto Oficial Copart - Lateral Posterior'
+      },
+      {
+        id: 'img-lc-4',
+        vehicle_id: 'veh-toyota-lc-61682336',
+        url: '/vehicles/lc2025/copart_tailgate_real.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 4,
+        caption: 'Foto Oficial Copart - Compuerta Trasera'
+      },
+      {
+        id: 'img-lc-5',
+        vehicle_id: 'veh-toyota-lc-61682336',
+        url: '/vehicles/lc2025/copart_interior_real.jpg',
+        category: 'interior',
+        is_primary: false,
+        order: 5,
+        caption: 'Foto Oficial Copart - Cabina Interior 360 Asientos'
+      }
+    ],
+    custom_badges: {
+      runDriveText: 'RUN & DRIVE (MOTOR ARRANCA)',
+      titleTypeText: 'FLORIDA TITLE (VENTA PURA)',
+      threeSixtyEnabled: true,
+      threeSixtyText: 'Tour 360° Copart 🔄',
+      engineSoundEnabled: true,
+      engineSoundText: 'Motor i-FORCE MAX 🔊',
+      carfaxEnabled: true,
+      carfaxText: 'Lote Verificado Copart ✓',
+      carfaxTitleStatus: 'Expediente Verificado en Patio Miami North',
+      carfaxVerifiedNotes: 'Lote #61682336 verificado en patio Opa-Locka (FL). Motor arranca y engrana marcha (Run & Drive). Odómetro original 6,322 millas. Llaves presentes.',
+      carfaxOwners: '1 Dueño Original (Modelo 2025)',
+      carfaxServiceRecords: 'Garantía de Fábrica Vigente',
+      carfaxAccidents: 'Condición Mecánica Intacta (Run & Drive)',
+      extraBadges: [
+        {
+          id: 'badge-copart-video',
+          label: 'Video de Inspección 🎥',
+          action: 'custom_modal',
+          color: 'blue',
+          modalTitle: 'Video Oficial de Inspección Copart (Lote #61682336)',
+          modalContent: 'El video de patio certifica el encendido del motor híbrido 2.4L i-FORCE MAX y engrane de la transmisión en patio FL - Miami North. Haz clic en el botón superior [Lot Record] para ver el reproductor original de Copart.'
+        }
+      ]
+    }
+  },
+  {
     id: 'veh-001',
     brand: 'Ford',
     model: 'Mustang GT Premium',
