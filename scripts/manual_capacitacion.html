@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual de Capacitación Operativa del Broker — Pujamotor USA</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 14mm 16mm;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.5;
+      font-size: 11pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* PORTADA / CABECERA */
+    .header-banner {
+      background: linear-gradient(135deg, #002855 0%, #001733 100%);
+      color: #ffffff;
+      padding: 24px 28px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      border-bottom: 4px solid #ffb81c;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .badge-sub {
+      display: inline-block;
+      background: #ffb81c;
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 8.5pt;
+      letter-spacing: 1.2px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .header-banner h1 {
+      margin: 0 0 6px 0;
+      font-size: 20pt;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+    .header-banner p {
+      margin: 0;
+      font-size: 10pt;
+      color: #cbd5e1;
+    }
+
+    /* INTRODUCCIÓN */
+    .intro-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #002855;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 10pt;
+    }
+    .intro-card strong {
+      color: #002855;
+    }
+
+    /* ETAPAS */
+    .stage-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      padding: 16px 18px;
+      background: #ffffff;
+      page-break-inside: avoid;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .stage-title {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #002855;
+      margin: 0;
+    }
+    .stage-objective {
+      font-size: 9pt;
+      color: #64748b;
+      margin: 4px 0 0 0;
+      font-style: italic;
+    }
+
+    /* TRES ELEMENTOS POR ETAPA */
+    .block {
+      margin-bottom: 10px;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 9.5pt;
+    }
+    .block-action {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+    }
+    .block-action .label {
+      color: #15803d;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 8pt;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .block-speech {
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+    }
+    .block-speech .label {
+      color: #1d4ed8;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 8pt;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .speech-quote {
+      color: #0f172a;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    .block-screen {
+      background: #f8fafc;
+      border-left: 4px solid #f59e0b;
+    }
+    .block-screen .label {
+      color: #b45309;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 8pt;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    /* GUION */
+    .dialog-box {
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 18px 20px;
+      border-radius: 8px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 9pt;
+      line-height: 1.45;
+      margin-top: 15px;
+      page-break-inside: avoid;
+    }
+    .dialog-speaker {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+    .dialog-action {
+      color: #fbbf24;
+      font-style: italic;
+    }
+    .dialog-auctioneer {
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    /* REGLAS DE ORO */
+    .rules-card {
+      background: #fefce8;
+      border: 1px solid #fef08a;
+      border-left: 5px solid #eab308;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-top: 20px;
+      page-break-inside: avoid;
+    }
+    .rules-card h3 {
+      margin: 0 0 8px 0;
+      color: #854d0e;
+      font-size: 11pt;
+    }
+    .rules-card ol {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 9.5pt;
+      color: #713f12;
+    }
+    .rules-card li {
+      margin-bottom: 6px;
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 8.5pt;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABECERA -->
+  <div class="header-banner">
+    <span class="badge-sub">COPART VB3 • PROTOCOLO OPERATIVO INSTITUCIONAL</span>
+    <h1>MANUAL DE CAPACITACIÓN DEL BROKER</h1>
+    <p>Operación de la Sala de Subastas en Vivo y Dirección Guiada del Comprador • Pujamotor USA</p>
+  </div>
+
+  <!-- INTRODUCCIÓN -->
+  <div class="intro-card">
+    <strong>PRINCIPIO FUNDAMENTAL DE OPERACIÓN:</strong><br>
+    En la plataforma <strong>Pujamotor USA</strong>, el broker es el <strong>director y operador técnico</strong>; el cliente es el <strong>observador y decisor financiero</strong>. El comprador nunca opera controles complejos. Mantiene una llamada activa con su broker mientras observa la <strong>Ventana 1 (Sala Pública)</strong>, idéntica a Copart VB3. El broker opera desde la <strong>Ventana 2 (Consola Privada)</strong> o con su <strong>Paleta Oficial #101</strong>, transmitiendo confianza, rigor y transparencia en cada segundo.
+  </div>
+
+  <!-- ETAPA 1 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 1: Recepción y Bienvenida del Cliente</h2>
+        <div class="stage-objective">Confirmar enlace en vivo y generar tranquilidad institucional</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Envía el enlace oficial desde el botón <code>[ WhatsApp VIP 📲 ]</code> con token de cliente (<code>?cliente=bdr_buyer_...</code>). Verifica en la consola privada que el contador marque <code>1 Viewers in Lane</code> y que la sala esté en <code>FASE 1: PRE-SUBASTA</code> (estado <code>prepared</code>).
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Hola [Nombre], qué gusto saludarte. Ya tienes en tu WhatsApp el enlace directo a nuestra terminal de subastas. Ábrelo en tu pantalla y mantén esta llamada activa para ir guiándote. Confírmame en cuanto veas el carril 'LANE A • Atlanta East Yard 12'."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Encabezado azul oficial de Copart, punto verde pulsante <code>LIVE BROADCAST</code>, carril <code>LANE A</code>, recuadro de <code>FASE 1: INSPECCIÓN PREVIA</code> y reloj horario de EE. UU. (EST).
+    </div>
+  </div>
+
+  <!-- ETAPA 2 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 2: Explicación del Funcionamiento de la Sala</h2>
+        <div class="stage-objective">Asegurar al cliente que no debe operar controles y que su capital está protegido</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Señala el botón <code>[ ¿Cómo funciona? ]</code> en la sala o proyecta un aviso en marquesina desde la consola privada.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"[Nombre], esta pantalla es el espejo oficial de la terminal de remates en vivo de Estados Unidos. Quédate tranquilo: tú no tienes que tocar botones ni pujar por error. Yo estoy conectado como tu broker acreditado con la Paleta Oficial #101. Cada oferta será consultada contigo y respetará nuestro presupuesto pactado. Tú solo observa la pantalla."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Panel derecho: <code>Modo Espectador — Tu broker oficial te representa en vivo con la Paleta #101</code> y el tope máximo de capital configurado ($7,500 USD).
+    </div>
+  </div>
+
+  <!-- ETAPA 3 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 3: Presentación del Vehículo, Lote y Fotografías</h2>
+        <div class="stage-objective">Validar la unidad exacta y comprobar el margen comercial</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Enfoca la columna izquierda del vehículo, muestra el número de lote (#65012146 o #88192003), año, marca, modelo y valor de referencia comercial.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Fíjate en la esquina superior de la foto: Lote #[Número de Lote]. Es exactamente el [Año, Marca, Modelo] que evaluamos. A la derecha puedes ver el valor comercial estimado en Estados Unidos ($[Valor] USD), lo que confirma el margen de rentabilidad de la compra."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Insignia sobre la foto: <code>LOT #[Número de Lote]</code>, título del vehículo en letras blancas grandes y <code>EST. RETAIL VALUE: $42,000 USD</code> en verde.
+    </div>
+  </div>
+
+  <!-- ETAPA 4 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 4: Galería HD y Clasificación de Fotografías</h2>
+        <div class="stage-objective">Inspección visual completa y revisión de daños reportados</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Indica al cliente hacer clic en <code>[ Galería HD ]</code> para pantalla completa y presiona las pestañas: <code>Exterior</code>, <code>Interior</code>, <code>Motor</code>, <code>Tablero</code> y <code>Daños</code>. Activa <code>[ Engine Sound 🔊 ]</code> si está disponible.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Vamos a inspeccionar la unidad: debajo de la foto tienes los botones de filtro. Al pulsar 'Motor', vemos que no hay deformaciones en el bloque; en 'Daños', revisamos el impacto reportado. Con el botón 'Galería HD' en la esquina puedes ampliar todas las imágenes a pantalla completa."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Tira de miniaturas filtrada por sección, modal de pantalla completa en alta definición e insignias <code>RUN & DRIVE</code> (verde) y <code>CLEAN / SALVAGE TITLE</code>.
+    </div>
+  </div>
+
+  <!-- ETAPA 5 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 5: Especificaciones Técnicas y Condiciones de Patio</h2>
+        <div class="stage-objective">Certificar odómetro, llaves presentes, tipo de título y mecánica</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Muestra la cuadrícula de especificaciones, activa el conmutador <code>[ A KM ]</code> para convertir millas a kilómetros y enseña el enmascaramiento y copiado del VIN.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Revisemos los puntos clave: el odómetro marca [Millas] mi; si pulsas 'A KM' te lo convierte a kilómetros. En llaves confirmamos 'SÍ (PRESENTES)' en verde, lo que evita costos de cerrajería. La condición certificada es 'RUN & DRIVE', garantizando que el auto arrancó y traccionó en patio."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Caja de odómetro interactiva, casilla de llaves con ícono verde, detalles de tracción y daño, y número VIN con botones de ver y copiar.
+    </div>
+  </div>
+
+  <!-- ETAPA 6 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 6: Enlace Oficial a Copart y Expediente del Lote</h2>
+        <div class="stage-objective">Demostrar transparencia abriendo el expediente técnico en patio Copart</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Señala el enlace <code>FICHA OFICIAL DE LOTE ↗</code> en la barra de lote y abre el modal <code>[ Auditoría Copart: 6/6 ✓ ]</code>.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Para que compruebes la autenticidad, haz clic donde dice 'FICHA OFICIAL DE LOTE ↗'. Se abrirá directamente la página de Copart en Estados Unidos de este mismo lote. Además, con el botón 'Auditoría 6/6', validamos los 6 pilares de seguridad contractual: lote real, patio físico, broker y fiduciaria."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Pestaña nueva con el registro original de Copart.com y modal con las 6 comprobaciones de seguridad validadas en verde.
+    </div>
+  </div>
+
+  <!-- ETAPA 7 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 7: Tablero de Paletas, Participantes e Historial</h2>
+        <div class="stage-objective">Identificar a los competidores del carril y la posición del broker</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Muestra el <code>TABLERO DE PALETAS AUTORIZADAS</code> y conmuta entre las pestañas <code>Historial de Ofertas</code> y <code>Participantes</code> en la columna derecha.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"En este carril estamos 7 postores autorizados con licencia mayorista. Nosotros somos la Paleta #101 'Broker Rep.'. Los otros son dealers de Texas, California, Georgia y Chicago. A la derecha, en la pestaña 'Historial', quedará registrada cada oferta en milisegundos con su hora exacta."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Tarjetas de las 7 paletas oficiales, Paleta #101 destacada en azul institucional e indicador verde <code>WEBSOCKET ACTIVO</code>.
+    </div>
+  </div>
+
+  <!-- ETAPA 8 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 8: Precio Vigente y Reloj de Cuenta Regresiva</h2>
+        <div class="stage-objective">Explicar la lectura del marcador de puja y la regla de los 10 segundos</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Señala el marcador verde <code>$X,XXX USD</code>, el temporizador circular y despliega la <code>Calculadora de Tarifas Copart</code>.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"A la derecha tienes el marcador 'PRECIO VIGENTE'. Al lado está el reloj circular de 10 segundos. Cada vez que alguien oferta, el reloj se restablece a 10s para permitir responder. Si el reloj llega a cero con nosotros de líderes, ganamos la unidad. Abajo tienes el desglose exacto de tarifas de patio Copart."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Marcador grande en verde ($5,000 USD), reloj circular esmeralda marcando 10s y tabla desplegable con desglose oficial de tarifas.
+    </div>
+  </div>
+
+  <!-- ETAPA 9 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 9: Manejo desde la Consola Privada (Ventana 2)</h2>
+        <div class="stage-objective">Apertura formal de la subasta y gestión técnica entre bastidores</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      En la Consola Privada pulsa <code>[ Abrir / Iniciar ]</code>. Puede activar <code>[ 🤖 Auto-Puja: ON ]</code> o disparar ofertas manuales con los botones rápidos <code>[ ⚡ Pujar #101 (+250) ]</code>.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"[Nombre], acaban de dar apertura oficial al carril. Escucharás la voz del martillero en inglés dando las características de entrada. A partir de este momento el lote entra en disputa activa. Mantente atento al marcador mientras yo voy gestionando nuestras ofertas."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      La sala pasa a estado verde pulsante: <code>SUBASTA EN VIVO (SALE IN PROGRESS)</code>, el reloj comienza a descontar y suena la voz de apertura del subastador.
+    </div>
+  </div>
+
+  <!-- ETAPA 10 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 10: Llamadas del Subastador y Avisos del Martillo</h2>
+        <div class="stage-objective">Guiar al cliente durante la secuencia final de cierre y tensión</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Desde la Consola Privada presiona sucesivamente los botones: <code>GOING ONCE</code>, <code>GOING TWICE</code> y <code>FAIR WARNING</code>.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Atento [Nombre]: primera llamada del subastador 'GOING ONCE' (A la una) en amarillo. Si nadie puja pasará a 'GOING TWICE' (A las dos) en naranja. La última advertencia es 'FAIR WARNING' (Martillo en alto). Si vamos de líderes, no ofertamos más; dejamos caer el martillo."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Banners gigantes animados (amarillo, naranja y rojo) y audio en vivo cantando cada llamada oficial.
+    </div>
+  </div>
+
+  <!-- ETAPA 11 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 11: Secuencia de Ofertas con Paleta #101 y Presupuesto</h2>
+        <div class="stage-objective">Contraofertar con disciplina y consultar si se requiere aumento extraordinario</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Presiona <code>[ ⚡ Pujar #101 (+250) ]</code>. Si se alcanza el tope pactado, emite una solicitud de presupuesto que muestra al comprador el modal de autorización.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Ofertaron $5,500 desde Dallas. Yo acabo de responder con nuestra Paleta #101 a $5,750. Mira tu pantalla: se puso en verde y dice '¡TU BROKER VA GANANDO LA PUJA!'. Si nos empujan al límite de los $7,500, te consultaré antes de dar cualquier paso adicional."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Banner verde animado: <code>✓ ¡TU BROKER VA GANANDO LA PUJA! (Paleta #101)</code>, paleta #101 con estrella dorada de líder y sonido de chime Copart.
+    </div>
+  </div>
+
+  <!-- ETAPA 12 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 12: Comunicación de Movimientos y Ritmo</h2>
+        <div class="stage-objective">Mantener la calma en contraofertas y dominar el tiempo del carril</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Supervisa el tiempo en el temporizador; espera que baje a 4 o 3 segundos antes de contraofertar (ritmo profesional de subasta estadounidense).
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Nos superó Los Ángeles con $6,000. Tranquilo, no nos desesperamos. Dejemos correr el reloj a 4 segundos... y ahora contraofertamos a $6,250. Listo, retomamos la punta. El reloj vuelve a 10s. La presión la tienen ellos."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Aviso momentáneo en rojo <code>SUPERADO POR</code> y recuperación inmediata a verde con el nuevo monto registrado en el historial.
+    </div>
+  </div>
+
+  <!-- ETAPA 13 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 13: Cierre SOLD o UNSOLD y Resultado Final</h2>
+        <div class="stage-objective">Formalizar la adjudicación ganadora o explicar con profesionalismo la reserva</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      En la Consola Privada pulsa <code>[ SOLD (Adjudicar) ]</code> o <code>[ UNSOLD (No Vendido) ]</code>.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote"><strong>En caso de SOLD:</strong> "¡Felicidades [Nombre], el auto es tuyo! Escucha el martillazo final: 'SOLD!'. Cerramos en $[Precio Final] USD, muy por debajo de mercado. Se genera el comprobante oficial de Copart."<br>
+      <strong>En caso de UNSOLD:</strong> "La aseguradora tenía una reserva mínima por encima de nuestro límite inteligente. Protegimos tu dinero; tu depósito queda intacto y pasamos a negociar en oferta directa o al siguiente lote."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      <strong>SOLD:</strong> Confeti animado, fanfarria triunfal, letrero <code>¡LOTE ADJUDICADO!</code> y botón para abrir el Bill of Sale.<br>
+      <strong>UNSOLD:</strong> Aviso ámbar <code>CLOSED — RESERVE NOT MET</code> y preservación de fondos.
+    </div>
+  </div>
+
+  <!-- ETAPA 14 -->
+  <div class="stage-card">
+    <div class="stage-header">
+      <div>
+        <h2 class="stage-title">ETAPA 14: Terminación de Sesión y Liquidación Oficial</h2>
+        <div class="stage-objective">Instruir sobre la transferencia fiduciaria oficial y cerrar la llamada</div>
+      </div>
+    </div>
+    <div class="block block-action">
+      <span class="label">Qué hace el broker en la plataforma</span>
+      Genera el enlace del documento fiduciario mediante <code>DocumentView</code> o presiona <code>[ Atender Siguiente Cliente ]</code>.
+    </div>
+    <div class="block block-speech">
+      <span class="label">Qué le dice al cliente (Guion del Broker)</span>
+      <span class="speech-quote">"Excelente trabajo hoy, [Nombre]. En los próximos 10 minutos vas a recibir a tu WhatsApp y correo el desglose oficial de liquidación con la cuenta fiduciaria de Copart para coordinar la transferencia y retiro de patio. Ha sido un placer asesorarte."</span>
+    </div>
+    <div class="block block-screen">
+      <span class="label">Qué observa el cliente en su pantalla</span>
+      Pantalla oficial de acceso concluido con agradecimiento institucional o visualizador del Bill of Sale oficial imprimible.
+    </div>
+  </div>
+
+  <!-- EJEMPLO DE DIÁLOGO COMPLETO -->
+  <div style="page-break-before: always;">
+    <h2 style="color: #002855; font-size: 14pt; border-bottom: 2px solid #002855; padding-bottom: 6px;">
+      TRANSCRIPCIÓN REAL: EJEMPLO DE PRINCIPIO A FIN
+    </h2>
+    <p style="font-size: 9.5pt; color: #64748b; margin-top: 4px;">
+      Simulación cronometrada entre el broker (Carlos) y el cliente (Roberto) rematando un Ford Mustang GT 2023:
+    </p>
+
+    <div class="dialog-box">
+      <span class="dialog-speaker">[00:00] CARLOS (Broker):</span> "Roberto, buenos días. Te habla Carlos de Pujamotor USA. Ya tengo la terminal enlazada con el carril de Copart. Abre el enlace que te mandé por WhatsApp."<br><br>
+      <span class="dialog-speaker">[00:25] ROBERTO (Cliente):</span> "Listo Carlos, ya lo abrí. Veo el logo de Copart arriba y el auto negro en grande."<br><br>
+      <span class="dialog-speaker">[00:32] CARLOS (Broker):</span> "Exactamente. Fíjate en la esquina: Lote #65012146, Mustang GT 2023 con 14,250 millas. Llaves presentes y certificado Run & Drive. Ficha 100% verificada."<br><br>
+      <span class="dialog-speaker">[00:50] ROBERTO:</span> "¿Tengo que tocar algún botón para cuando empiece?"<br><br>
+      <span class="dialog-speaker">[00:54] CARLOS:</span> "Para nada. Dice 'Modo Espectador'. Yo tengo la Paleta #101 a tu nombre. Límite estricto: $7,500 USD. Cada puja la hago yo consultándolo contigo."<br><br>
+      <span class="dialog-speaker">[01:15] CARLOS:</span> "Damos apertura formal al carril." <span class="dialog-action">(Carlos pulsa [Abrir / Iniciar] en consola)</span><br><br>
+      <span class="dialog-auctioneer">[01:20] SUBASTADOR:</span> "Welcome to Lane A, lot 65012146, 2023 Ford Mustang GT, starting at 5,000 dollars! Who will bid 5,000?"<br><br>
+      <span class="dialog-speaker">[01:28] CARLOS:</span> "Arranca en $5,000 USD. Dallas ofreció $5,250. ¿Vamos por $5,500?"<br><br>
+      <span class="dialog-speaker">[01:37] ROBERTO:</span> "Sí, adelante."<br><br>
+      <span class="dialog-speaker">[01:38] CARLOS:</span> "Pujando." <span class="dialog-action">(Carlos pulsa [Pujar #101 (+250)] -> Marcador en $5,500 y banner verde 'LÍDER')</span><br><br>
+      <span class="dialog-speaker">[01:42] CARLOS:</span> "Vamos ganando en $5,500. Mira el reloj: 7, 6, 5..."<br><br>
+      <span class="dialog-speaker">[01:45]</span> <span class="dialog-action">(Entra puja competidora de California a $5,750 USD)</span><br><br>
+      <span class="dialog-speaker">[01:47] CARLOS:</span> "Entró California con $5,750. Respondemos con $6,000." <span class="dialog-action">(Carlos pulsa [+250] -> Líder en $6,000)</span><br><br>
+      <span class="dialog-speaker">[01:58] CARLOS:</span> "Estamos en $6,000. Nadie más entra. Primera llamada: 'GOING ONCE'." <span class="dialog-action">(Banner amarillo)</span><br><br>
+      <span class="dialog-speaker">[02:08] CARLOS:</span> "Segunda llamada: 'GOING TWICE'." <span class="dialog-action">(Banner naranja)</span><br><br>
+      <span class="dialog-speaker">[02:15] CARLOS:</span> "Última advertencia: 'FAIR WARNING'. Martillo en alto... dejamos caer." <span class="dialog-action">(Carlos pulsa [SOLD])</span><br><br>
+      <span class="dialog-auctioneer">[02:20] SUBASTADOR:</span> "SOLD! Sold for 6,000 dollars to paddle 101!" <span class="dialog-action">(Confeti, fanfarria y letrero LOTE ADJUDICADO)</span><br><br>
+      <span class="dialog-speaker">[02:25] CARLOS:</span> "¡Enhorabuena Roberto! ¡Vehículo ganado por $6,000 USD! Ahorraste $1,500 de tu tope. Enseguida te paso el comprobante oficial."<br><br>
+      <span class="dialog-speaker">[02:38] ROBERTO:</span> "¡Excelente Carlos, qué transparencia! Quedo a la espera del documento."
+    </div>
+  </div>
+
+  <!-- REGLAS DE ORO -->
+  <div class="rules-card">
+    <h3>5 REGLAS DE ORO DEL BROKER PROFESIONAL</h3>
+    <ol>
+      <li><strong>Nunca dejar al cliente en silencio:</strong> La subasta es ágil; el broker debe narrar verbalmente cada segundo del reloj y del marcador.</li>
+      <li><strong>Respetar religiosamente el tope de capital:</strong> Jamás pujar por encima del presupuesto acordado sin que el cliente presione el botón de autorización en su pantalla.</li>
+      <li><strong>Usar la Ficha Oficial de Copart como respaldo institucional:</strong> Abrirla siempre en la fase previa para certificar que el lote y el patio son 100% reales.</li>
+      <li><strong>Mantener la calma en las contraofertas:</strong> No responder en el segundo 9; dejar correr el reloj hasta los 3-4 segundos para frenar el impulso de los competidores.</li>
+      <li><strong>Celebrar el SOLD o proteger el dinero en el UNSOLD:</strong> Ambas resoluciones demuestran rigor, ética y defensa absoluta de los intereses del comprador.</li>
+    </ol>
+  </div>
+
+  <div class="footer">
+    Pujamotor USA • Terminal de Subastas Copart VB3 • División de Capacitación y Operaciones • Documento Oficial Confidencial
+  </div>
+
+</body>
+</html>
+

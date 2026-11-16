@@ -11,7 +11,7 @@ interface CircularCountdownProps {
 
 export const CircularCountdown: React.FC<CircularCountdownProps> = ({
   seconds,
-  totalDuration = 10,
+  totalDuration = 15,
   status,
   size = 130,
   lang: propLang,
@@ -23,7 +23,7 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  // Normalizar tiempo entre 0 y 10 para el dial de Copart
+  // Normalizar tiempo entre 0 y 15 para el dial de Copart
   const displaySeconds = Math.min(seconds, totalDuration);
   const progress = Math.max(0, Math.min(1, displaySeconds / totalDuration));
   const strokeDashoffset = circumference - progress * circumference;
@@ -48,11 +48,11 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
     strokeColor = '#ef4444';
     glowColor = 'rgba(239, 68, 68, 0.5)';
     label = lang === 'es' ? 'FINALIZADO' : 'CLOSED';
-  } else if (displaySeconds <= 3) {
+  } else if (displaySeconds <= 4) {
     strokeColor = '#e01a22'; // Copart red alert
     glowColor = 'rgba(224, 26, 34, 0.6)';
     label = lang === 'es' ? 'ÚLTIMA LLAMADA' : 'LAST CALL!';
-  } else if (displaySeconds <= 6) {
+  } else if (displaySeconds <= 8) {
     strokeColor = '#ffb81c'; // Copart warning yellow
     glowColor = 'rgba(255, 184, 28, 0.5)';
     label = lang === 'es' ? 'A LAS DOS' : 'GOING TWICE';

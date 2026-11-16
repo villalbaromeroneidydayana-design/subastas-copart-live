@@ -267,7 +267,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       currentPrice: amount,
       current_winner_paddle: selectedPaddle,
       currentWinnerPaddle: selectedPaddle,
-      time_remaining_seconds: 10,
+      time_remaining_seconds: 15,
     }));
     try {
       sounds.playBidVoice(amount, selectedPaddle, selectedPaddle.includes('101'));
@@ -421,7 +421,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       currentPrice: amount,
       current_winner_paddle: 'Paleta #101',
       currentWinnerPaddle: 'Paleta #101',
-      time_remaining_seconds: 10,
+      time_remaining_seconds: 15,
     }));
     try {
       sounds.playBidVoice(amount, 'Paleta #101', true);
@@ -615,7 +615,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           <div className="flex items-center gap-1 text-xs text-slate-300 bg-[#060b17] px-2 py-1 rounded border border-slate-800">
             <Clock className="w-3.5 h-3.5 text-amber-400" />
             <span className="font-mono font-bold text-amber-300 text-sm">
-              {session.time_remaining_seconds ?? 10}s
+              {session.time_remaining_seconds ?? 15}s
             </span>
           </div>
 
@@ -1044,7 +1044,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   onClick={async () => {
                     const targetId = session.id || 'ses-live-001';
                     const veh = session.vehicle_snapshot || (session as any).vehicle;
-                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
+                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 15 }));
                     try {
                       if (veh?.custom_badges?.auctioneerVoiceGender) {
                         sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
@@ -1082,7 +1082,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   onClick={async () => {
                     const targetId = session.id || 'ses-live-001';
                     const veh = session.vehicle_snapshot || (session as any).vehicle;
-                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 10 }));
+                    setSession((prev) => ({ ...prev, status: 'open', time_remaining_seconds: 15 }));
                     try {
                       if (veh?.custom_badges?.auctioneerVoiceGender) {
                         sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);

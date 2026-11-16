@@ -1501,7 +1501,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               {/* CONTADOR CIRCULAR AUTORITATIVO SINCRONIZADO CON SERVIDOR */}
               <CircularCountdown
                 seconds={session.time_remaining_seconds}
-                totalDuration={10}
+                totalDuration={15}
                 status={session.status}
                 size={110}
                 lang={lang}

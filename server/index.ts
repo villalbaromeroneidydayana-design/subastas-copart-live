@@ -124,8 +124,8 @@ function seedDatabase() {
       5000,
       7500, // Presupuesto inicial del comprador: $7,500 USD
       0,
-      60,
-      60,
+      15,
+      15,
       'copart-live-m729k1',
       0,
       JSON.stringify(seedVehicle),
@@ -701,7 +701,7 @@ app.post('/api/sessions', (req, res) => {
       ?, ?, ?, ?, ?, ?, 'prepared',
       ?, ?, ?, ?,
       ?, NULL, NULL, NULL,
-      0, 10, 10, ?,
+      0, 15, 15, ?,
       0, ?, 0,
       ?, 0, ?, ?,
       ?, ?, ?
@@ -1402,7 +1402,8 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
         current_winner_name = ?,
         current_winner_id = ?,
         bid_count = bid_count + 1,
-        time_remaining_seconds = 10,
+        time_remaining_seconds = 15,
+        total_duration_seconds = 15,
         status = ?,
         is_token_revoked = 0,
         updated_at = ?
@@ -1432,7 +1433,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
     currentPrice: bidAmount,
     currentWinnerPaddle: paddle,
     currentWinnerName: bidderName,
-    timeRemaining: 10,
+    timeRemaining: 15,
     serverTimestamp: now,
     bidCount: session.bid_count + 1,
   });
@@ -1445,7 +1446,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
       currentPrice: bidAmount,
       currentWinnerPaddle: paddle,
       currentWinnerName: bidderName,
-      timeRemaining: 10,
+      timeRemaining: 15,
     }
   });
 });
@@ -2249,7 +2250,7 @@ function restoreActiveSessions() {
   // Aseguramos que la sesión inicie en 'prepared' (inspección) con reloj detenido
   db.prepare(`
     UPDATE auction_sessions 
-    SET status = 'prepared', time_remaining_seconds = 60 
+    SET status = 'prepared', time_remaining_seconds = 15, total_duration_seconds = 15 
     WHERE id = 'ses-live-001' AND status NOT IN ('sold', 'unsold')
   `).run();
   console.log(`[Auction Engine] Sala configurada en fase de inspección (prepared). Reloj detenido hasta apertura del martillero.`);

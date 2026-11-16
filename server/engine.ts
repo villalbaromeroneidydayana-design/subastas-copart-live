@@ -107,8 +107,8 @@ export function placeBidAtomic(
     const bidId = 'bid-' + Math.random().toString(36).substring(2, 9);
     const now = new Date().toISOString();
 
-    // 7. Regla de reloj Copart VB3: si entra oferta en últimos segundos, restaurar a mínimo 10s
-    const newTime = Math.max(session.time_remaining_seconds, 10);
+    // 7. Regla de reloj: reiniciar a 15 segundos con cada oferta válida
+    const newTime = 15;
 
     // 8. Insertar la oferta en el registro inmutable
     db.prepare(`
