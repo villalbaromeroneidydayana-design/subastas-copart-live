@@ -82,47 +82,47 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       {
         id: 'img-lc-1',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_front_real.jpg',
+        url: '/vehicles/lc2025/copart_front_real.jpg?v=hd2',
         category: 'exterior',
         is_primary: true,
         order: 1,
-        caption: 'Foto Oficial Copart - Frontal 3/4 en Patio Miami North'
+        caption: 'Fotografía Exterior Frontal 3/4 HD - Toyota Land Cruiser 1958'
       },
       {
         id: 'img-lc-2',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_side_real.jpg',
+        url: '/vehicles/lc2025/copart_side_real.jpg?v=hd2',
         category: 'exterior',
         is_primary: false,
         order: 2,
-        caption: 'Foto Oficial Copart - Costado Izquierdo'
+        caption: 'Fotografía Exterior Costado Izquierdo HD'
       },
       {
         id: 'img-lc-3',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_rear_real.jpg',
+        url: '/vehicles/lc2025/copart_rear_real.jpg?v=hd2',
         category: 'exterior',
         is_primary: false,
         order: 3,
-        caption: 'Foto Oficial Copart - Lateral Posterior'
+        caption: 'Fotografía Exterior Lateral Posterior y Rines HD'
       },
       {
         id: 'img-lc-4',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_tailgate_real.jpg',
+        url: '/vehicles/lc2025/copart_tailgate_real.jpg?v=hd2',
         category: 'exterior',
         is_primary: false,
         order: 4,
-        caption: 'Foto Oficial Copart - Compuerta Trasera'
+        caption: 'Fotografía Exterior Compuerta Trasera HD'
       },
       {
         id: 'img-lc-5',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_interior_real.jpg',
+        url: '/vehicles/lc2025/copart_interior_real.jpg?v=hd2',
         category: 'interior',
         is_primary: false,
         order: 5,
-        caption: 'Foto Oficial Copart - Cabina Interior 360 Asientos'
+        caption: 'Fotografía Cabina Interior y Asientos Heritage'
       }
     ],
     custom_badges: {
