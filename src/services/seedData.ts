@@ -86,7 +86,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
         category: 'exterior',
         is_primary: true,
         order: 1,
-        caption: 'Fotografía Original Copart - Exterior en Patio Miami North (Lote #61682336)'
+        caption: 'Fotografía Original - Exterior en Patio Miami North (Lote #61682336)'
       },
       {
         id: 'img-lc-61682336-2',
@@ -95,16 +95,16 @@ export const INITIAL_VEHICLES: Vehicle[] = [
         category: 'interior',
         is_primary: false,
         order: 2,
-        caption: 'Fotografía Original Copart - Cabina Interior y Asientos Heritage (Lote #61682336)'
+        caption: 'Fotografía Original - Cabina Interior y Asientos Heritage (Lote #61682336)'
       }
     ],
     custom_badges: {
       runDriveText: 'RUN & DRIVE',
       titleTypeText: 'TX - CERTIFICATE OF TITLE',
       carfaxEnabled: true,
-      carfaxText: 'Lote Verificado Copart ✓',
+      carfaxText: 'Lote Verificado Oficial ✓',
       carfaxTitleStatus: 'TX - Certificate Of Title',
-      carfaxVerifiedNotes: 'El motor arranca: Copart verificó que el motor arranca. La transmisión engrana: Copart verificó que la transmisión engrana. Ubicación: FL - MIAMI NORTH.',
+      carfaxVerifiedNotes: 'El motor arranca: Verificado en patio. La transmisión engrana: Verificado en patio. Ubicación: FL - MIAMI NORTH.',
       carfaxOwners: '1 Dueño Original (Modelo 2025)',
       carfaxServiceRecords: 'Garantía de Fábrica Vigente',
       carfaxAccidents: 'Condición Mecánica Intacta (Run & Drive)',

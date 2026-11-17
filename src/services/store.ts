@@ -13,7 +13,7 @@ const getDynamicBackendUrls = () => {
   const port = window.location.port;
   const httpProto = isHttps ? 'https:' : 'http:';
   const wsProto = isHttps ? 'wss:' : 'ws:';
-  
+
   // 1. Si el usuario guardó manualmente una URL de backend en localStorage, usarla con máxima prioridad
   try {
     const savedUrl = localStorage.getItem('AUCTION_BACKEND_URL');
@@ -22,7 +22,7 @@ const getDynamicBackendUrls = () => {
       const cleanWs = cleanHttp.replace(/^http/i, 'ws');
       return { http: cleanHttp, ws: cleanWs };
     }
-  } catch {}
+  } catch { }
 
   // 2. Si está configurada una variable de entorno personalizada, usarla (ideal para Vercel)
   let customHttp = (import.meta as any).env?.VITE_BACKEND_URL;
@@ -109,12 +109,12 @@ class RealAuctionStore {
     total_duration_seconds?: number;
     [key: string]: any;
   } = {
-    status: 'prepared',
-    currentPrice: 5000,
-    startingPrice: 5000,
-    currentWinnerPaddle: null,
-    currentWinnerName: null,
-  };
+      status: 'prepared',
+      currentPrice: 5000,
+      startingPrice: 5000,
+      currentWinnerPaddle: null,
+      currentWinnerName: null,
+    };
 
   constructor() {
     this.initBroadcastChannel();
@@ -134,7 +134,7 @@ class RealAuctionStore {
           return rows;
         }
       }
-    } catch {}
+    } catch { }
     return this.getVehicles();
   }
 
@@ -147,7 +147,7 @@ class RealAuctionStore {
           this.handleIncomingMessage(event.data, false);
         };
       }
-    } catch {}
+    } catch { }
   }
 
   public broadcastChannelMessage(data: any) {
@@ -156,7 +156,7 @@ class RealAuctionStore {
       if (this.bc) {
         this.bc.postMessage(data);
       }
-    } catch {}
+    } catch { }
   }
 
   public dispatchSyncEvent(data: any, sendToChannel: boolean = true) {
@@ -180,7 +180,7 @@ class RealAuctionStore {
 
     // Disparar listeners de WebSocket
     this.wsListeners.forEach((fn) => {
-      try { fn(data); } catch {}
+      try { fn(data); } catch { }
     });
 
     if (data.type === 'NEW_REAL_BID') {
@@ -314,7 +314,7 @@ class RealAuctionStore {
   public saveClient(client: Partial<Client> & { full_name: string; email: string; phone: string }): Client {
     const clients = this.getClients();
     const now = new Date().toISOString();
-    
+
     if (client.id) {
       const idx = clients.findIndex((c) => c.id === client.id);
       if (idx !== -1) {
@@ -409,7 +409,7 @@ class RealAuctionStore {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updated),
-        }).catch(() => {});
+        }).catch(() => { });
 
         return updated;
       }
@@ -464,7 +464,7 @@ class RealAuctionStore {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newVehicle),
-    }).catch(() => {});
+    }).catch(() => { });
 
     return newVehicle;
   }
@@ -477,12 +477,12 @@ class RealAuctionStore {
     // Eliminar de SQLite central en servidor
     fetch(`${SERVER_URL}/api/vehicles/${id}`, {
       method: 'DELETE',
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   // --- SUBASTAS Y COMUNICACIÓN CON SERVIDOR BACKEND ---
   public async fetchServerSession(
-    idOrToken: string, 
+    idOrToken: string,
     options?: { bidderToken?: string; brokerToken?: string; buyerToken?: string; isAuctioneer?: boolean }
   ): Promise<any> {
     try {
@@ -781,17 +781,17 @@ class RealAuctionStore {
 
   public async loadVehicleToSession(sessionId: string, vehicle: any, customStartingPrice?: number): Promise<boolean> {
     const target = sessionId || 'ses-live-001';
-    
+
     // 1. Detener cualquier reloj activo
     this.stopLocalClock();
-    
+
     // 2. Establecer estado PREPARADO / STANDBY a 15 segundos sin arrancar cronómetro
     this.localTimeRemaining = 15;
     this.localSessionState.status = 'prepared';
     this.localSessionState.currentWinnerPaddle = null;
     this.localSessionState.currentWinnerName = null;
-    
-    const startPrice = customStartingPrice || (vehicle?.est_retail_value 
+
+    const startPrice = customStartingPrice || (vehicle?.est_retail_value
       ? Math.max(1000, Math.round((vehicle.est_retail_value * 0.20) / 500) * 500)
       : 5000);
     this.localSessionState.startingPrice = startPrice;
@@ -807,7 +807,7 @@ class RealAuctionStore {
 
     try {
       localStorage.setItem('copart_live_auction_session', JSON.stringify(this.localSessionState));
-    } catch {}
+    } catch { }
 
     // 3. Notificar a todas las pantallas inmediatamente
     this.dispatchSyncEvent({
@@ -999,7 +999,7 @@ class RealAuctionStore {
           call,
           timestamp: new Date().toISOString()
         }));
-      } catch {}
+      } catch { }
     }
 
     // 2. Envío por HTTP REST persistente
@@ -1349,7 +1349,7 @@ class RealAuctionStore {
         buyerToken: opts?.buyerToken,
         isAuctioneer: Boolean(opts?.isAuctioneer),
       }));
-    } catch {}
+    } catch { }
   }
 
   public setCustomBackendUrl(url: string): void {
