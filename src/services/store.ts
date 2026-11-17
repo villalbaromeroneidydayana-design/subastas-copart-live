@@ -99,6 +99,15 @@ class RealAuctionStore {
     startingPrice: number;
     currentWinnerPaddle: string | null;
     currentWinnerName: string | null;
+    vehicle?: any;
+    vehicle_snapshot?: any;
+    lot_number?: string;
+    title?: string;
+    bid_count?: number;
+    bids?: any[];
+    time_remaining_seconds?: number;
+    total_duration_seconds?: number;
+    [key: string]: any;
   } = {
     status: 'prepared',
     currentPrice: 5000,
@@ -348,7 +357,23 @@ class RealAuctionStore {
       localStorage.setItem('copart_vehicles_v1', JSON.stringify(INITIAL_VEHICLES));
       return INITIAL_VEHICLES;
     }
-    try { return JSON.parse(raw); } catch { return INITIAL_VEHICLES; }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Asegurar que vehículos de catálogo oficiales (como Land Cruiser 1958) siempre estén presentes
+        const merged = [...parsed];
+        INITIAL_VEHICLES.forEach((initVeh) => {
+          const exists = merged.some((v) => v.id === initVeh.id || v.lot_number === initVeh.lot_number);
+          if (!exists) {
+            merged.unshift(initVeh);
+          }
+        });
+        return merged;
+      }
+      return INITIAL_VEHICLES;
+    } catch {
+      return INITIAL_VEHICLES;
+    }
   }
 
   public getVehicleById(id: string): Vehicle | undefined {
@@ -759,6 +784,18 @@ class RealAuctionStore {
       : 5000);
     this.localSessionState.startingPrice = startPrice;
     this.localSessionState.currentPrice = startPrice;
+    this.localSessionState.vehicle = vehicle;
+    this.localSessionState.vehicle_snapshot = vehicle;
+    this.localSessionState.lot_number = vehicle?.lot_number || '61682336';
+    this.localSessionState.title = vehicle ? `${vehicle.year} ${vehicle.brand} ${vehicle.model}` : 'Subasta en Vivo';
+    this.localSessionState.bid_count = 0;
+    this.localSessionState.bids = [];
+    this.localSessionState.time_remaining_seconds = 15;
+    this.localSessionState.total_duration_seconds = 15;
+
+    try {
+      localStorage.setItem('copart_live_auction_session', JSON.stringify(this.localSessionState));
+    } catch {}
 
     // 3. Notificar a todas las pantallas inmediatamente
     this.dispatchSyncEvent({

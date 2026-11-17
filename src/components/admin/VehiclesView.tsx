@@ -390,19 +390,19 @@ export const VehiclesView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleLoadToAuction(vehicle)}
-                      className={`font-black px-2.5 py-1 rounded text-[11px] flex items-center gap-1 transition shadow active:scale-95 cursor-pointer ml-1 ${
+                      className={`font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer ml-1 ${
                         isCurrentActive
                           ? 'bg-emerald-950 border border-emerald-500/80 text-emerald-300'
-                          : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950'
+                          : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black'
                       }`}
                       title={
                         isCurrentActive
-                          ? 'Este vehículo ya está en la sala en modo PREPARADO / STANDBY'
-                          : 'Cargar este vehículo en la sala en modo PREPARADO / STANDBY (sin iniciar el reloj)'
+                          ? 'Este vehículo ya está en la pantalla principal en modo PREPARADO / STANDBY'
+                          : 'Subir este vehículo a la pantalla principal en modo PREPARADO / STANDBY (reloj detenido en 15s)'
                       }
                     >
                       <Gavel className="w-3.5 h-3.5 text-amber-300" />
-                      <span>{isCurrentActive ? 'En Sala' : 'Cargar a Sala'}</span>
+                      <span>{isCurrentActive ? '✓ En Pantalla' : '⚡ Subir a Pantalla'}</span>
                     </button>
                   </div>
                 </div>
