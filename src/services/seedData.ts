@@ -126,29 +126,16 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       }
     ],
     custom_badges: {
-      runDriveText: 'RUN & DRIVE (MOTOR ARRANCA)',
-      titleTypeText: 'FLORIDA TITLE (VENTA PURA)',
-      threeSixtyEnabled: true,
-      threeSixtyText: 'Tour 360° Copart 🔄',
-      engineSoundEnabled: true,
-      engineSoundText: 'Motor i-FORCE MAX 🔊',
+      runDriveText: 'RUN & DRIVE',
+      titleTypeText: 'TX - CERTIFICATE OF TITLE',
       carfaxEnabled: true,
       carfaxText: 'Lote Verificado Copart ✓',
-      carfaxTitleStatus: 'Expediente Verificado en Patio Miami North',
-      carfaxVerifiedNotes: 'Lote #61682336 verificado en patio Opa-Locka (FL). Motor arranca y engrana marcha (Run & Drive). Odómetro original 6,322 millas. Llaves presentes.',
+      carfaxTitleStatus: 'TX - Certificate Of Title',
+      carfaxVerifiedNotes: 'El motor arranca: Copart verificó que el motor arranca. La transmisión engrana: Copart verificó que la transmisión engrana. Ubicación: FL - MIAMI NORTH.',
       carfaxOwners: '1 Dueño Original (Modelo 2025)',
       carfaxServiceRecords: 'Garantía de Fábrica Vigente',
       carfaxAccidents: 'Condición Mecánica Intacta (Run & Drive)',
-      extraBadges: [
-        {
-          id: 'badge-copart-video',
-          label: 'Video de Inspección 🎥',
-          action: 'custom_modal',
-          color: 'blue',
-          modalTitle: 'Video Oficial de Inspección Copart (Lote #61682336)',
-          modalContent: 'El video de patio certifica el encendido del motor híbrido 2.4L i-FORCE MAX y engrane de la transmisión en patio FL - Miami North. Haz clic en el botón superior [Lot Record] para ver el reproductor original de Copart.'
-        }
-      ]
+      extraBadges: []
     }
   },
   {

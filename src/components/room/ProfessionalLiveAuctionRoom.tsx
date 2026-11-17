@@ -747,7 +747,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const copartLotUrl = vehicle?.reference_url?.trim()
     ? vehicle.reference_url.trim()
     : `https://www.copart.com/${lang === 'es' ? 'es/' : ''}lot/${cleanLotNumber}`;
-  const allImages: VehicleImage[] = vehicle?.images || [];
+  // EXCLUSIVAMENTE FOTOGRAFÍAS REALES (Excluir videos o miniaturas con reproducción)
+  const allImages: VehicleImage[] = (vehicle?.images || []).filter((img: any) => {
+    const u = String(img?.url || '').toLowerCase();
+    const cap = String(img?.caption || '').toLowerCase();
+    return !u.includes('video') && !u.includes('play') && !cap.includes('video');
+  });
 
   const filteredCategoryImages = selectedCategory === 'todas'
     ? allImages
@@ -1352,7 +1357,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 title="Consultar expediente técnico del lote en patio Copart"
               >
                 <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-                <span>{lang === 'en' ? 'Copart Lot Record ↗' : 'Expediente del Lote ↗'}</span>
+                <span>{lang === 'en' ? 'VIEW ON COPART ↗' : 'VER VEHÍCULO EN COPART ↗'}</span>
               </a>
 
               {/* Botones e Insignias Extra Configuradas por el Usuario */}
@@ -1609,6 +1614,39 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   {displayedVin}
                 </span>
               </div>
+            </div>
+
+            {/* BOTÓN OFICIAL DESTACADO: VER VEHÍCULO EN COPART */}
+            <div className="mt-3 bg-gradient-to-r from-[#001f42] via-[#002855] to-[#071326] border-2 border-amber-500/80 p-3.5 sm:p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3.5 shadow-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0 shadow">
+                  <ExternalLink className="w-5 h-5 text-slate-950" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-white text-xs sm:text-sm">
+                      Expediente Oficial Copart (Lote #{vehicle?.lot_number || '61682336'})
+                    </span>
+                    <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/40">
+                      Verificable
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-300 block mt-0.5">
+                    Patio: <strong className="text-amber-300">{vehicle?.location || 'FL - MIAMI NORTH'}</strong> • Accede a videos originales de inspección, descripción completa y condiciones oficiales del lote.
+                  </span>
+                </div>
+              </div>
+
+              <a
+                href={copartLotUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xl active:scale-95 cursor-pointer uppercase tracking-wider whitespace-nowrap"
+                title="Abrir el lote original de Copart para consultar videos originales, descripción completa y condiciones de subasta"
+              >
+                <ExternalLink className="w-4 h-4 text-slate-950" />
+                <span>VER VEHÍCULO EN COPART</span>
+              </a>
             </div>
 
             {vehicle?.notes && (
@@ -1924,7 +1962,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       rel="noopener noreferrer"
                       className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-[11px] sm:text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
                     >
-                      <span>{lang === 'en' ? 'View on Copart.com ↗' : 'Ver en Copart Oficial ↗'}</span>
+                      <span>{lang === 'en' ? 'VIEW ON COPART ↗' : 'VER VEHÍCULO EN COPART'}</span>
                     </a>
                     <button
                       type="button"
