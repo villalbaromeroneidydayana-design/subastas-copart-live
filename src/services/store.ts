@@ -2,7 +2,7 @@ import { Client, Vehicle, AuctionSession, AuctionBid, AuctionResult, DashboardMe
 import { INITIAL_CLIENTS, INITIAL_VEHICLES, INITIAL_SESSIONS } from './seedData';
 import { sounds } from '../lib/soundEffects';
 
-const CLOUDFLARE_TUNNEL_URL = 'https://remainder-notebooks-production-activities.trycloudflare.com';
+const CLOUDFLARE_TUNNEL_URL = 'https://media-stream-sticks-easier.trycloudflare.com';
 
 const getDynamicBackendUrls = () => {
   if (typeof window === 'undefined') {
@@ -360,14 +360,26 @@ class RealAuctionStore {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Asegurar que vehículos de catálogo oficiales (como Land Cruiser 1958) siempre estén presentes
-        const merged = [...parsed];
+        // Asegurar que vehículos de catálogo oficiales (como Land Cruiser 1958) siempre tengan sus fotos verificadas
+        const merged = parsed.map((v) => {
+          if (v.id === 'veh-toyota-lc-61682336' || v.lot_number === '61682336') {
+            return {
+              ...v,
+              images: INITIAL_VEHICLES[0].images,
+              reference_url: INITIAL_VEHICLES[0].reference_url,
+              notes: INITIAL_VEHICLES[0].notes,
+              equipment: INITIAL_VEHICLES[0].equipment,
+            };
+          }
+          return v;
+        });
         INITIAL_VEHICLES.forEach((initVeh) => {
           const exists = merged.some((v) => v.id === initVeh.id || v.lot_number === initVeh.lot_number);
           if (!exists) {
             merged.unshift(initVeh);
           }
         });
+        localStorage.setItem('copart_vehicles_v1', JSON.stringify(merged));
         return merged;
       }
       return INITIAL_VEHICLES;

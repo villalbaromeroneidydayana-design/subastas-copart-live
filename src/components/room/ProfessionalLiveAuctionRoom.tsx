@@ -747,12 +747,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const copartLotUrl = vehicle?.reference_url?.trim()
     ? vehicle.reference_url.trim()
     : `https://www.copart.com/${lang === 'es' ? 'es/' : ''}lot/${cleanLotNumber}`;
-  // EXCLUSIVAMENTE FOTOGRAFÍAS REALES (Excluir videos o miniaturas con reproducción)
-  const allImages: VehicleImage[] = (vehicle?.images || []).filter((img: any) => {
-    const u = String(img?.url || '').toLowerCase();
-    const cap = String(img?.caption || '').toLowerCase();
-    return !u.includes('video') && !u.includes('play') && !cap.includes('video');
-  });
+  // EXCLUSIVAMENTE FOTOGRAFÍAS REALES (Excluir videos o miniaturas con reproducción, máx 1-2 fotos auténticas)
+  const allImages: VehicleImage[] = (vehicle?.images || [])
+    .filter((img: any) => {
+      const u = String(img?.url || '').toLowerCase();
+      const cap = String(img?.caption || '').toLowerCase();
+      return !u.includes('video') && !u.includes('play') && !cap.includes('video');
+    })
+    .slice(0, 2);
 
   const filteredCategoryImages = selectedCategory === 'todas'
     ? allImages
@@ -1649,10 +1651,30 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </a>
             </div>
 
-            {vehicle?.notes && (
+            {/* EQUIPAMIENTO Y DETALLES COMERCIALES */}
+            {vehicle?.equipment && Array.isArray(vehicle.equipment) && vehicle.equipment.length > 0 && (
               <div className="mt-3 bg-[#050912] p-3 rounded-lg border border-slate-800/80 text-slate-200">
-                <span className="text-slate-400 font-bold block text-xs uppercase mb-1">{t('vehicleNotes')}:</span>
-                <p className="text-xs sm:text-sm leading-relaxed">{vehicle.notes}</p>
+                <span className="text-slate-400 font-bold block text-xs uppercase mb-2">Equipamiento Destacado:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {vehicle.equipment.map((item: string, idx: number) => (
+                    <span key={idx} className="bg-slate-800/90 text-slate-200 border border-slate-700/80 px-2 py-0.5 rounded text-xs">
+                      • {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* OBSERVACIONES DEL BROKER / NOTAS DE INSPECCIÓN */}
+            {vehicle?.notes && (
+              <div className="mt-3 bg-[#050912] p-3.5 rounded-lg border border-slate-800/80 text-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-amber-400 font-black text-xs uppercase tracking-wide flex items-center gap-1.5">
+                    <span>📋 Observaciones Comerciales del Broker</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">Nota comercial informativa</span>
+                </div>
+                <p className="text-xs sm:text-sm leading-relaxed text-slate-300">{vehicle.notes}</p>
               </div>
             )}
           </div>

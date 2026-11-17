@@ -80,49 +80,22 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     updated_at: '2026-11-16T10:00:00Z',
     images: [
       {
-        id: 'img-lc-1',
+        id: 'img-lc-61682336-1',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_front_real.jpg?v=hd2',
+        url: '/vehicles/lc2025/lote_61682336_exterior_patio.jpg',
         category: 'exterior',
         is_primary: true,
         order: 1,
-        caption: 'Fotografía Exterior Frontal 3/4 HD - Toyota Land Cruiser 1958'
+        caption: 'Fotografía Original Copart - Exterior en Patio Miami North (Lote #61682336)'
       },
       {
-        id: 'img-lc-2',
+        id: 'img-lc-61682336-2',
         vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_side_real.jpg?v=hd2',
-        category: 'exterior',
-        is_primary: false,
-        order: 2,
-        caption: 'Fotografía Exterior Costado Izquierdo HD'
-      },
-      {
-        id: 'img-lc-3',
-        vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_rear_real.jpg?v=hd2',
-        category: 'exterior',
-        is_primary: false,
-        order: 3,
-        caption: 'Fotografía Exterior Lateral Posterior y Rines HD'
-      },
-      {
-        id: 'img-lc-4',
-        vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_tailgate_real.jpg?v=hd2',
-        category: 'exterior',
-        is_primary: false,
-        order: 4,
-        caption: 'Fotografía Exterior Compuerta Trasera HD'
-      },
-      {
-        id: 'img-lc-5',
-        vehicle_id: 'veh-toyota-lc-61682336',
-        url: '/vehicles/lc2025/copart_interior_real.jpg?v=hd2',
+        url: '/vehicles/lc2025/lote_61682336_interior_cabina.jpg',
         category: 'interior',
         is_primary: false,
-        order: 5,
-        caption: 'Fotografía Cabina Interior y Asientos Heritage'
+        order: 2,
+        caption: 'Fotografía Original Copart - Cabina Interior y Asientos Heritage (Lote #61682336)'
       }
     ],
     custom_badges: {

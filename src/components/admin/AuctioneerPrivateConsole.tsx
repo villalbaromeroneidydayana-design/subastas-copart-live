@@ -1740,9 +1740,20 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           {/* CONTENIDO TAB 1: LISTA DE VEHÍCULOS (SELECCIÓN Y SUBIDA A PANTALLA) */}
           {dockTab === 'lista' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                 <span>Selecciona cualquier vehículo registrado en el inventario y pulsa <strong className="text-emerald-400 font-bold">«SUBIR A PANTALLA»</strong> para cargarlo en tiempo real:</span>
-                <span className="text-amber-300 font-mono font-bold">Modo: STANDBY (15 seg)</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-300 font-mono font-bold">Modo: STANDBY (15 seg)</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsVehiclesModalOpen(true)}
+                    className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow"
+                    title="Modificar ficha comercial, descripción, equipamiento y fotos del catálogo"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Editar Ficha Comercial / Catálogo</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -1750,6 +1761,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   const currentLot = (session as any).lot_number || session.vehicle_snapshot?.lot_number;
                   const isCurrentActive = String(veh.lot_number).trim() === String(currentLot).trim() || veh.id === session.vehicle_snapshot?.id;
                   const thumb = veh.images?.[0]?.url || 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=600&q=80';
+                  const copartUrl = veh.reference_url || `https://www.copart.com/es/lot/${veh.lot_number}`;
 
                   return (
                     <div
@@ -1781,9 +1793,22 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                           <span className="font-bold text-white text-xs block truncate leading-snug">
                             {veh.year} {veh.brand} {veh.model}
                           </span>
-                          <span className="text-[11px] text-amber-300 font-mono block">
-                            Lote #{veh.lot_number}
-                          </span>
+                          <div className="flex items-center justify-between gap-1 mt-0.5">
+                            <span className="text-[11px] text-amber-300 font-mono block">
+                              Lote #{veh.lot_number}
+                            </span>
+                            <a
+                              href={copartUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[10px] text-amber-400 hover:text-amber-300 underline font-mono flex items-center gap-0.5"
+                              title="Abrir lote en Copart (Pestaña nueva)"
+                            >
+                              <span>Copart</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          </div>
                           <span className="text-[10px] text-slate-400 block truncate mt-0.5">
                             {veh.primary_damage || 'Front End'} • {veh.odometer?.toLocaleString()} {veh.odometer_unit || 'mi'}
                           </span>
@@ -1798,24 +1823,33 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                         </div>
                       </div>
 
-                      {/* BOTÓN DE ACCIÓN: SUBIR A PANTALLA */}
-                      <div className="pt-2 border-t border-slate-800/80">
+                      {/* BOTÓN DE ACCIÓN: SUBIR A PANTALLA Y FICHA */}
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2">
                         {isCurrentActive ? (
-                          <div className="w-full py-2 rounded-lg bg-emerald-950/80 border border-emerald-500 text-emerald-300 font-black text-xs flex items-center justify-center gap-1.5 shadow">
+                          <div className="flex-1 py-2 rounded-lg bg-emerald-950/80 border border-emerald-500 text-emerald-300 font-black text-xs flex items-center justify-center gap-1.5 shadow">
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span>✓ EN PANTALLA PRINCIPAL</span>
+                            <span>✓ EN PANTALLA</span>
                           </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleSubirAPantalla(veh)}
-                            className="w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition shadow-lg active:scale-95 cursor-pointer"
+                            className="flex-1 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition shadow-lg active:scale-95 cursor-pointer"
                             title="Subir inmediatamente a la pantalla principal en modo PREPARADO (15s)"
                           >
                             <Zap className="w-4 h-4 fill-slate-950" />
-                            <span>SUBIR A PANTALLA (CARGAR A SALA)</span>
+                            <span>SUBIR A PANTALLA</span>
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => setIsVehiclesModalOpen(true)}
+                          className="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-1 border border-slate-700 transition"
+                          title="Ver y editar ficha comercial y observaciones de este vehículo"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="hidden sm:inline">Ficha</span>
+                        </button>
                       </div>
                     </div>
                   );
