@@ -63,7 +63,7 @@ export const CopartVerificationModal: React.FC<CopartVerificationModalProps> = (
         { label: 'Condición & Título:', value: `${vehicle?.custom_badges?.runDriveText || 'RUN & DRIVE'} • ${vehicle?.custom_badges?.titleTypeText || 'CLEAN TITLE'}` },
       ],
       action: {
-        text: 'Consultar Lote Directo en Copart.com',
+        text: 'Consultar Expediente del Lote',
         url: copartUrl,
       },
     },

@@ -1803,9 +1803,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               className="text-[10px] text-amber-400 hover:text-amber-300 underline font-mono flex items-center gap-0.5"
-                              title="Abrir lote original (Pestaña nueva)"
+                              title="Abrir expediente completo del lote (Pestaña nueva)"
                             >
-                              <span>Lote Original</span>
+                              <span>Expediente</span>
                               <ExternalLink className="w-2.5 h-2.5" />
                             </a>
                           </div>
