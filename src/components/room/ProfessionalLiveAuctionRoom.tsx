@@ -213,6 +213,52 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
   };
 
+  const handleStartAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    const veh = session.vehicle_snapshot || (session as any).vehicle;
+    setSession((prev) => ({
+      ...prev,
+      status: 'open',
+      time_remaining_seconds: 15,
+      total_duration_seconds: 15,
+    }));
+    try {
+      if (veh?.custom_badges?.auctioneerVoiceGender) {
+        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
+      }
+      sounds.playStartVoice(Number(session.current_price || session.starting_price || 13000), {
+        year: veh?.year,
+        brand: veh?.brand,
+        model: veh?.model,
+        version: veh?.version,
+        odometer: veh?.odometer,
+        condition: veh?.vehicle_condition,
+        hasKeys: veh?.has_keys,
+        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
+      });
+    } catch {}
+    await store.serverStartAuction(targetId);
+    await fetchStateFromServer();
+  };
+
+  const handlePauseAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    setSession((prev) => ({ ...prev, status: 'paused' }));
+    await store.serverPauseAuction(targetId);
+  };
+
+  const handleResumeAuction = async () => {
+    const targetId = session.id || 'ses-live-001';
+    setSession((prev) => ({ ...prev, status: 'open' }));
+    await store.serverResumeAuction(targetId);
+  };
+
+  const handleResetClock = async () => {
+    const targetId = session.id || 'ses-live-001';
+    setSession((prev) => ({ ...prev, time_remaining_seconds: 15, status: 'open' }));
+    store.startLocalClock(targetId);
+  };
+
   const handlePlaceBuyerDirectBid = async (amount: number) => {
     if (isSubmittingBid) return;
     setIsSubmittingBid(true);
@@ -1768,6 +1814,54 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <span className={`text-xs sm:text-sm font-black px-3 py-1.5 rounded-lg inline-block border ${statusInfo.style}`}>
                   {statusInfo.label}
                 </span>
+
+                {/* Controles de reloj directo en sala para operador / broker / subastador */}
+                {session.status === 'prepared' && (
+                  <button
+                    type="button"
+                    onClick={handleStartAuction}
+                    className="mt-2.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer ring-2 ring-emerald-400/50"
+                    title="Iniciar cuenta regresiva oficial de 15 segundos y abrir subasta"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-slate-950" />
+                    <span>INICIAR SUBASTA (15s)</span>
+                  </button>
+                )}
+
+                {['open', 'bidding', 'last_call'].includes(session.status) && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <button
+                      type="button"
+                      onClick={handlePauseAuction}
+                      className="py-1 px-2.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1 border border-slate-700 transition"
+                      title="Pausar reloj"
+                    >
+                      <Pause className="w-3 h-3" />
+                      <span>Pausar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetClock}
+                      className="py-1 px-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow transition"
+                      title="Reiniciar conteo en 15 segundos"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>15s</span>
+                    </button>
+                  </div>
+                )}
+
+                {session.status === 'paused' && (
+                  <button
+                    type="button"
+                    onClick={handleResumeAuction}
+                    className="mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow flex items-center gap-1.5 transition active:scale-95"
+                    title="Reanudar cuenta regresiva"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-slate-950" />
+                    <span>Reanudar</span>
+                  </button>
+                )}
               </div>
 
               {/* CONTADOR CIRCULAR AUTORITATIVO SINCRONIZADO CON SERVIDOR */}

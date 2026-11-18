@@ -208,21 +208,28 @@ class RealAuctionStore {
     if (this.localTimer) clearInterval(this.localTimer);
     this.localTimeRemaining = 15;
     this.localTimer = setInterval(() => {
-      if (this.isServerOnline && this.ws && this.ws.readyState === WebSocket.OPEN) {
-        clearInterval(this.localTimer);
-        this.localTimer = null;
+      // Si está en pausa o preparado (standby), no descontar
+      if (this.localSessionState.status === 'paused' || this.localSessionState.status === 'prepared') {
         return;
       }
-      if (this.localSessionState.status === 'paused') {
+      // Si la subasta finalizó o se cerró, detener el reloj
+      if (['sold', 'unsold', 'closed'].includes(this.localSessionState.status)) {
+        this.stopLocalClock();
         return;
       }
+
       this.localTimeRemaining = Math.max(0, this.localTimeRemaining - 1);
+      const newStatus = this.localTimeRemaining === 0 
+        ? 'last_call' 
+        : (this.localTimeRemaining <= 4 ? 'last_call' : 'open');
+      this.localSessionState.status = newStatus;
+
       const tick = {
         type: 'CLOCK_TICK',
         sessionId: sessionId || 'ses-live-001',
         timeRemaining: this.localTimeRemaining,
         currentPrice: this.localSessionState.currentPrice,
-        status: this.localTimeRemaining === 0 ? 'last_call' : (this.localSessionState.status === 'paused' ? 'paused' : 'open'),
+        status: newStatus,
         currentWinnerPaddle: this.localSessionState.currentWinnerPaddle,
         currentWinnerName: this.localSessionState.currentWinnerName,
       };
