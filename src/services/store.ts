@@ -2,7 +2,7 @@ import { Client, Vehicle, AuctionSession, AuctionBid, AuctionResult, DashboardMe
 import { INITIAL_CLIENTS, INITIAL_VEHICLES, INITIAL_SESSIONS } from './seedData';
 import { sounds } from '../lib/soundEffects';
 
-const CLOUDFLARE_TUNNEL_URL = 'https://media-stream-sticks-easier.trycloudflare.com';
+const CLOUDFLARE_TUNNEL_URL = 'https://ing-blocking-flex-environmental.trycloudflare.com';
 
 const getDynamicBackendUrls = () => {
   if (typeof window === 'undefined') {
