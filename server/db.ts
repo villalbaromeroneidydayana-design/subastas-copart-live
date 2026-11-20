@@ -72,6 +72,10 @@ export function initDatabase(dbPath: string = path.join(DB_DIR, 'auction.db')) {
     db.exec(`ALTER TABLE auction_sessions ADD COLUMN broker_name TEXT DEFAULT 'Broker Representante';`);
   } catch {}
 
+  try {
+    db.exec(`ALTER TABLE auction_sessions ADD COLUMN reference_url TEXT;`);
+  } catch {}
+
   // 2. Tabla de participantes con Hash Criptográfico de Token (NUNCA en texto plano)
   db.exec(`
     CREATE TABLE IF NOT EXISTS auction_participants (

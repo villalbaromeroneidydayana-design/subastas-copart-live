@@ -50,10 +50,10 @@ export const CopartVerificationModal: React.FC<CopartVerificationModalProps> = (
   const checks = [
     {
       id: 'vehiculo',
-      title: '1. Vehículo: Existencia Real de Lote en Copart',
+      title: '1. Vehículo: Registro y Certificación Oficial de Lote',
       icon: Car,
       color: 'emerald',
-      status: 'VERIFICADO EN COPART',
+      status: 'LOTE OFICIAL REGISTRADO',
       summary: 'El vehículo está debidamente registrado y catalogado en la red oficial de patios Copart.',
       details: [
         { label: 'Número de Lote Oficial:', value: `#${lotNumber}` },

@@ -213,9 +213,9 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
               <div className="flex items-center gap-2.5">
                 <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
                 <div>
-                  <span className="font-bold text-white block">Acceso Oficial al Lote Real de Copart:</span>
+                  <span className="font-bold text-white block">Acceso Oficial al Expediente del Lote:</span>
                   <span className="text-[10px] text-slate-300">
-                    El broker y el cliente cuentan con el botón directo para ver el video con sonido de motor real verificado, fotos en patio y reporte original en Copart.com.
+                    El broker y el cliente cuentan con el botón directo «VER VEHÍCULO COMPLETO ↗» para ver el video con sonido de motor real verificado, fotos en patio y expediente original.
                   </span>
                 </div>
               </div>
