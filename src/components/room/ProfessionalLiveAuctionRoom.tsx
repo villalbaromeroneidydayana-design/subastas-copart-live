@@ -1822,52 +1822,56 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   {statusInfo.label}
                 </span>
 
-                {/* Controles de reloj directo en sala para operador / broker / subastador */}
-                {session.status === 'prepared' && (
-                  <button
-                    type="button"
-                    onClick={handleStartAuction}
-                    className="mt-2.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer ring-2 ring-emerald-400/50"
-                    title="Iniciar cuenta regresiva oficial de 15 segundos y abrir subasta"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-slate-950" />
-                    <span>INICIAR SUBASTA (15s)</span>
-                  </button>
-                )}
+                {/* Controles de reloj directo en sala únicamente para el subastador autorizado */}
+                {isAuctioneer && (
+                  <>
+                    {session.status === 'prepared' && (
+                      <button
+                        type="button"
+                        onClick={handleStartAuction}
+                        className="mt-2.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer ring-2 ring-emerald-400/50"
+                        title="Iniciar cuenta regresiva oficial de 15 segundos y abrir subasta"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-slate-950" />
+                        <span>INICIAR SUBASTA (15s)</span>
+                      </button>
+                    )}
 
-                {['open', 'bidding', 'last_call'].includes(session.status) && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <button
-                      type="button"
-                      onClick={handlePauseAuction}
-                      className="py-1 px-2.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1 border border-slate-700 transition"
-                      title="Pausar reloj"
-                    >
-                      <Pause className="w-3 h-3" />
-                      <span>Pausar</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleResetClock}
-                      className="py-1 px-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow transition"
-                      title="Reiniciar conteo en 15 segundos"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      <span>15s</span>
-                    </button>
-                  </div>
-                )}
+                    {['open', 'bidding', 'last_call'].includes(session.status) && (
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <button
+                          type="button"
+                          onClick={handlePauseAuction}
+                          className="py-1 px-2.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1 border border-slate-700 transition"
+                          title="Pausar reloj"
+                        >
+                          <Pause className="w-3 h-3" />
+                          <span>Pausar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetClock}
+                          className="py-1 px-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow transition"
+                          title="Reiniciar conteo en 15 segundos"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>15s</span>
+                        </button>
+                      </div>
+                    )}
 
-                {session.status === 'paused' && (
-                  <button
-                    type="button"
-                    onClick={handleResumeAuction}
-                    className="mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow flex items-center gap-1.5 transition active:scale-95"
-                    title="Reanudar cuenta regresiva"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-slate-950" />
-                    <span>Reanudar</span>
-                  </button>
+                    {session.status === 'paused' && (
+                      <button
+                        type="button"
+                        onClick={handleResumeAuction}
+                        className="mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow flex items-center gap-1.5 transition active:scale-95"
+                        title="Reanudar cuenta regresiva"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-slate-950" />
+                        <span>Reanudar</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -2059,7 +2063,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
                 <p className="text-[11px] text-slate-300 leading-relaxed italic border-t border-slate-800/80 pt-1.5">
                   {isBroker
-                    ? 'Como Broker Autorizado, puedes abrir la subasta en cualquier momento usando el botón verde inferior.'
+                    ? 'Como Broker Autorizado, tu terminal está conectada con la Paleta #101 lista para pujar en cuanto el subastador dé inicio a la subasta.'
                     : 'Puedes observar el vehículo, las fotografías y la ficha técnica. Tu broker autorizado iniciará las pujas en cuanto comience la subasta.'}
                 </p>
 
