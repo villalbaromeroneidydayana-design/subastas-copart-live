@@ -1328,17 +1328,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* INSIGNIAS EXCLUSIVAS COPART: Enlace al Lote Real con Video/Motor, Carfax y Verificación */}
             <div className="absolute top-11 left-2.5 z-20 flex flex-wrap gap-1.5">
-              {/* Acceso Directo Oficial al Lote Completo en Copart (Fotos HD, Video y Ficha Original) */}
+              {/* Acceso Directo Oficial al Lote Completo (Fotos HD, Video y Ficha Original) */}
               <a
                 href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border-amber-400 hover:border-amber-300 transition active:scale-95 ring-1 ring-amber-400/40"
-                title="Abrir publicación completa en Copart.com (todas las fotografías HD, video, inspección y detalles del lote)"
+                title="Ver todas las fotografías HD, video, inspección y detalles completos del lote"
               >
                 <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-                <span>{lang === 'en' ? 'VIEW FULL LOT ON COPART ↗' : 'VER VEHÍCULO COMPLETO EN COPART ↗'}</span>
+                <span>{lang === 'en' ? 'VIEW FULL VEHICLE ↗' : 'VER VEHÍCULO COMPLETO ↗'}</span>
               </a>
 
               {/* Botón 360° Walkaround - Solo si está expresamente habilitado */}
@@ -1675,7 +1675,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-300 block mt-0.5">
-                    Patio: <strong className="text-amber-300">{vehicle?.location || 'FL - MIAMI NORTH'}</strong> • Accede a la publicación original en Copart con todas las fotos HD, video, condición y ficha técnica completa.
+                    Patio: <strong className="text-amber-300">{vehicle?.location || 'FL - MIAMI NORTH'}</strong> • Accede al expediente original con todas las fotos HD, video, condición y ficha técnica completa.
                   </span>
                 </div>
               </div>
@@ -1685,10 +1685,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xl active:scale-95 cursor-pointer uppercase tracking-wider whitespace-nowrap ring-2 ring-amber-400/50"
-                title="Abrir publicación completa del lote en Copart.com para ver todas las fotos HD, video y ficha técnica"
+                title="Ver todas las fotos HD, video y ficha técnica completa del lote"
               >
                 <ExternalLink className="w-4 h-4 text-slate-950" />
-                <span>VER VEHÍCULO COMPLETO EN COPART.COM ↗</span>
+                <span>VER VEHÍCULO COMPLETO ↗</span>
               </a>
             </div>
 
@@ -2072,10 +2072,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-[11px] sm:text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
-                      title="Abrir expediente y publicación oficial del lote en Copart.com"
+                      title="Ver expediente y reporte completo del lote"
                     >
                       <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{lang === 'en' ? 'VIEW FULL LOT ON COPART ↗' : 'VER VEHÍCULO COMPLETO EN COPART ↗'}</span>
+                      <span>{lang === 'en' ? 'VIEW FULL VEHICLE ↗' : 'VER VEHÍCULO COMPLETO ↗'}</span>
                     </a>
                     <button
                       type="button"
