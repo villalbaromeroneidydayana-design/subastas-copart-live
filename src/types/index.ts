@@ -39,7 +39,7 @@ export interface CustomVehicleBadges {
   titleTypeText?: string;
   extraBadges?: CustomBadgeItem[];
   auctioneerWelcomeChant?: string;
-  auctioneerVoiceGender?: 'male' | 'female';
+  auctioneerVoiceGender?: 'male';
 }
 
 export interface Vehicle {

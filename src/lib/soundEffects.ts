@@ -3,7 +3,8 @@
 class SoundManager {
   private ctx: AudioContext | null = null;
   public isMuted: boolean = false;
-  public voiceGender: 'male' | 'female' = 'male'; // Por defecto: Voz Masculina Americana Oficial de Copart
+  public readonly voiceGender: 'male' = 'male'; // EXCLUSIVAMENTE VOZ MASCULINA OFICIAL DE COPART (LANE A)
+  private cachedMaleVoice: SpeechSynthesisVoice | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -18,6 +19,15 @@ class SoundManager {
       window.addEventListener('click', unlock, { passive: true });
       window.addEventListener('touchstart', unlock, { passive: true });
       window.addEventListener('keydown', unlock, { passive: true });
+
+      // Precargar y resolver de inmediato la mejor voz masculina disponible
+      if ('speechSynthesis' in window) {
+        const updateVoice = () => {
+          this.cachedMaleVoice = this.findBestMaleVoice();
+        };
+        updateVoice();
+        window.speechSynthesis.onvoiceschanged = updateVoice;
+      }
     }
   }
 
@@ -39,8 +49,65 @@ class SoundManager {
     this.isMuted = muted;
   }
 
-  public setVoiceGender(gender: 'male' | 'female') {
-    this.voiceGender = gender;
+  public setVoiceGender(_gender?: string) {
+    // La plataforma opera de forma estricta e inmutable con voz masculina
+  }
+
+  // Algoritmo de filtrado estricto para garantizar voz de hombre (sin mezclas femeninas)
+  private findBestMaleVoice(): SpeechSynthesisVoice | null {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    // Voces explícitamente masculinas probadas en Windows, Edge, Chrome, macOS, Android e iOS
+    const maleKeywords = [
+      'david', 'guy', 'mark', 'christopher', 'eric', 'roger', 
+      'george', 'james', 'andrew', 'alex', 'matthew', 'brian', 
+      'daniel', 'ryan', 'steffan', 'fred', 'oliver', 'tom', 
+      'evan', 'nathan', 'aaron', 'richard', 'william', 'thomas', 
+      'charles', 'edward', 'jack', 'natural male', 'male', 'hombre'
+    ];
+
+    // Nombres y etiquetas femeninas a excluir con rigor absoluto
+    const femaleKeywords = [
+      'zira', 'jenny', 'aria', 'samantha', 'victoria', 'karen', 
+      'susan', 'catherine', 'hazel', 'ava', 'emma', 'ana', 
+      'michelle', 'sonia', 'clara', 'linda', 'lisa', 'joanna', 
+      'kendra', 'ivy', 'kimberly', 'salli', 'allison', 'elena', 
+      'monica', 'paulina', 'helena', 'laura', 'alice', 'kate', 
+      'fiona', 'moira', 'tessa', 'veena', 'female', 'woman', 
+      'girl', 'mujer', 'her', 'she', 'google us english'
+    ];
+
+    // Prioridad 1: Voz en inglés estadounidense con nombre clave masculino
+    let voice = voices.find((v) =>
+      (v.lang === 'en-US' || v.lang.startsWith('en')) &&
+      maleKeywords.some((k) => v.name.toLowerCase().includes(k)) &&
+      !femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
+    );
+
+    // Prioridad 2: Cualquier voz en inglés con etiqueta de género masculina
+    if (!voice) {
+      voice = voices.find((v) =>
+        (v.lang.startsWith('en')) &&
+        maleKeywords.some((k) => v.name.toLowerCase().includes(k))
+      );
+    }
+
+    // Prioridad 3: Voz en inglés excluyendo toda palabra clave femenina
+    if (!voice) {
+      voice = voices.find((v) =>
+        (v.lang === 'en-US' || v.lang.startsWith('en')) &&
+        !femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
+      );
+    }
+
+    // Prioridad 4: Si no hay filtro, descartar cualquier voz femenina detectable
+    if (!voice) {
+      voice = voices.find((v) => !femaleKeywords.some((k) => v.name.toLowerCase().includes(k)));
+    }
+
+    return voice || null;
   }
 
   // Sonido de nueva oferta (Copart Bid Chime)
@@ -137,6 +204,7 @@ class SoundManager {
   }
 
   // Locución por voz del subastador en inglés (Copart Live Auctioneer Voice)
+  // Garantiza SIEMPRE voz masculina profunda de subastador americano (Lane A)
   public speak(phrase: string, rate: number = 1.10) {
     if (this.isMuted) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -148,54 +216,9 @@ class SoundManager {
       utterance.lang = 'en-US';
       utterance.rate = rate; // Ritmo acelerado auténtico de subastador
       utterance.volume = 1.0;
+      utterance.pitch = 0.84; // Tono grave profundo inequívocamente masculino
 
-      const voices = window.speechSynthesis.getVoices();
-
-      // Nombres de voces masculinas comunes en Windows, Edge, Chrome y macOS
-      const maleKeywords = [
-        'david', 'guy', 'mark', 'christopher', 'eric', 'roger', 
-        'george', 'james', 'andrew', 'alex', 'matthew', 'brian', 
-        'daniel', 'ryan', 'steffan', 'fred', 'natural male'
-      ];
-
-      // Nombres de voces exclusivamente femeninas para excluir cuando se busca voz masculina
-      const femaleKeywords = [
-        'zira', 'jenny', 'aria', 'samantha', 'victoria', 'karen', 
-        'susan', 'catherine', 'hazel', 'google us english'
-      ];
-
-      let chosenVoice: SpeechSynthesisVoice | undefined;
-
-      if (this.voiceGender === 'male') {
-        // Tono grave, resonante y masculino de subastador Copart
-        utterance.pitch = 0.88;
-
-        // 1. Buscar voz masculina en inglés estadounidense por nombre clave (ej. Microsoft David, Guy, Mark)
-        chosenVoice = voices.find((v) =>
-          (v.lang === 'en-US' || v.lang.startsWith('en')) &&
-          maleKeywords.some((k) => v.name.toLowerCase().includes(k))
-        );
-
-        // 2. Si no encuentra por nombre explícito, buscar en inglés excluyendo las femeninas
-        if (!chosenVoice) {
-          chosenVoice = voices.find((v) =>
-            (v.lang === 'en-US' || v.lang.startsWith('en')) &&
-            !femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
-          );
-        }
-
-        // 3. Fallback en inglés
-        if (!chosenVoice) {
-          chosenVoice = voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
-        }
-      } else {
-        // Tono femenino
-        utterance.pitch = 1.05;
-        chosenVoice = voices.find((v) =>
-          (v.lang === 'en-US' || v.lang.startsWith('en')) &&
-          femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
-        ) || voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
-      }
+      const chosenVoice = this.cachedMaleVoice || this.findBestMaleVoice();
 
       if (chosenVoice) {
         utterance.voice = chosenVoice;

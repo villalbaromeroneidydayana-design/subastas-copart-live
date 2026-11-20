@@ -62,12 +62,12 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
     `Welcome bidders to Lane A! Coming up right now on the block, we have an incredible ${vehicle.year || 2023} ${vehicle.brand || 'Ford'} ${vehicle.model || 'Mustang GT'}! Clean run and drive, verified with only ${vehicle.odometer ? Number(vehicle.odometer).toLocaleString() : '14,000'} miles, keys in hand! Beautiful unit, folks! Who'll give me 5,000 dollars to open? Let's start the bidding!`
   );
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
-  const [voiceType, setVoiceType] = useState<'male' | 'female'>(existing.auctioneerVoiceGender || sounds.voiceGender || 'male');
+  const voiceType: 'male' = 'male';
 
   const handlePlayVoicePreview = () => {
     setIsPlayingPreview(true);
     try {
-      sounds.setVoiceGender(voiceType);
+      sounds.setVoiceGender('male');
       sounds.speak(auctioneerWelcomeChant.trim(), 1.08);
     } catch { }
     setTimeout(() => setIsPlayingPreview(false), 4500);
@@ -457,35 +457,10 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
                 </p>
               </div>
 
-              {/* Selector de Género de Voz y Preescucha */}
+              {/* Selector de Género de Voz y Preescucha (Fijado Exclusivamente en Masculino Copart) */}
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex bg-[#030712] p-1 rounded-lg border border-slate-700">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setVoiceType('male');
-                      sounds.setVoiceGender('male');
-                    }}
-                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${voiceType === 'male'
-                        ? 'bg-amber-500 text-slate-950 shadow'
-                        : 'text-slate-400 hover:text-white'
-                      }`}
-                  >
-                    <span>👨 Masculina Americana (Copart)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setVoiceType('female');
-                      sounds.setVoiceGender('female');
-                    }}
-                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${voiceType === 'female'
-                        ? 'bg-amber-500 text-slate-950 shadow'
-                        : 'text-slate-400 hover:text-white'
-                      }`}
-                  >
-                    <span>👩 Femenina</span>
-                  </button>
+                <div className="flex items-center gap-1.5 bg-[#030712] px-3 py-1.5 rounded-lg border border-amber-500/40 text-amber-400 text-[11px] font-black">
+                  <span>👨 Voz Masculina Oficial Subastador (Lane A)</span>
                 </div>
 
                 <button
