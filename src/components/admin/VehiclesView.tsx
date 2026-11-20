@@ -686,9 +686,44 @@ export const VehiclesView: React.FC = () => {
                         type="text"
                         value={editingVehicle.primary_damage || ''}
                         onChange={(e) => setEditingVehicle({ ...editingVehicle, primary_damage: e.target.value })}
-                        placeholder="Front End, Rear End..."
-                        className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                        placeholder="Minor Dent/Scratch, Normal Wear..."
+                        className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white mb-1"
                       />
+                      <div className="flex flex-wrap gap-1 text-[10px]">
+                        {['Minor Dent/Scratch', 'Fascia Plástica Leve', 'Normal Wear', 'Hail (Granizo Leve)', 'Ninguno (Limpio)'].map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setEditingVehicle({ ...editingVehicle, primary_damage: d })}
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded text-[9.5px]"
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-300 font-semibold mb-1">Daño Secundario</label>
+                      <input
+                        type="text"
+                        value={editingVehicle.secondary_damage || ''}
+                        onChange={(e) => setEditingVehicle({ ...editingVehicle, secondary_damage: e.target.value })}
+                        placeholder="Ninguno, Rayón Menor..."
+                        className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white mb-1"
+                      />
+                      <div className="flex flex-wrap gap-1 text-[10px]">
+                        {['Ninguno', 'Rayón Superficial', 'Abolladura Menor', 'Detalle Cosmético'].map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setEditingVehicle({ ...editingVehicle, secondary_damage: d })}
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded text-[9.5px]"
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div>
@@ -753,6 +788,20 @@ export const VehiclesView: React.FC = () => {
                       value={editingVehicle.notes || ''}
                       onChange={(e) => setEditingVehicle({ ...editingVehicle, notes: e.target.value })}
                       placeholder="Historial, detalles de reparación, reporte de inspección..."
+                      className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                    />
+                  </div>
+
+                  <div className="mt-2.5">
+                    <label className="block text-slate-300 font-semibold mb-1">Equipamiento Destacado (Separado por comas)</label>
+                    <input
+                      type="text"
+                      value={Array.isArray(editingVehicle.equipment) ? editingVehicle.equipment.join(', ') : (editingVehicle.equipment || '')}
+                      onChange={(e) => setEditingVehicle({ 
+                        ...editingVehicle, 
+                        equipment: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) 
+                      })}
+                      placeholder="Apple CarPlay, Techo corredizo, Cámara 360, Asientos en cuero..."
                       className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
                     />
                   </div>
