@@ -781,6 +781,59 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           </div>
         </div>
 
+        {/* BOTÓN MAESTRO DE INICIO Y ESTADO EN CABECERA */}
+        <div className="flex items-center gap-2">
+          {session.status === 'prepared' ? (
+            <button
+              type="button"
+              id="header-btn-dar-inicio"
+              onClick={handleStartAuction}
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(52,211,153,0.7)] flex items-center gap-2 animate-bounce ring-2 ring-emerald-300 transition active:scale-95 cursor-pointer"
+              title="Dar inicio a la subasta oficial (reloj de 15 segundos)"
+            >
+              <Play className="w-4 h-4 fill-slate-950" />
+              <span>▶ DAR INICIO A LA SUBASTA (15s)</span>
+            </button>
+          ) : session.status === 'paused' ? (
+            <button
+              type="button"
+              id="header-btn-reanudar"
+              onClick={handleResumeAuction}
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-2 transition active:scale-95 cursor-pointer ring-2 ring-amber-300"
+            >
+              <Play className="w-4 h-4 fill-slate-950" />
+              <span>▶ REANUDAR SUBASTA</span>
+            </button>
+          ) : ['open', 'bidding', 'last_call'].includes(session.status) ? (
+            <div className="flex items-center gap-1.5">
+              <div className="bg-emerald-950/90 border border-emerald-500 text-emerald-300 font-mono font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 shadow animate-pulse">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>EN VIVO ({session.time_remaining_seconds ?? 15}s)</span>
+              </div>
+              <button
+                type="button"
+                onClick={handlePauseAuction}
+                className="bg-amber-600 hover:bg-amber-500 text-white font-black px-3 py-1.5 rounded-lg text-xs uppercase tracking-wider shadow flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                title="Pausar subasta"
+              >
+                <Pause className="w-3.5 h-3.5" />
+                <span>PAUSAR</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              id="header-btn-reiniciar"
+              onClick={handleResetAuction}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider shadow flex items-center gap-1.5 transition active:scale-95 cursor-pointer ring-2 ring-blue-400"
+              title="Preparar y reiniciar lote para nueva subasta de 15 segundos"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>NUEVA SUBASTA / REINICIAR (15s)</span>
+            </button>
+          )}
+        </div>
+
         {/* Acciones de Cabecera: Vehículos, Parámetros y Ver Sala */}
         <div className="flex items-center gap-2">
           {/* Botón Administración Completa de Vehículos y Fotos */}
@@ -928,6 +981,105 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       {/* ========================================================================= */}
       <main className="flex-1 p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 max-w-[1700px] w-full mx-auto">
         
+        {/* ========================================================================= */}
+        {/* BANNER MAESTRO PRINCIPAL: ESTADO DE SALA Y BOTÓN DAR INICIO A LA SUBASTA */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-12 bg-gradient-to-r from-[#07192e] via-[#0b274c] to-[#07192e] border-2 border-emerald-500/80 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-lg ${
+              session.status === 'open' || session.status === 'bidding' || session.status === 'last_call'
+                ? 'bg-emerald-500/20 border-emerald-400 text-emerald-400 animate-pulse'
+                : session.status === 'paused'
+                ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                : session.status === 'sold'
+                ? 'bg-blue-500/20 border-blue-400 text-blue-300'
+                : 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+            }`}>
+              <Gavel className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base sm:text-lg font-black uppercase tracking-wide text-white">
+                  {session.status === 'prepared' ? 'SALA LISTA PARA DAR INICIO' :
+                   session.status === 'open' || session.status === 'bidding' ? 'SUBASTA EN VIVO TRANSMITIENDO' :
+                   session.status === 'last_call' ? 'ÚLTIMO LLAMADO (FAIR WARNING)' :
+                   session.status === 'paused' ? 'SUBASTA EN PAUSA' :
+                   session.status === 'sold' ? 'LOTE ADJUDICADO (VENDIDO)' : 'ESTADO: ' + session.status.toUpperCase()}
+                </span>
+                <span className={`text-[11px] font-mono font-black px-2.5 py-0.5 rounded border uppercase ${
+                  session.status === 'open' || session.status === 'bidding' || session.status === 'last_call'
+                    ? 'bg-emerald-500/30 text-emerald-300 border-emerald-400 animate-pulse'
+                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                }`}>
+                  RELOJ: {session.time_remaining_seconds ?? 15}s
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                {session.status === 'prepared'
+                  ? 'El lote y las 7 paletas están listas. Presiona el botón verde para arrancar el reloj de 15 segundos y habilitar ofertas.'
+                  : session.status === 'paused'
+                  ? 'La subasta está detenida temporalmente. Presiona Reanudar para continuar con la cuenta regresiva.'
+                  : session.status === 'sold'
+                  ? 'El lote fue adjudicado. Haz clic en "Preparar Siguiente Lote / Reiniciar" para dejar la sala lista a 15 segundos.'
+                  : 'Reloj de 15 segundos corriendo en vivo. Usa las paletas de la Columna 1 o las llamadas del subastador.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {session.status === 'prepared' ? (
+              <button
+                type="button"
+                id="btn-master-dar-inicio"
+                onClick={handleStartAuction}
+                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-3 rounded-xl text-base sm:text-lg uppercase tracking-wider shadow-[0_0_25px_rgba(52,211,153,0.8)] flex items-center gap-3 transition active:scale-95 cursor-pointer ring-4 ring-emerald-300/60 animate-bounce"
+                title="Comenzar subasta oficial con cuenta regresiva de 15 segundos"
+              >
+                <Play className="w-6 h-6 fill-slate-950" />
+                <span>▶ DAR INICIO A LA SUBASTA (15s)</span>
+              </button>
+            ) : session.status === 'paused' ? (
+              <button
+                type="button"
+                onClick={handleResumeAuction}
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 py-2.5 rounded-xl text-sm sm:text-base uppercase tracking-wider shadow flex items-center gap-2 transition active:scale-95 cursor-pointer ring-2 ring-amber-300"
+              >
+                <Play className="w-5 h-5 fill-slate-950" />
+                <span>▶ REANUDAR SUBASTA</span>
+              </button>
+            ) : ['open', 'bidding', 'last_call'].includes(session.status) ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePauseAuction}
+                  className="bg-amber-600 hover:bg-amber-500 text-white font-black px-4 py-2.5 rounded-xl text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-2 transition active:scale-95 cursor-pointer"
+                >
+                  <Pause className="w-4 h-4" />
+                  <span>PAUSAR</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetAuction}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-2.5 rounded-xl text-xs uppercase tracking-wider border border-slate-700 transition"
+                  title="Reiniciar a 15 segundos"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>REINICIAR (15s)</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResetAuction}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2.5 rounded-xl text-sm sm:text-base uppercase tracking-wider shadow flex items-center gap-2 transition active:scale-95 cursor-pointer ring-2 ring-emerald-400"
+              >
+                <RotateCcw className="w-5 h-5" />
+                <span>PREPARAR SIGUIENTE LOTE / REINICIAR (15s)</span>
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* ----------------------------------------------------------------------- */}
         {/* COLUMNA 1: SELECTOR DE LAS 7 PALETAS DISPONIBLES (4 COLSPAN) */}
         {/* ----------------------------------------------------------------------- */}
@@ -1341,17 +1493,17 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span>LOTE LISTO PARA SUBASTAR</span>
                   </div>
-                  <div className="text-xs text-slate-300 mt-0.5">El lote está en preparación. Pulsa SUBASTAR para iniciar la cuenta regresiva oficial.</div>
+                  <div className="text-xs text-slate-300 mt-0.5">El lote está en preparación. Pulsa el botón para arrancar el reloj oficial de 15 segundos.</div>
                 </div>
                 <button
                   type="button"
                   id="btn-subastar-banner"
                   onClick={handleStartAuction}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-2.5 rounded-lg text-sm sm:text-base uppercase tracking-wider shadow-xl transition active:scale-95 flex items-center gap-2 cursor-pointer ring-2 ring-emerald-400/50"
+                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-2.5 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow-xl transition active:scale-95 flex items-center gap-2 cursor-pointer ring-2 ring-emerald-400/50"
                   title="Comenzar subasta oficial con temporizador de 15 segundos"
                 >
-                  <Gavel className="w-5 h-5 animate-bounce" />
-                  <span>SUBASTAR</span>
+                  <Play className="w-4 h-4 fill-slate-950" />
+                  <span>▶ DAR INICIO A LA SUBASTA (15s)</span>
                 </button>
               </div>
             )}
@@ -1369,8 +1521,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg active:scale-95 cursor-pointer ring-2 ring-emerald-400/40"
                   title="Iniciar / Subastar este lote en vivo (Reloj oficial de 15 segundos)"
                 >
-                  <Gavel className="w-4 h-4 text-amber-300" />
-                  <span>SUBASTAR</span>
+                  <Play className="w-4 h-4 fill-white text-emerald-200" />
+                  <span>▶ DAR INICIO (15s)</span>
                 </button>
 
                 {session.status === 'paused' ? (

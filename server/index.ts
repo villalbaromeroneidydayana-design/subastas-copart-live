@@ -1326,7 +1326,6 @@ app.post('/api/sessions/:id/start', (req, res) => {
     status: 'open',
     viewersCount: connectedClientsCount,
   });
-  broadcast({ type: 'AUCTION_RESET', sessionId: session.id });
 
   res.json({ success: true, sessionId: session.id, timeRemaining: duration });
 });
