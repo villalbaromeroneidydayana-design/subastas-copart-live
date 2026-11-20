@@ -833,6 +833,9 @@ app.get('/api/sessions/:id', (req, res) => {
   const r = findSession(req.params.id);
   if (!r) return res.status(404).json({ error: 'Sesión no encontrada' });
 
+  let vehicle: any = {};
+  try { vehicle = JSON.parse(r.vehicle_json); } catch {}
+
   const bids = db.prepare('SELECT * FROM auction_bids WHERE session_id = ? ORDER BY sequence_number DESC').all(r.id) as any[];
   const participants = db.prepare(`
     SELECT id, session_id as sessionId, name, paddle_number as paddleNumber, location, authorization_status as status, max_bid_limit as maxBidLimit
@@ -986,6 +989,9 @@ app.get('/api/room/:token', (req, res) => {
       message: 'Esta sala ha cerrado oficialmente y el acceso de visualización ha expirado.\n\nSi necesitas consultar la documentación de tu operación, comunícate con tu broker autorizado.'
     });
   }
+
+  let vehicle: any = {};
+  try { vehicle = JSON.parse(r.vehicle_json); } catch {}
 
   const bids = db.prepare('SELECT * FROM auction_bids WHERE session_id = ? ORDER BY sequence_number DESC').all(r.id) as any[];
   const participants = db.prepare(`

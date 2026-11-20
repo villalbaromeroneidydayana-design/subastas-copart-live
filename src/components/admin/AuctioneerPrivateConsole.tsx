@@ -792,7 +792,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               title="Dar inicio a la subasta oficial (reloj de 15 segundos)"
             >
               <Play className="w-4 h-4 fill-slate-950" />
-              <span>▶ DAR INICIO A LA SUBASTA (15s)</span>
+              <span>DAR INICIO A LA SUBASTA (15s)</span>
             </button>
           ) : session.status === 'paused' ? (
             <button
@@ -802,7 +802,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-2 transition active:scale-95 cursor-pointer ring-2 ring-amber-300"
             >
               <Play className="w-4 h-4 fill-slate-950" />
-              <span>▶ REANUDAR SUBASTA</span>
+              <span>REANUDAR SUBASTA</span>
             </button>
           ) : ['open', 'bidding', 'last_call'].includes(session.status) ? (
             <div className="flex items-center gap-1.5">
@@ -1036,7 +1036,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 title="Comenzar subasta oficial con cuenta regresiva de 15 segundos"
               >
                 <Play className="w-6 h-6 fill-slate-950" />
-                <span>▶ DAR INICIO A LA SUBASTA (15s)</span>
+                <span>DAR INICIO A LA SUBASTA (15s)</span>
               </button>
             ) : session.status === 'paused' ? (
               <button
@@ -1045,7 +1045,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 py-2.5 rounded-xl text-sm sm:text-base uppercase tracking-wider shadow flex items-center gap-2 transition active:scale-95 cursor-pointer ring-2 ring-amber-300"
               >
                 <Play className="w-5 h-5 fill-slate-950" />
-                <span>▶ REANUDAR SUBASTA</span>
+                <span>REANUDAR SUBASTA</span>
               </button>
             ) : ['open', 'bidding', 'last_call'].includes(session.status) ? (
               <div className="flex items-center gap-2">
@@ -1503,7 +1503,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   title="Comenzar subasta oficial con temporizador de 15 segundos"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
-                  <span>▶ DAR INICIO A LA SUBASTA (15s)</span>
+                  <span>DAR INICIO A LA SUBASTA (15s)</span>
                 </button>
               </div>
             )}

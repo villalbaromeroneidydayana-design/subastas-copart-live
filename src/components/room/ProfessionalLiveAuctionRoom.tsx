@@ -952,10 +952,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     <div className="min-h-screen bg-[#060a12] text-slate-100 flex flex-col font-sans select-none antialiased">
 
       {/* 1. BARRA SUPERIOR AUTÉNTICA COPART VB3 LIVE */}
-      <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-3 sm:px-6 py-2 shadow-xl sticky top-0 z-40">
-        <div className="max-w-[1720px] mx-auto flex items-center justify-between">
+      <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-2 sm:px-4 lg:px-6 py-2 shadow-xl sticky top-0 z-40 overflow-x-hidden">
+        <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-2">
 
-          <div className="flex items-center gap-2 sm:gap-6">
+          <div className="flex items-center gap-2 lg:gap-4 shrink-0">
             <div className="sm:hidden">
               <CopartLogo size="sm" showSubtitle={false} className="py-0.5 filter drop-shadow-md" />
             </div>
@@ -964,7 +964,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
 
             {/* Pista e Identificación de Lote */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm">
+            <div className="hidden xl:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-black text-white tracking-wide">{t('laneTitle')}</span>
               <span className="text-slate-400">•</span>
@@ -972,8 +972,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
 
             {/* LOTE OFICIAL COPART Y EXPEDIENTE DE PATIO */}
-            <div className="flex items-center bg-[#0c192c] border border-slate-700/80 rounded-lg overflow-hidden text-xs sm:text-sm shadow-sm">
-              <div className="px-3 py-1.5 flex items-center gap-1.5">
+            <div className="flex items-center bg-[#0c192c] border border-slate-700/80 rounded-lg overflow-hidden text-xs sm:text-sm shadow-sm whitespace-nowrap">
+              <div className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5">
                 <span className="text-slate-300 text-xs font-bold uppercase tracking-wider">{t('lotPrefix')}</span>
                 <span className="font-mono font-black text-amber-400 text-sm sm:text-base">
                   #{vehicle?.lot_number || '48291032'}
@@ -983,11 +983,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 font-bold text-xs flex items-center gap-1.5 border-l border-slate-700/80 transition"
+                className="px-2 sm:px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 font-bold text-xs flex items-center gap-1.5 border-l border-slate-700/80 transition whitespace-nowrap"
                 title="Consultar expediente técnico del lote en patio Copart"
               >
                 <span>{lang === 'en' ? 'COPART LOT DETAILS' : 'FICHA OFICIAL DE LOTE'}</span>
-                <ExternalLink className="w-3 h-3 text-amber-400" />
+                <ExternalLink className="w-3 h-3 text-amber-400 shrink-0" />
               </a>
             </div>
 
@@ -995,17 +995,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             <button
               type="button"
               onClick={() => setIsVerificationModalOpen(true)}
-              className="flex items-center gap-1.5 bg-[#002855] hover:bg-[#003875] border border-amber-500/60 px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-300 transition shadow cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 bg-[#002855] hover:bg-[#003875] border border-amber-500/60 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-300 transition shadow cursor-pointer whitespace-nowrap"
               title="Verificar las 6 comprobaciones de seguridad Copart: Vehículo, Subasta, Broker, Oferta, Resultado y Pago"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Auditoría Copart:</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="hidden md:inline">Auditoría Copart:</span>
               <span className="text-emerald-400 font-mono font-black">6/6 ✓</span>
             </button>
 
             {/* Conteo y Movimiento de Espectadores Conectados en Tiempo Real */}
-            <div className="hidden md:flex items-center gap-2 text-xs sm:text-sm text-cyan-300 bg-cyan-950/50 border border-cyan-800/60 px-3 py-1.5 rounded-lg font-bold">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="hidden 2xl:flex items-center gap-2 text-xs sm:text-sm text-cyan-300 bg-cyan-950/50 border border-cyan-800/60 px-3 py-1.5 rounded-lg font-bold whitespace-nowrap">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
               <span>{viewersCount} {t('viewersInLane')}</span>
               {latestSpectatorEvent && (
                 <span className="text-xs text-amber-300 font-mono animate-fadeIn pl-2 border-l border-cyan-700/60 font-medium">
@@ -1015,22 +1015,22 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* BOTÓN GUÍA DE INDUCCIÓN AL COMPRADOR */}
             <button
               type="button"
               onClick={() => setIsBuyerGuideOpen(true)}
-              className="flex items-center gap-1.5 bg-[#081528] hover:bg-[#0c2242] border border-blue-500/60 px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-200 hover:text-white transition shadow cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 bg-[#081528] hover:bg-[#0c2242] border border-blue-500/60 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-200 hover:text-white transition shadow cursor-pointer whitespace-nowrap"
               title="¿Cómo funciona tu sala en vivo? Guía rápida de inducción para el comprador"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">¿Cómo funciona mi sala?</span>
-              <span className="sm:hidden">Guía ℹ️</span>
+              <HelpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="hidden xl:inline">¿Cómo funciona mi sala?</span>
+              <span className="xl:hidden">Guía ℹ️</span>
             </button>
 
             {/* HORARIO REAL DE ESTADOS UNIDOS (USA / EST) */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#07111e] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono font-black text-amber-300 shadow-inner">
-              <Clock className="w-4 h-4 text-amber-400" />
+            <div className="hidden lg:flex items-center gap-1.5 bg-[#07111e] border border-blue-900/60 px-2.5 py-1.5 rounded-lg text-xs font-mono font-black text-amber-300 shadow-inner whitespace-nowrap">
+              <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>{usTime || '12:00:00 PM EST'}</span>
             </div>
 
