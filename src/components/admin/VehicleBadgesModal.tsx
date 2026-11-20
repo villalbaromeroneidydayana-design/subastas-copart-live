@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tag, Volume2, RefreshCw, ShieldCheck, Plus, Trash2, Check, X, Sparkles, AlertCircle, Play, Radio, Mic } from 'lucide-react';
+import { Tag, Volume2, RefreshCw, ShieldCheck, Plus, Trash2, Check, X, Sparkles, AlertCircle, Play, Radio, Mic, ExternalLink } from 'lucide-react';
 import { CustomBadgeItem, CustomVehicleBadges, Vehicle } from '../../types';
 import { sounds } from '../../lib/soundEffects';
 
@@ -208,34 +208,16 @@ export const VehicleBadgesModal: React.FC<VehicleBadgesModalProps> = ({
               </p>
             </div>
 
-            {/* Botón 1: Engine Sound */}
-            <div className="p-3 rounded-lg bg-[#0c1628] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="chk-engine"
-                  checked={engineSoundEnabled}
-                  onChange={(e) => setEngineSoundEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded text-amber-500 focus:ring-0 cursor-pointer"
-                />
+            {/* Aviso informativo de Lote Real Copart */}
+            <div className="p-3 rounded-lg bg-[#002855]/70 border border-blue-500/50 flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
                 <div>
-                  <label htmlFor="chk-engine" className="font-bold text-white text-xs cursor-pointer flex items-center gap-1.5">
-                    <Volume2 className="w-4 h-4 text-amber-400" />
-                    <span>Botón de Sonido de Motor</span>
-                  </label>
-                  <p className="text-[10px] text-slate-400">Acción: Reproduce sonido de arranque y aceleración V8 auténtico.</p>
+                  <span className="font-bold text-white block">Acceso Oficial al Lote Real de Copart:</span>
+                  <span className="text-[10px] text-slate-300">
+                    El broker y el cliente cuentan con el botón directo para ver el video con sonido de motor real verificado, fotos en patio y reporte original en Copart.com.
+                  </span>
                 </div>
-              </div>
-
-              <div className="w-full sm:w-64">
-                <label className="text-[10px] text-slate-400 block mb-1 font-bold">Texto del Botón:</label>
-                <input
-                  type="text"
-                  value={engineSoundText}
-                  onChange={(e) => setEngineSoundText(e.target.value)}
-                  disabled={!engineSoundEnabled}
-                  className="w-full bg-[#030712] border border-slate-700 disabled:opacity-40 rounded-lg px-2.5 py-1.5 text-white font-bold"
-                />
               </div>
             </div>
 

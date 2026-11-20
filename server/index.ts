@@ -1645,7 +1645,7 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice, brokerName, buyerName } = req.body;
+  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice, brokerName, buyerName, referenceUrl, lotNumber } = req.body;
 
   const newStartingPrice = startingPrice !== undefined && !isNaN(Number(startingPrice)) ? Number(startingPrice) : session.starting_price;
   const newIncrement = minIncrement !== undefined && !isNaN(Number(minIncrement)) ? Number(minIncrement) : session.min_increment;
@@ -1654,6 +1654,16 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
   const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : (session.status === 'prepared' || session.bid_count === 0 ? newStartingPrice : session.current_price);
   const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'Broker Autorizado (Representante)';
   const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Carlos Mendoza (Comprador)';
+  const newLotNumber = lotNumber && String(lotNumber).trim() ? String(lotNumber).trim() : session.lot_number;
+  const newReferenceUrl = referenceUrl && String(referenceUrl).trim() ? String(referenceUrl).trim() : (session.reference_url || '');
+
+  let updatedVehicleJson = session.vehicle_json;
+  try {
+    const vObj = typeof session.vehicle_json === 'string' ? JSON.parse(session.vehicle_json) : (session.vehicle_json || {});
+    if (newReferenceUrl) vObj.reference_url = newReferenceUrl;
+    if (newLotNumber) vObj.lot_number = newLotNumber;
+    updatedVehicleJson = JSON.stringify(vObj);
+  } catch { }
 
   db.prepare(`
     UPDATE auction_sessions
@@ -1665,6 +1675,9 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
       current_price = ?,
       broker_name = ?,
       buyer_name = ?,
+      lot_number = ?,
+      reference_url = ?,
+      vehicle_json = ?,
       is_token_revoked = 0,
       updated_at = ?
     WHERE id = ?
@@ -1676,6 +1689,9 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
     newCurrentPrice,
     newBrokerName,
     newBuyerName,
+    newLotNumber,
+    newReferenceUrl,
+    updatedVehicleJson,
     new Date().toISOString(),
     session.id
   );
@@ -1695,7 +1711,9 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
     clientMaxBudget: newBudget,
     currentPrice: newCurrentPrice,
     brokerName: newBrokerName,
-    buyerName: newBuyerName
+    buyerName: newBuyerName,
+    lotNumber: newLotNumber,
+    referenceUrl: newReferenceUrl,
   });
 
   return res.json({

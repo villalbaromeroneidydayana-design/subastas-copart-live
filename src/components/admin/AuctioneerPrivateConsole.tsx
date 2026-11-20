@@ -90,6 +90,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [lotClientBudget, setLotClientBudget] = useState<number>(7500);
   const [lotBrokerName, setLotBrokerName] = useState<string>('Broker Autorizado (Representante)');
   const [lotBuyerName, setLotBuyerName] = useState<string>('Carlos Mendoza (Comprador)');
+  const [lotReferenceUrl, setLotReferenceUrl] = useState<string>('');
+  const [lotNumberInput, setLotNumberInput] = useState<string>('');
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [isEditingBasePrice, setIsEditingBasePrice] = useState<boolean>(false);
@@ -194,6 +196,12 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         }
         if (data.session.buyer_name || data.session.buyerName) {
           setLotBuyerName(data.session.buyer_name || data.session.buyerName);
+        }
+        if (data.session.reference_url || data.session.referenceUrl || data.session.vehicle?.reference_url) {
+          setLotReferenceUrl(data.session.reference_url || data.session.referenceUrl || data.session.vehicle?.reference_url || '');
+        }
+        if (data.session.lot_number || data.session.lotNumber || data.session.vehicle?.lot_number) {
+          setLotNumberInput(data.session.lot_number || data.session.lotNumber || data.session.vehicle?.lot_number || '');
         }
         if (data.session.viewersCount !== undefined) {
           setViewersCount(Number(data.session.viewersCount));
@@ -444,7 +452,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     }
   };
 
-  // Guardar todos los parámetros del lote (Base, Incremento, Reserva, Presupuesto)
+  // Guardar todos los parámetros del lote (Base, Incremento, Reserva, Presupuesto, Enlace Copart y Lote)
   const handleSaveLotParameters = async () => {
     const res = await store.updateLotParameters(session.id, {
       startingPrice: Number(lotStartingPrice),
@@ -454,6 +462,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       clientMaxBudget: Number(lotClientBudget),
       brokerName: lotBrokerName,
       buyerName: lotBuyerName,
+      referenceUrl: lotReferenceUrl.trim(),
+      lotNumber: lotNumberInput.trim(),
     });
     if (res.success) {
       showFeedback('✓ Parámetros del lote actualizados inmediatamente en sala');
@@ -2179,6 +2189,39 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   placeholder="Ej. Carlos Mendoza"
                   className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-sans text-white font-bold"
                 />
+              </div>
+
+              {/* SECCIÓN CRÍTICA: ENLACE REAL DEL LOTE EN COPART Y NÚMERO DE LOTE */}
+              <div className="pt-2 border-t border-slate-800 space-y-2.5">
+                <div className="bg-[#002855]/60 border border-blue-500/50 p-3 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
+                    <label className="text-amber-300 font-black text-xs block">
+                      Enlace Real de Copart (Lote Vigente con Video & Sonido de Motor):
+                    </label>
+                  </div>
+                  <input
+                    type="url"
+                    value={lotReferenceUrl}
+                    onChange={(e) => setLotReferenceUrl(e.target.value)}
+                    placeholder="https://www.copart.com/es/lot/61682336"
+                    className="w-full bg-[#050a16] border border-blue-500/80 focus:border-amber-400 rounded-lg p-2 font-mono text-xs text-white"
+                  />
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Pega aquí el enlace oficial de Copart del auto real. El Broker y el Cliente tendrán el botón destacado <strong>«VER LOTE ORIGINAL EN COPART»</strong> para abrirlo en nueva pestaña, revisar el video, escuchar el motor verificado en patio y luego regresar a esta sala listos para la subasta.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-bold block mb-1">Número de Lote Copart (#):</label>
+                  <input
+                    type="text"
+                    value={lotNumberInput}
+                    onChange={(e) => setLotNumberInput(e.target.value)}
+                    placeholder="Ej. 61682336"
+                    className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-mono text-amber-400 font-bold text-xs"
+                  />
+                </div>
               </div>
             </div>
 

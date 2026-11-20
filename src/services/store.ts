@@ -1272,10 +1272,18 @@ class RealAuctionStore {
     currentPrice?: number;
     brokerName?: string;
     buyerName?: string;
+    referenceUrl?: string;
+    lotNumber?: string;
   }) {
     const target = sessionId || 'ses-live-001';
     if (params.startingPrice) this.localSessionState.startingPrice = params.startingPrice;
     if (params.currentPrice !== undefined) this.localSessionState.currentPrice = params.currentPrice;
+    if (params.referenceUrl && this.localSessionState.vehicle) {
+      this.localSessionState.vehicle.reference_url = params.referenceUrl;
+    }
+    if (params.lotNumber && this.localSessionState.vehicle) {
+      this.localSessionState.vehicle.lot_number = params.lotNumber;
+    }
 
     this.dispatchSyncEvent({
       type: 'STATUS_CHANGE',
@@ -1287,6 +1295,8 @@ class RealAuctionStore {
       clientMaxBudget: params.clientMaxBudget,
       brokerName: params.brokerName,
       buyerName: params.buyerName,
+      referenceUrl: params.referenceUrl,
+      lotNumber: params.lotNumber,
     }, true);
 
     try {

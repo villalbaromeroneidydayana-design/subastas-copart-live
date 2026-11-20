@@ -1326,26 +1326,20 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               )}
             </div>
 
-            {/* INSIGNIAS EXCLUSIVAS COPART: 360° View, Engine Sound, Carfax y Personalizadas */}
+            {/* INSIGNIAS EXCLUSIVAS COPART: Enlace al Lote Real con Video/Motor, Carfax y Verificación */}
             <div className="absolute top-11 left-2.5 z-20 flex flex-wrap gap-1.5">
-              {/* Botón Engine Sound - Solo si está expresamente habilitado con audio verificado */}
-              {vehicle?.custom_badges?.engineSoundEnabled === true && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTriggerEngineSound();
-                  }}
-                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${isEngineRunning
-                      ? 'bg-amber-500 text-slate-950 border-amber-300 animate-pulse ring-2 ring-amber-400'
-                      : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
-                    }`}
-                  title="Escuchar sonido de arranque y aceleración del motor verificado en patio"
-                >
-                  <Volume2 className={`w-3.5 h-3.5 ${isEngineRunning ? 'animate-bounce text-slate-950' : 'text-amber-400'}`} />
-                  <span>{isEngineRunning ? 'Revving...' : (vehicle?.custom_badges?.engineSoundText || 'Engine Sound 🔊')}</span>
-                </button>
-              )}
+              {/* Acceso Directo Oficial al Lote en Copart (Video, Motor Real y Ficha Oficial) */}
+              <a
+                href={copartLotUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border-amber-400 hover:border-amber-300 transition active:scale-95 ring-1 ring-amber-400/40"
+                title="Abrir lote oficial en Copart para ver video de inspección, sonido real de motor y reporte de patio"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                <span>{lang === 'en' ? 'COPART LOT • VIDEO & ENGINE ↗' : 'LOTE COPART • VIDEO Y MOTOR REAL ↗'}</span>
+              </a>
 
               {/* Botón 360° Walkaround - Solo si está expresamente habilitado */}
               {vehicle?.custom_badges?.threeSixtyEnabled === true && (
@@ -1690,11 +1684,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xl active:scale-95 cursor-pointer uppercase tracking-wider whitespace-nowrap"
-                title="Abrir expediente técnico con videos de motor, fotografías adicionales y reporte de patio"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xl active:scale-95 cursor-pointer uppercase tracking-wider whitespace-nowrap ring-2 ring-amber-400/50"
+                title="Abrir lote original en Copart.com para ver video real de motor, fotos HD y reporte de inspección de patio"
               >
                 <ExternalLink className="w-4 h-4 text-slate-950" />
-                <span>VER EXPEDIENTE COMPLETO</span>
+                <span>VER LOTE ORIGINAL EN COPART (Video & Motor) ↗</span>
               </a>
             </div>
 
@@ -2079,7 +2073,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       rel="noopener noreferrer"
                       className="px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border border-amber-500/60 font-black text-[11px] sm:text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow whitespace-nowrap"
                     >
-                      <span>{lang === 'en' ? 'INSPECTION REPORT' : 'VER EXPEDIENTE'}</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{lang === 'en' ? 'VIEW ORIGINAL LOT ↗' : 'VER LOTE EN COPART ↗'}</span>
                     </a>
                     <button
                       type="button"
