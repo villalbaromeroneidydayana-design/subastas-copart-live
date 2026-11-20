@@ -235,6 +235,7 @@ export const VehiclesView: React.FC = () => {
               vehicle_condition: 'run_and_drive',
               primary_damage: '',
               secondary_damage: '',
+              auction_reason: 'Recuperación Bancaria (Falta de Pago / Sin Choques)',
               has_keys: true,
               location: '',
               est_retail_value: 0,
@@ -353,6 +354,10 @@ export const VehiclesView: React.FC = () => {
                         ${(vehicle.est_retail_value || 0).toLocaleString()} USD
                       </span>
                     </div>
+                  </div>
+                  <div className="mt-2 bg-emerald-950/50 border border-emerald-800/60 rounded px-2.5 py-1 text-[11px] text-emerald-300 flex items-center justify-between">
+                    <span className="font-bold text-[10px] uppercase text-emerald-400">Origen / Motivo:</span>
+                    <span className="truncate max-w-[200px] font-medium">{vehicle.auction_reason || 'Recuperación Bancaria (Falta de Pago)'}</span>
                   </div>
                 </div>
 
@@ -696,6 +701,37 @@ export const VehiclesView: React.FC = () => {
                         <option value="true">SÍ (Llaves Presentes)</option>
                         <option value="false">NO (Sin Llaves)</option>
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-2.5">
+                    <label className="block text-slate-300 font-semibold mb-1">
+                      Motivo de Ingreso a Subasta / Origen del Lote
+                    </label>
+                    <input
+                      type="text"
+                      value={editingVehicle.auction_reason || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, auction_reason: e.target.value })}
+                      placeholder="Ej: Recuperación Bancaria (Falta de Pago), Renovación de Flota..."
+                      className="w-full bg-[#070e1a] border border-slate-700 rounded-lg px-2.5 py-1.5 text-white mb-1.5"
+                    />
+                    <div className="flex flex-wrap gap-1.5 text-[11px]">
+                      {[
+                        'Recuperación Bancaria (Falta de Pago / Sin Accidentes)',
+                        'Finalización de Leasing (Lease Return Impecable)',
+                        'Renovación de Flota Corporativa (Mantenimiento Oficial)',
+                        'Recuperación de Aseguradora (Robo con Llaves Intactas)',
+                        'Liquidación de Concesionario Oficial (Clean Title)',
+                      ].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setEditingVehicle({ ...editingVehicle, auction_reason: preset })}
+                          className="bg-slate-800 hover:bg-emerald-950 hover:text-emerald-300 hover:border-emerald-700 border border-slate-700 text-slate-300 px-2 py-0.5 rounded transition text-[10px]"
+                        >
+                          + {preset.split('(')[0].trim()}
+                        </button>
+                      ))}
                     </div>
                   </div>
 

@@ -1510,6 +1510,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </span>
               </div>
 
+              {/* ORIGEN DE INGRESO / MOTIVO DE VENTA EN SUBASTA */}
+              <div className="bg-[#050912] p-3 rounded-lg border border-emerald-900/70 shadow sm:col-span-2">
+                <span className="text-emerald-400 block text-[11px] uppercase font-bold tracking-wide flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  {lang === 'en' ? 'INTAKE CAUSE / AUCTION REASON' : 'ORIGEN DE INGRESO / MOTIVO DE SUBASTA'}
+                </span>
+                <span className="font-black text-white text-sm sm:text-base block mt-0.5 tracking-wide">
+                  {vehicle?.auction_reason || 'Recuperación Bancaria (Falta de Pago / Sin Accidentes)'}
+                </span>
+              </div>
+
               <div className="bg-[#050912] p-3 rounded-lg border border-slate-800/80 shadow">
                 <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wide">{t('primaryDamage')}</span>
                 <span className="font-bold text-amber-300 text-sm sm:text-base block mt-0.5">{vehicle?.primary_damage || 'Impacto Frontal'}</span>

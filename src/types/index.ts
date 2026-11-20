@@ -68,6 +68,7 @@ export interface Vehicle {
   vehicle_condition: VehicleCondition;
   primary_damage?: string;
   secondary_damage?: string;
+  auction_reason?: string;
   has_keys: boolean;
   location?: string;
   equipment?: string[];

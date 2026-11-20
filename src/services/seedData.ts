@@ -65,6 +65,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     vehicle_condition: 'run_and_drive',
     primary_damage: 'Missing / Altered VIN',
     secondary_damage: 'Ninguno',
+    auction_reason: 'Recuperación de Aseguradora por Sustracción (Totalmente Intacta con Llaves)',
     has_keys: true,
     location: 'FL - Miami North (Yard 12)',
     equipment: [
@@ -133,6 +134,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     vehicle_condition: 'run_and_drive',
     primary_damage: 'Normal Wear',
     secondary_damage: 'Repossession',
+    auction_reason: 'Finalización de Arrendamiento Financiero (Lease Return Impecable)',
     has_keys: true,
     location: 'FL - Miami North (Yard 12)',
     equipment: ['Paquete Performance', 'Escape activo con válvulas', 'Frenos Brembo de 6 pistones', 'Pantalla SYNC 4 de 12"', 'Asientos climatizados'],
@@ -217,8 +219,9 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     interior_color: 'Black TRD Leather',
     title_type: 'clean',
     vehicle_condition: 'run_and_drive',
-    primary_damage: 'Side',
+    primary_damage: 'Normal Wear',
     secondary_damage: 'Minor Dent/Scratch',
+    auction_reason: 'Liquidación de Flota Corporativa (Mantenimiento Oficial al Día)',
     has_keys: true,
     location: 'Houston North (TX)',
     equipment: ['Suspensión FOX Internal Bypass', 'Snorkel TRD', 'Placa protectora frontal', 'Cámara 360', 'Crawl Control'],
@@ -319,6 +322,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     vehicle_condition: 'run_and_drive',
     primary_damage: 'Minor Dent/Scratch',
     secondary_damage: 'Ninguno',
+    auction_reason: 'Recuperación Bancaria (Falta de Pago / Cuotas Impagas)',
     has_keys: true,
     location: 'FL - Miami North (Yard 12)',
     equipment: [
@@ -387,6 +391,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     vehicle_condition: 'run_and_drive',
     primary_damage: 'Normal Wear',
     secondary_damage: 'Repossession',
+    auction_reason: 'Finalización de Arrendamiento Financiero (Lease Return Impecable)',
     has_keys: true,
     location: 'TX - Houston North (Yard 28)',
     equipment: [
