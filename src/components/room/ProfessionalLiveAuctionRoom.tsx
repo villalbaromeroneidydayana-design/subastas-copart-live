@@ -123,43 +123,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     });
   }, []);
 
-  const handleSubirAPantalla = async (targetVeh: any) => {
-    if (!targetVeh) return;
-    try {
-      const targetSessionId = session.id || 'ses-live-001';
-      await store.loadVehicleToSession(targetSessionId, targetVeh);
-      
-      const newStartingPrice = targetVeh.est_retail_value 
-        ? Math.max(1000, Math.round((targetVeh.est_retail_value * 0.20) / 500) * 500)
-        : 5000;
-
-      setSession((prev) => ({
-        ...prev,
-        vehicle_snapshot: targetVeh,
-        vehicle: targetVeh,
-        lot_number: targetVeh.lot_number,
-        title: `${targetVeh.year} ${targetVeh.brand} ${targetVeh.model}`,
-        status: 'prepared',
-        time_remaining_seconds: 15,
-        total_duration_seconds: 15,
-        current_price: newStartingPrice,
-        starting_price: newStartingPrice,
-        current_winner_paddle: null,
-        current_winner_name: null,
-        bid_count: 0,
-      }));
-
-      setSelectedImageIdx(0);
-      setIs360Active(false);
-
-      const msgText = `✓ SUBIDO A PANTALLA: ${targetVeh.year} ${targetVeh.brand} ${targetVeh.model} (Lote #${targetVeh.lot_number}) — Estado: PREPARADO / STANDBY (15s)`;
-      setFeedbackToast(msgText);
-      setTimeout(() => setFeedbackToast(null), 6000);
-      await fetchStateFromServer();
-    } catch (err: any) {
-      console.error('Error al subir vehículo a pantalla:', err);
-    }
-  };
   const [showCertificateModal, setShowCertificateModal] = useState(false);
 
   // Siguiente Lote (Misma Sala)
@@ -211,52 +174,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         }
       }, 650);
     }
-  };
-
-  const handleStartAuction = async () => {
-    const targetId = session.id || 'ses-live-001';
-    const veh = session.vehicle_snapshot || (session as any).vehicle;
-    setSession((prev) => ({
-      ...prev,
-      status: 'open',
-      time_remaining_seconds: 15,
-      total_duration_seconds: 15,
-    }));
-    try {
-      if (veh?.custom_badges?.auctioneerVoiceGender) {
-        sounds.setVoiceGender(veh.custom_badges.auctioneerVoiceGender);
-      }
-      sounds.playStartVoice(Number(session.current_price || session.starting_price || 13000), {
-        year: veh?.year,
-        brand: veh?.brand,
-        model: veh?.model,
-        version: veh?.version,
-        odometer: veh?.odometer,
-        condition: veh?.vehicle_condition,
-        hasKeys: veh?.has_keys,
-        customChant: veh?.custom_badges?.auctioneerWelcomeChant,
-      });
-    } catch {}
-    await store.serverStartAuction(targetId);
-    await fetchStateFromServer();
-  };
-
-  const handlePauseAuction = async () => {
-    const targetId = session.id || 'ses-live-001';
-    setSession((prev) => ({ ...prev, status: 'paused' }));
-    await store.serverPauseAuction(targetId);
-  };
-
-  const handleResumeAuction = async () => {
-    const targetId = session.id || 'ses-live-001';
-    setSession((prev) => ({ ...prev, status: 'open' }));
-    await store.serverResumeAuction(targetId);
-  };
-
-  const handleResetClock = async () => {
-    const targetId = session.id || 'ses-live-001';
-    setSession((prev) => ({ ...prev, time_remaining_seconds: 15, status: 'open' }));
-    store.startLocalClock(targetId);
   };
 
   const handlePlaceBuyerDirectBid = async (amount: number) => {
@@ -1291,24 +1208,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       )}
 
-      {/* AVISO DISCRETO PARA EL DIRECTOR DE SALA (PANTALLA 1) */}
-      {isAuctioneer && (
-        <div className="bg-[#09152a] border-b border-amber-500/40 px-4 py-1.5 flex items-center justify-between text-xs shadow">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-amber-300 font-bold">Modo Vista de Sala Pública</span>
-            <span className="text-slate-400 text-[11px] hidden sm:inline">— Todos los controles manuales de las 7 paletas y el martillo están en tu Consola Privada</span>
-          </div>
-
-          <a
-            href="#/consola-subastador"
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1 rounded text-xs flex items-center gap-1.5 transition shadow"
-          >
-            <Gavel className="w-3.5 h-3.5" />
-            <span>Abrir Mi Consola Privada (Pantalla 2) ↗</span>
-          </a>
-        </div>
-      )}
 
       {/* ERROR BANNER EN CASO DE RECHAZO DE OFERTA */}
       {serverError && (
@@ -1821,58 +1720,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <span className={`text-xs sm:text-sm font-black px-3 py-1.5 rounded-lg inline-block border ${statusInfo.style}`}>
                   {statusInfo.label}
                 </span>
-
-                {/* Controles de reloj directo en sala únicamente para el subastador autorizado */}
-                {isAuctioneer && (
-                  <>
-                    {session.status === 'prepared' && (
-                      <button
-                        type="button"
-                        onClick={handleStartAuction}
-                        className="mt-2.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer ring-2 ring-emerald-400/50"
-                        title="Iniciar cuenta regresiva oficial de 15 segundos y abrir subasta"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-slate-950" />
-                        <span>INICIAR SUBASTA (15s)</span>
-                      </button>
-                    )}
-
-                    {['open', 'bidding', 'last_call'].includes(session.status) && (
-                      <div className="flex items-center gap-1.5 mt-2">
-                        <button
-                          type="button"
-                          onClick={handlePauseAuction}
-                          className="py-1 px-2.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1 border border-slate-700 transition"
-                          title="Pausar reloj"
-                        >
-                          <Pause className="w-3 h-3" />
-                          <span>Pausar</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleResetClock}
-                          className="py-1 px-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow transition"
-                          title="Reiniciar conteo en 15 segundos"
-                        >
-                          <RefreshCw className="w-3 h-3" />
-                          <span>15s</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {session.status === 'paused' && (
-                      <button
-                        type="button"
-                        onClick={handleResumeAuction}
-                        className="mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow flex items-center gap-1.5 transition active:scale-95"
-                        title="Reanudar cuenta regresiva"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-slate-950" />
-                        <span>Reanudar</span>
-                      </button>
-                    )}
-                  </>
-                )}
               </div>
 
               {/* CONTADOR CIRCULAR AUTORITATIVO SINCRONIZADO CON SERVIDOR */}
@@ -2662,8 +2509,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           {bottomDockTab === 'lista' && (
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-400">
-                <span>Selecciona cualquier vehículo registrado en el inventario y pulsa <strong className="text-emerald-400 font-bold">«SUBIR A PANTALLA»</strong> para cargarlo en tiempo real a todas las pantallas:</span>
-                <span className="text-amber-300 font-mono font-bold">Modo: STANDBY (15 seg)</span>
+                <span>Catálogo de vehículos programados en carril ({dockVehicles.length}):</span>
+                <span className="text-amber-300 font-mono font-bold">LANE A • Venta Oficial</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -2718,23 +2565,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </div>
                       </div>
 
-                      {/* BOTÓN DE ACCIÓN: SUBIR A PANTALLA */}
+                      {/* ESTADO DE LOTE EN CARRIL */}
                       <div className="pt-2 border-t border-slate-800/80">
                         {isCurrentActive ? (
                           <div className="w-full py-2 rounded-lg bg-emerald-950/80 border border-emerald-500 text-emerald-300 font-black text-xs flex items-center justify-center gap-1.5 shadow">
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span>✓ EN PANTALLA PRINCIPAL</span>
+                            <span>✓ EN REMATE ACTUAL</span>
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleSubirAPantalla(veh)}
-                            className="w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition shadow-lg active:scale-95 cursor-pointer"
-                            title="Subir inmediatamente a la pantalla principal en modo PREPARADO (15s)"
-                          >
-                            <Zap className="w-4 h-4 fill-slate-950" />
-                            <span>SUBIR A PANTALLA (CARGAR A SALA)</span>
-                          </button>
+                          <div className="w-full py-2 rounded-lg bg-[#040914] border border-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-500" />
+                            <span>PROGRAMADO EN CARRIL</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -2748,7 +2590,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           {bottomDockTab === 'cola' && (
             <div className="space-y-3">
               <div className="text-xs text-slate-400">
-                Orden de vehículos programados para subasta en este carril. Puedes adelantar cualquier vehículo a pantalla:
+                Orden oficial de vehículos programados para subasta en este carril:
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {dockVehicles.map((veh, idx) => {
@@ -2767,14 +2609,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       <span className="text-slate-400 text-[11px] block mb-2.5">Valor Est.: ${Number(veh.est_retail_value || 35000).toLocaleString()} USD</span>
                       
                       {!isCurrentActive && (
-                        <button
-                          type="button"
-                          onClick={() => handleSubirAPantalla(veh)}
-                          className="py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1 transition shadow"
-                        >
-                          <Zap className="w-3.5 h-3.5 fill-slate-950" />
-                          <span>Subir a Pantalla</span>
-                        </button>
+                        <div className="py-1 rounded bg-[#040914] border border-slate-800 text-slate-400 font-bold text-[11px] flex items-center justify-center gap-1">
+                          <Clock className="w-3 h-3 text-slate-500" />
+                          <span>En cola de remate</span>
+                        </div>
                       )}
                     </div>
                   );
@@ -2840,13 +2678,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                           {isCurrent ? (
                             <span className="text-emerald-400 font-bold text-[11px]">En Pantalla</span>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleSubirAPantalla(v)}
-                              className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-[11px] transition shadow"
-                            >
-                              Subir
-                            </button>
+                            <span className="text-slate-500 font-mono text-[11px]">En cola</span>
                           )}
                         </td>
                       </tr>
