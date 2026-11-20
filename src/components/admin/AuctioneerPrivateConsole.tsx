@@ -2197,7 +2197,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                   <div className="flex items-center gap-2">
                     <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
                     <label className="text-amber-300 font-black text-xs block">
-                      Enlace Real de Copart (Lote Vigente con Video & Sonido de Motor):
+                      Enlace Oficial de Copart (Publicación Completa del Vehículo):
                     </label>
                   </div>
                   <input
@@ -2208,7 +2208,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                     className="w-full bg-[#050a16] border border-blue-500/80 focus:border-amber-400 rounded-lg p-2 font-mono text-xs text-white"
                   />
                   <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Pega aquí el enlace oficial de Copart del auto real. El Broker y el Cliente tendrán el botón destacado <strong>«VER LOTE ORIGINAL EN COPART»</strong> para abrirlo en nueva pestaña, revisar el video, escuchar el motor verificado en patio y luego regresar a esta sala listos para la subasta.
+                    Pega aquí el enlace de Copart del auto a subastar. Tanto el Broker como el Cliente tendrán el botón directo <strong>«VER VEHÍCULO COMPLETO EN COPART»</strong> para abrirlo en nueva pestaña, revisar todas las fotos, videos, condición y ficha técnica en Copart.com, y luego regresar a esta sala listos para la subasta.
                   </p>
                 </div>
 
