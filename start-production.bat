@@ -10,7 +10,7 @@ if not exist "dist\index.html" (
     call npm run build
 )
 
-echo Iniciando servidor backend autoritativo con base de datos SQLite WAL...
-npm run start
+echo Iniciando servidor backend y transmision segura Cloudflare para celulares...
+call npx tsx scripts/start-live-production.ts
 pause
 

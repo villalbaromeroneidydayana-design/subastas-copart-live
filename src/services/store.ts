@@ -14,7 +14,21 @@ const getDynamicBackendUrls = () => {
   const httpProto = isHttps ? 'https:' : 'http:';
   const wsProto = isHttps ? 'wss:' : 'ws:';
 
-  // 1. Si el usuario guardó manualmente una URL de backend en localStorage, usarla con máxima prioridad
+  // 1. Si la URL contiene el parámetro 'server', persistirlo y usarlo de inmediato
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+    const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
+    const hashParams = new URLSearchParams(hashQuery);
+    const serverParam = searchParams.get('server') || hashParams.get('server');
+    if (serverParam && serverParam.startsWith('http')) {
+      const cleanHttp = serverParam.trim().replace(/\/+$/, '');
+      localStorage.setItem('AUCTION_BACKEND_URL', cleanHttp);
+      return { http: cleanHttp, ws: cleanHttp.replace(/^http/i, 'ws') };
+    }
+  } catch { }
+
+  // 2. Si el usuario guardó manualmente una URL de backend en localStorage, usarla con máxima prioridad
   try {
     const savedUrl = localStorage.getItem('AUCTION_BACKEND_URL');
     if (savedUrl && savedUrl.trim()) {

@@ -70,7 +70,10 @@ export function placeBidAtomic(
       throw new Error(`La oferta de $${amount.toLocaleString()} supera el límite crediticio autorizado de $${participant.max_bid_limit.toLocaleString()}`);
     }
 
-    if (session.client_max_budget && participant.paddle_number?.includes('101') && amount > session.client_max_budget) {
+    // Margen de flexibilidad comercial de $1,500 USD para acuerdos verbales por llamada de WhatsApp
+    const operationalBudgetLimit = session.client_max_budget ? Number(session.client_max_budget) + 1500 : null;
+
+    if (operationalBudgetLimit && participant.paddle_number?.includes('101') && amount > operationalBudgetLimit) {
       const nowIso = new Date().toISOString();
       // Comprobar si existe una Autorización Extraordinaria válida aprobada por el comprador
       const auth = db.prepare(`
@@ -85,7 +88,7 @@ export function placeBidAtomic(
       `).get(sessionId, tokenHash, amount, nowIso) as any;
 
       if (!auth) {
-        throw new Error(`La oferta de $${amount.toLocaleString()} USD supera el presupuesto máximo autorizado por el cliente ($${Number(session.client_max_budget).toLocaleString()} USD) y requiere autorización extraordinaria previa del comprador.`);
+        throw new Error(`La oferta de $${amount.toLocaleString()} USD supera el presupuesto autorizado por el cliente ($${Number(session.client_max_budget).toLocaleString()} USD + margen de $1,500 USD) y requiere autorización extraordinaria previa del comprador.`);
       }
 
       // Consumir la autorización inmediatamente (REGLA: monouso para esa oferta exacta)

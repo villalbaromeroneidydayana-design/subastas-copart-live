@@ -858,10 +858,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     const minRequired = session.current_price + (session.bid_increment || 250);
     const amountToBid = customAmount || minRequired;
 
-    // Validación preventiva de presupuesto
+    // Validación preventiva de presupuesto con margen de flexibilidad para llamada de WhatsApp ($1,500 USD)
     const isAuthorized = authorizedBidAmount && authorizedBidAmount === amountToBid;
-    if (amountToBid > clientBudget && !isAuthorized) {
-      setServerError(`La oferta de $${amountToBid.toLocaleString()} supera el presupuesto máximo autorizado por el cliente ($${clientBudget.toLocaleString()} USD). Solicita autorización extraordinaria.`);
+    const maxOperationalBudget = clientBudget + 1500;
+    if (amountToBid > maxOperationalBudget && !isAuthorized) {
+      setServerError(`La oferta de $${amountToBid.toLocaleString()} supera el presupuesto autorizado por el cliente ($${clientBudget.toLocaleString()} USD + margen de $1,500 USD). Solicita autorización extraordinaria.`);
       setTimeout(() => setServerError(null), 5000);
       return;
     }
@@ -2195,21 +2196,21 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <div className="grid grid-cols-3 gap-1.5 pt-1">
                   <button
                     onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 250))}
-                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + (session.bid_increment || 250) > clientBudget && authorizedBidAmount !== session.current_price + (session.bid_increment || 250))}
+                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + (session.bid_increment || 250) > clientBudget + 1500 && authorizedBidAmount !== session.current_price + (session.bid_increment || 250))}
                     className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-slate-200 py-2 rounded border border-slate-700 transition"
                   >
                     +${session.bid_increment || 250}
                   </button>
                   <button
                     onClick={() => handlePlaceBrokerBid(session.current_price + 500)}
-                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + 500 > clientBudget && authorizedBidAmount !== session.current_price + 500)}
+                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + 500 > clientBudget + 1500 && authorizedBidAmount !== session.current_price + 500)}
                     className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-slate-200 py-2 rounded border border-slate-700 transition"
                   >
                     +$500 USD
                   </button>
                   <button
                     onClick={() => handlePlaceBrokerBid(session.current_price + 1000)}
-                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + 1000 > clientBudget && authorizedBidAmount !== session.current_price + 1000)}
+                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + 1000 > clientBudget + 1500 && authorizedBidAmount !== session.current_price + 1000)}
                     className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-black text-amber-400 py-2 rounded border border-slate-700 transition"
                   >
                     +$1,000 USD
