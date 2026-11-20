@@ -20,33 +20,35 @@ try {
   db.prepare("DELETE FROM vehicles_inventory WHERE id LIKE '%test%' OR lot_number LIKE 'TEST%'").run();
 } catch (e) {}
 
-// 3. Asegurar que el vehículo canónico Land Cruiser 1958 esté en vehicles_inventory
-const primaryVehicle = INITIAL_VEHICLES[0];
-try {
-  const existingVeh = db.prepare('SELECT id FROM vehicles_inventory WHERE id = ?').get(primaryVehicle.id);
-  if (!existingVeh) {
-    db.prepare(`
-      INSERT INTO vehicles_inventory (id, lot_number, vin, brand, model, year, data_json, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `).run(
-      primaryVehicle.id,
-      primaryVehicle.lot_number,
-      primaryVehicle.vin,
-      primaryVehicle.brand,
-      primaryVehicle.model,
-      primaryVehicle.year,
-      JSON.stringify(primaryVehicle)
-    );
-  } else {
-    db.prepare(`
-      UPDATE vehicles_inventory
-      SET data_json = ?, updated_at = datetime('now')
-      WHERE id = ?
-    `).run(JSON.stringify(primaryVehicle), primaryVehicle.id);
+// 3. Sincronizar todos los vehículos del catálogo inicial en vehicles_inventory
+for (const veh of INITIAL_VEHICLES) {
+  try {
+    const existingVeh = db.prepare('SELECT id FROM vehicles_inventory WHERE id = ?').get(veh.id);
+    if (!existingVeh) {
+      db.prepare(`
+        INSERT INTO vehicles_inventory (id, lot_number, vin, brand, model, year, data_json, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `).run(
+        veh.id,
+        veh.lot_number,
+        veh.vin,
+        veh.brand,
+        veh.model,
+        veh.year,
+        JSON.stringify(veh)
+      );
+    } else {
+      db.prepare(`
+        UPDATE vehicles_inventory
+        SET data_json = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `).run(JSON.stringify(veh), veh.id);
+    }
+  } catch (e) {
+    console.log('Nota vehículos:', e);
   }
-} catch (e) {
-  console.log('Nota vehículos:', e);
 }
+const primaryVehicle = INITIAL_VEHICLES[0];
 
 // 4. Restablecer la sesión principal con el vehículo canónico
 db.prepare(`
