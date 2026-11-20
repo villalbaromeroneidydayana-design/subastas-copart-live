@@ -207,7 +207,8 @@ function seedDatabase() {
 seedDatabase();
 
 // Control de espectadores conectados en tiempo real (Recuento anónimo exacto)
-let connectedClientsCount = 0;
+let connectedClientsCount = 15;
+let manualViewersOverride: number = 15;
 
 interface ClientMetadata {
   role: 'auctioneer' | 'broker' | 'buyer' | 'spectator';
@@ -284,7 +285,7 @@ function findSession(idOrToken?: string): any {
 }
 
 wss.on('connection', (ws) => {
-  const currentCount = wss.clients.size;
+  const currentCount = Math.max(manualViewersOverride, wss.clients.size);
   connectedClientsCount = currentCount;
   
   // Difundir conteo de espectadores en tiempo real sin divulgar geolocalización (REGLA 6)
@@ -379,7 +380,7 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     const meta = socketMetadata.get(ws);
     socketMetadata.delete(ws);
-    const remaining = wss.clients.size;
+    const remaining = Math.max(manualViewersOverride, wss.clients.size);
     connectedClientsCount = remaining;
 
     broadcast({ 
@@ -1550,6 +1551,7 @@ app.post('/api/sessions/:id/viewers', (req, res) => {
   const count = Number(req.body?.count);
   const session = findSession(req.params.id);
   if (!isNaN(count) && count >= 1) {
+    manualViewersOverride = count;
     connectedClientsCount = count;
     broadcast({
       type: 'SPECTATOR_JOINED',

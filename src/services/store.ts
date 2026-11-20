@@ -1334,11 +1334,20 @@ class RealAuctionStore {
   }
 
   public async setViewersCount(sessionId: string, count: number) {
+    const finalCount = Math.max(1, count);
+    const syncMsg = {
+      type: 'SPECTATOR_JOINED',
+      sessionId: sessionId || 'ses-live-001',
+      viewersCount: finalCount,
+      timestamp: new Date().toISOString(),
+    };
+    this.dispatchSyncEvent(syncMsg, true);
+
     try {
-      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/viewers`, {
+      const res = await fetch(`${this.getServerUrl()}/api/sessions/${sessionId}/viewers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count }),
+        body: JSON.stringify({ count: finalCount }),
       });
       return await res.json();
     } catch (e: any) {
