@@ -36,7 +36,8 @@ import {
   Zap,
   ArrowLeft,
   ArrowRight,
-  Minus
+  Minus,
+  Megaphone
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
@@ -98,6 +99,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [directPriceInput, setDirectPriceInput] = useState<string>('5000');
   const [viewersCount, setViewersCount] = useState<number>(14);
   const [announcementText, setAnnouncementText] = useState<string>('');
+  const [activeAnnouncement, setActiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState<boolean>(false);
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(sounds.isMuted);
   const [activeDocToken, setActiveDocToken] = useState<string | null>(null);
@@ -205,6 +207,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         }
         if (data.session.viewersCount !== undefined) {
           setViewersCount(Number(data.session.viewersCount));
+        }
+        if (data.session.announcement || data.session.latest_announcement) {
+          setActiveAnnouncement(data.session.announcement || data.session.latest_announcement);
         }
       }
       if (data && data.presence) {
@@ -556,6 +561,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     const text = (textToSend || announcementText).trim();
     if (!text) return;
     setIsSendingAnnouncement(true);
+    setActiveAnnouncement(text);
     await store.sendAnnouncement(session.id, text);
     setIsSendingAnnouncement(false);
     showFeedback(`📢 Aviso proyectado en sala: "${text}"`);
@@ -1565,10 +1571,24 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
               {/* Cintillo de Avisos en Vivo */}
               <div className="pt-2">
-                <span className="text-xs text-slate-300 uppercase tracking-wider font-bold block mb-1.5 flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-amber-400" />
-                  <span>Cintillo de Avisos en Sala:</span>
-                </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-slate-300 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-amber-400" />
+                    <span>Cintillo de Avisos en Sala:</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    En vivo
+                  </span>
+                </div>
+
+                {/* Caja de previsualización de lo que está proyectado en sala */}
+                <div className="bg-[#050a16] p-2 rounded-lg border border-amber-500/40 flex items-center gap-2 mb-2 text-xs">
+                  <Megaphone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="text-slate-400 shrink-0 font-bold text-[11px]">Proyectando:</span>
+                  <span className="text-amber-300 font-bold truncate text-[11px] font-mono">{activeAnnouncement}</span>
+                </div>
+
                 <div className="flex gap-2">
                   <input
                     type="text"

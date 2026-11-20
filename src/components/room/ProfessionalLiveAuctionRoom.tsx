@@ -19,7 +19,7 @@ import {
   FastForward, User, Lock, ChevronLeft, ChevronRight,
   Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send,
   ArrowRightCircle, CheckCircle, Sparkles, ChevronDown, ChevronUp, Zap, Calculator,
-  ExternalLink as LinkIcon, Tag, HelpCircle
+  ExternalLink as LinkIcon, Tag, HelpCircle, Megaphone
 } from 'lucide-react';
 import { INITIAL_VEHICLES } from '../../services/seedData';
 
@@ -365,6 +365,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         current_bid_count: data.session.bidCount ?? prev.current_bid_count,
         current_bidder_name: data.session.currentWinnerName,
       }));
+
+      if (data.session.announcement || (data.session as any).latest_announcement) {
+        setLiveAnnouncement(data.session.announcement || (data.session as any).latest_announcement);
+      }
 
       if (data.role && data.role !== role) {
         setRole(data.role);
@@ -1260,6 +1264,32 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           </div>
         </div>
       </div>
+
+      {/* CINTILLO OFICIAL DE AVISOS EN VIVO COPART VB3 */}
+      {liveAnnouncement && (
+        <div className="bg-gradient-to-r from-[#001428] via-[#002855] to-[#001428] border-b-2 border-amber-400 px-3 sm:px-6 py-2 shadow-xl animate-fadeIn">
+          <div className="max-w-[1720px] w-full mx-auto flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex h-2.5 w-2.5 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs uppercase tracking-wider px-2 py-0.5 rounded shadow shrink-0 flex items-center gap-1 font-mono">
+                  <Megaphone className="w-3.5 h-3.5 text-slate-950" />
+                  <span>AVISO EN VIVO</span>
+                </span>
+                <span className="text-white font-black text-xs sm:text-sm tracking-wide truncate">
+                  {liveAnnouncement}
+                </span>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono text-amber-300 font-bold uppercase tracking-wider shrink-0 hidden md:inline">
+              COPART VB3 OFFICIAL BROADCAST
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* AVISO DISCRETO PARA EL DIRECTOR DE SALA (PANTALLA 1) */}
       {isAuctioneer && (

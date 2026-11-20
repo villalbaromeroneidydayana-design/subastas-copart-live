@@ -577,6 +577,8 @@ app.get('/api/sessions', (req, res) => {
       lot_number: r.lot_number,
       referenceUrl: r.reference_url || vehicle?.reference_url || '',
       reference_url: r.reference_url || vehicle?.reference_url || '',
+      announcement: r.latest_announcement || latestAnnouncements[r.id] || '',
+      latest_announcement: r.latest_announcement || latestAnnouncements[r.id] || '',
       brand: r.brand,
       model: r.model,
       year: r.year,
@@ -845,6 +847,8 @@ app.get('/api/sessions/:id', (req, res) => {
       lot_number: r.lot_number,
       referenceUrl: r.reference_url || vehicle?.reference_url || '',
       reference_url: r.reference_url || vehicle?.reference_url || '',
+      announcement: r.latest_announcement || latestAnnouncements[r.id] || '',
+      latest_announcement: r.latest_announcement || latestAnnouncements[r.id] || '',
       brand: r.brand,
       model: r.model,
       year: r.year,
@@ -1037,6 +1041,8 @@ app.get('/api/room/:token', (req, res) => {
       lot_number: r.lot_number,
       referenceUrl: r.reference_url || vehicle?.reference_url || '',
       reference_url: r.reference_url || vehicle?.reference_url || '',
+      announcement: r.latest_announcement || latestAnnouncements[r.id] || '',
+      latest_announcement: r.latest_announcement || latestAnnouncements[r.id] || '',
       brand: r.brand,
       model: r.model,
       year: r.year,
@@ -1515,20 +1521,28 @@ app.post('/api/sessions/:id/call', (req, res) => {
   res.json({ success: true, call });
 });
 
+const latestAnnouncements: Record<string, string> = {};
+
 // 7d.2 ENVIAR AVISO / CINTILLO EN VIVO A LA SALA PÚBLICA
 app.post('/api/sessions/:id/announcement', (req, res) => {
   const { text } = req.body;
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
+  const announcementText = String(text || '').trim();
+  latestAnnouncements[session.id] = announcementText;
+  try {
+    db.prepare('UPDATE auction_sessions SET latest_announcement = ? WHERE id = ?').run(announcementText, session.id);
+  } catch {}
+
   broadcast({
     type: 'ROOM_ANNOUNCEMENT',
     sessionId: session.id,
-    text: String(text || '').trim(),
+    text: announcementText,
     timestamp: new Date().toISOString(),
   });
 
-  res.json({ success: true, text });
+  res.json({ success: true, text: announcementText });
 });
 
 // 7d.3 AJUSTAR CONTEO DE ESPECTADORES EN SALA

@@ -1312,11 +1312,20 @@ class RealAuctionStore {
   }
 
   public async sendAnnouncement(sessionId: string, text: string) {
+    const trimmedText = String(text || '').trim();
+    const announcementMsg = {
+      type: 'ROOM_ANNOUNCEMENT',
+      sessionId: sessionId || 'ses-live-001',
+      text: trimmedText,
+      timestamp: new Date().toISOString(),
+    };
+    this.dispatchSyncEvent(announcementMsg, true);
+
     try {
-      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/announcement`, {
+      const res = await fetch(`${this.getServerUrl()}/api/sessions/${sessionId}/announcement`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: trimmedText }),
       });
       return await res.json();
     } catch (e: any) {
