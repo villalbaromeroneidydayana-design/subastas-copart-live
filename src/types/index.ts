@@ -1,6 +1,6 @@
 export type VehicleCondition = 'run_and_drive' | 'starts' | 'stationary' | 'unknown';
 export type TitleType = 'clean' | 'salvage' | 'rebuilt' | 'certificate_of_destruction' | 'non_repairable' | 'parts_only';
-export type PhotoCategory = 'exterior' | 'interior' | 'motor' | 'tablero' | 'danos';
+export type PhotoCategory = 'exterior' | 'interior' | 'motor' | 'tablero' | 'danos' | 'video';
 export type AuctionStatus = 'prepared' | 'open' | 'started' | 'bidding' | 'last_call' | 'paused' | 'closed' | 'sold' | 'unsold';
 export type SimulationOutcome = 'win' | 'lose';
 
@@ -51,6 +51,8 @@ export interface Vehicle {
   vin: string;
   lot_number: string;
   reference_url?: string;
+  video_url?: string;
+  engine_video_url?: string;
   
   // Características
   engine?: string;
