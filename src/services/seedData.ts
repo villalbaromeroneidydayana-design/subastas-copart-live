@@ -562,29 +562,119 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       {
         id: 'img-sr5-1',
         vehicle_id: 'veh-sequoia-2026-sr5',
-        url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80',
+        url: '/vehicles/sequoia2026/76279496_Image_1.jpg',
         category: 'exterior',
         is_primary: true,
         order: 1,
-        caption: 'Vista frontal 3/4 - 2026 Toyota Sequoia SR5 i-FORCE MAX'
+        caption: 'Vista frontal exterior - 2026 Toyota Sequoia SR5 (Lote #76279496)'
       },
       {
         id: 'img-sr5-2',
         vehicle_id: 'veh-sequoia-2026-sr5',
-        url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+        url: '/vehicles/sequoia2026/76279496_Image_2.jpg',
         category: 'exterior',
         is_primary: false,
         order: 2,
-        caption: 'Perfil lateral y rines de aleación de 18 pulgadas'
+        caption: 'Perfil lateral completo y rines SR5'
       },
       {
         id: 'img-sr5-3',
         vehicle_id: 'veh-sequoia-2026-sr5',
-        url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80',
-        category: 'interior',
+        url: '/vehicles/sequoia2026/76279496_Image_3.jpg',
+        category: 'exterior',
         is_primary: false,
         order: 3,
-        caption: 'Cabina interior con pantalla de 14 pulgadas y 3 filas de asientos'
+        caption: 'Vista 3/4 lateral y compuerta trasera'
+      },
+      {
+        id: 'img-sr5-4',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_4.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 4,
+        caption: 'Vista posterior completa y enganche de remolque'
+      },
+      {
+        id: 'img-sr5-5',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_5.jpg',
+        category: 'interior',
+        is_primary: false,
+        order: 5,
+        caption: 'Cabina interior delantera con pantalla táctil de 14 pulg'
+      },
+      {
+        id: 'img-sr5-6',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_6.jpg',
+        category: 'interior',
+        is_primary: false,
+        order: 6,
+        caption: 'Segunda fila de asientos y consola'
+      },
+      {
+        id: 'img-sr5-7',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_7.jpg',
+        category: 'tablero',
+        is_primary: false,
+        order: 7,
+        caption: 'Instrumentos y odómetro verificado (15,244 millas)'
+      },
+      {
+        id: 'img-sr5-8',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_8.jpg',
+        category: 'motor',
+        is_primary: false,
+        order: 8,
+        caption: 'Vano de motor 3.4L V6 Twin-Turbo Híbrido i-FORCE MAX'
+      },
+      {
+        id: 'img-sr5-9',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_9.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 9,
+        caption: 'Ruedas y neumáticos de fábrica'
+      },
+      {
+        id: 'img-sr5-10',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_10.jpg',
+        category: 'danos',
+        is_primary: false,
+        order: 10,
+        caption: 'Detalle de carrocería y estribo - Sin impacto en chasis'
+      },
+      {
+        id: 'img-sr5-11',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_11.jpg',
+        category: 'danos',
+        is_primary: false,
+        order: 11,
+        caption: 'Detalle cosmético menor'
+      },
+      {
+        id: 'img-sr5-12',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_12.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 12,
+        caption: 'Etiqueta VIN original y certificación de fábrica'
+      },
+      {
+        id: 'img-sr5-13',
+        vehicle_id: 'veh-sequoia-2026-sr5',
+        url: '/vehicles/sequoia2026/76279496_Image_13.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 13,
+        caption: 'Llaves originales y mandos de arranque presencial'
       }
     ],
     custom_badges: {
