@@ -560,47 +560,119 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       {
         id: 'img-trd-1',
         vehicle_id: 'veh-sequoia-2025-trd',
-        url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80',
+        url: '/vehicles/sequoia2025/67315216_Image_1.jpg',
         category: 'exterior',
         is_primary: true,
         order: 1,
-        caption: 'Vista frontal exterior - 2025 Toyota Sequoia TRD Pro'
+        caption: 'Vista frontal 3/4 exterior - 2025 Toyota Sequoia TRD Pro 4WD (Lote #67315216)'
       },
       {
         id: 'img-trd-2',
         vehicle_id: 'veh-sequoia-2025-trd',
-        url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80',
-        category: 'interior',
+        url: '/vehicles/sequoia2025/67315216_Image_2.jpg',
+        category: 'exterior',
         is_primary: false,
         order: 2,
-        caption: 'Cabina interior con pantalla táctil de 14 pulgadas y volante deportivo'
+        caption: 'Perfil lateral completo con suspensión FOX y rines TRD'
       },
       {
         id: 'img-trd-3',
         vehicle_id: 'veh-sequoia-2025-trd',
-        url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+        url: '/vehicles/sequoia2025/67315216_Image_3.jpg',
         category: 'exterior',
         is_primary: false,
         order: 3,
-        caption: 'Perfil lateral y rines forjados BBS de 18 pulgadas'
+        caption: 'Vista lateral y compuerta trasera'
       },
       {
         id: 'img-trd-4',
         vehicle_id: 'veh-sequoia-2025-trd',
-        url: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1200&q=80',
-        category: 'motor',
+        url: '/vehicles/sequoia2025/67315216_Image_4.jpg',
+        category: 'exterior',
         is_primary: false,
         order: 4,
-        caption: 'Vano de motor 3.4L V6 i-FORCE MAX Twin-Turbo Híbrido'
+        caption: 'Vista posterior - Doble escape TRD Pro y emblemas'
       },
       {
         id: 'img-trd-5',
         vehicle_id: 'veh-sequoia-2025-trd',
-        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=1200&q=80',
-        category: 'danos',
+        url: '/vehicles/sequoia2025/67315216_Image_5.jpg',
+        category: 'interior',
         is_primary: false,
         order: 5,
-        caption: 'Detalle de arañazo cosmético menor en moldura plástica exterior'
+        caption: 'Cabina interior delantera - Asientos en piel Camo TRD Pro'
+      },
+      {
+        id: 'img-trd-6',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_6.jpg',
+        category: 'interior',
+        is_primary: false,
+        order: 6,
+        caption: 'Segunda fila de asientos y techo panorámico'
+      },
+      {
+        id: 'img-trd-7',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_7.jpg',
+        category: 'tablero',
+        is_primary: false,
+        order: 7,
+        caption: 'Tablero digital e instrumentos (13,018 millas reales)'
+      },
+      {
+        id: 'img-trd-8',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_8.jpg',
+        category: 'motor',
+        is_primary: false,
+        order: 8,
+        caption: 'Vano de motor 3.4L i-FORCE MAX Twin-Turbo V6 Híbrido (437 HP)'
+      },
+      {
+        id: 'img-trd-9',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_9.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 9,
+        caption: 'Rines forjados BBS de 18 pulg y neumáticos todo terreno'
+      },
+      {
+        id: 'img-trd-10',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_10.jpg',
+        category: 'danos',
+        is_primary: false,
+        order: 10,
+        caption: 'Detalle de carrocería y estribo - Cero daño estructural'
+      },
+      {
+        id: 'img-trd-11',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_11.jpg',
+        category: 'danos',
+        is_primary: false,
+        order: 11,
+        caption: 'Detalle cosmético menor en moldura lateral'
+      },
+      {
+        id: 'img-trd-12',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_12.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 12,
+        caption: 'Etiqueta VIN original de fábrica y verificación'
+      },
+      {
+        id: 'img-trd-13',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: '/vehicles/sequoia2025/67315216_Image_13.jpg',
+        category: 'exterior',
+        is_primary: false,
+        order: 13,
+        caption: 'Llaves originales y mandos a distancia presentes'
       }
     ],
     custom_badges: {
@@ -623,27 +695,27 @@ export const INITIAL_VEHICLES: Vehicle[] = [
 export const INITIAL_SESSIONS: AuctionSession[] = [
   {
     id: 'ses-live-001',
-    client_id: 'cli-001',
-    vehicle_id: 'veh-001',
-    title: 'Subasta Privada - 2023 Ford Mustang GT',
+    client_id: 'cli-004',
+    vehicle_id: 'veh-sequoia-2025-trd',
+    title: 'Subasta Oficial en Vivo - 2025 Toyota Sequoia TRD Pro 4WD',
     status: 'prepared',
-    vehicle_snapshot: INITIAL_VEHICLES[0],
-    client_snapshot: INITIAL_CLIENTS[0],
-    starting_price: 5000,
+    vehicle_snapshot: INITIAL_VEHICLES.find((v) => v.id === 'veh-sequoia-2025-trd') || INITIAL_VEHICLES[0],
+    client_snapshot: INITIAL_CLIENTS.find((c) => c.id === 'cli-004') || INITIAL_CLIENTS[0],
+    starting_price: 5500,
     bid_increment: 250,
-    expected_final_price: 14750,
+    expected_final_price: 24000,
     duration_seconds: 50,
     bid_interval_seconds: 3,
     total_planned_bids: 18,
     virtual_bidders: [
-      { id: 'b-1', name: 'AutoExport Dallas', location: 'TX' },
-      { id: 'b-2', name: 'Global Motors LLC', location: 'FL' },
-      { id: 'b-3', name: 'Copart Premier #4129', location: 'GA' },
-      { id: 'b-4', name: 'Pacific Salvage', location: 'CA' },
-      { id: 'b-client', name: 'Carlos Mendoza (Cliente)', location: 'FL', is_client: true }
+      { id: 'b-1', name: 'AutoExport Dallas LLC', location: 'TX' },
+      { id: 'b-2', name: 'Pacific Salvage Auctions', location: 'CA' },
+      { id: 'b-3', name: 'Global Fleet Buyers Inc', location: 'GA' },
+      { id: 'b-4', name: 'Midwest Premier Liquidation', location: 'IL' },
+      { id: 'b-client', name: 'Edwin Rivas (Cliente)', location: 'NY', is_client: true }
     ],
     expected_outcome: 'win',
-    current_price: 5000,
+    current_price: 5500,
     current_bidder_id: undefined,
     current_bidder_name: undefined,
     current_bidder_location: undefined,
@@ -653,8 +725,8 @@ export const INITIAL_SESSIONS: AuctionSession[] = [
     is_paused: false,
     room_token: 'copart-live-m729k1',
     is_token_revoked: false,
-    created_at: new Date('2026-02-20T10:00:00Z').toISOString(),
-    updated_at: new Date('2026-02-20T10:00:00Z').toISOString(),
+    created_at: new Date('2026-11-21T09:00:00Z').toISOString(),
+    updated_at: new Date('2026-11-21T09:00:00Z').toISOString(),
   }
 ];
 
