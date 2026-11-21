@@ -75,6 +75,9 @@ db.prepare(`
       room_token = 'copart-live-m729k1',
       broker_access_token = 'bdr_broker_m729k1',
       buyer_access_token = 'bdr_buyer_m729k1',
+      buyer_name = 'Edwin Rivas (Comprador)',
+      broker_name = 'Broker Autorizado (David)',
+      reference_url = 'https://www.copart.com/lot/67315216',
       updated_at = datetime('now')
   WHERE id = 'ses-live-001'
 `).run(
