@@ -2,7 +2,7 @@ import { Client, Vehicle, AuctionSession, AuctionBid, AuctionResult, DashboardMe
 import { INITIAL_CLIENTS, INITIAL_VEHICLES, INITIAL_SESSIONS } from './seedData';
 import { sounds } from '../lib/soundEffects';
 
-const CLOUDFLARE_TUNNEL_URL = 'https://ing-blocking-flex-environmental.trycloudflare.com';
+const CLOUDFLARE_TUNNEL_URL = 'https://ranked-hearts-marcus-arthur.trycloudflare.com';
 
 const getDynamicBackendUrls = () => {
   if (typeof window === 'undefined') {
@@ -381,15 +381,17 @@ class RealAuctionStore {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Asegurar que vehículos de catálogo oficiales (como Land Cruiser 1958) siempre tengan sus fotos verificadas
+        // Asegurar que todos los vehículos oficiales siempre tengan sus fotos verificadas y badges actualizados
         const merged = parsed.map((v) => {
-          if (v.id === 'veh-toyota-lc-61682336' || v.lot_number === '61682336') {
+          const fresh = INITIAL_VEHICLES.find((iv) => iv.id === v.id || iv.lot_number === v.lot_number);
+          if (fresh && fresh.images && fresh.images.length > 0) {
             return {
               ...v,
-              images: INITIAL_VEHICLES[0].images,
-              reference_url: INITIAL_VEHICLES[0].reference_url,
-              notes: INITIAL_VEHICLES[0].notes,
-              equipment: INITIAL_VEHICLES[0].equipment,
+              ...fresh,
+              images: fresh.images,
+              custom_badges: fresh.custom_badges || v.custom_badges,
+              engine_video_url: fresh.engine_video_url || v.engine_video_url,
+              reference_url: fresh.reference_url || v.reference_url,
             };
           }
           return v;
