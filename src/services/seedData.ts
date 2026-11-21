@@ -542,8 +542,8 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     interior_color: 'SofTex Black Trim',
     title_type: 'clean',
     vehicle_condition: 'run_and_drive',
-    primary_damage: 'Minor Dents/Scratches',
-    secondary_damage: 'Ninguno',
+    primary_damage: 'Side / Front Right Fender (Aleta Delantera Derecha)',
+    secondary_damage: 'Minor Dent/Scratches (Puerta Derecha & Espejo)',
     auction_reason: 'Liquidación de Aseguradora (Run & Drive Verificado con Llaves)',
     sale_date: 'Miércoles, 25 de Noviembre de 2026 • 12:00 PM EST',
     has_keys: true,
@@ -556,7 +556,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       'Rines de aleación de 18 pulgadas SR5',
       'Enganche de remolque integrado Clase IV'
     ],
-    notes: 'LOTE REAL COPART #76279496. Unidad 2026 Sequoia SR5 i-FORCE MAX. Condición Run & Drive oficial verificada en patio Copart (arranca y camina). Llaves originales presentes. DEFECTOS: Solo abolladuras y arañazos cosméticos menores. Cero daño estructural.',
+    notes: 'LOTE REAL COPART #76279496. 2026 Toyota Sequoia SR5 i-FORCE MAX 4WD. Condición oficial RUN & DRIVE (Copart verificó que el motor arranca, la transmisión engrana y camina en patio con llaves originales). Título Limpio (Clean Title) libre de gravámenes. DETALLE DEL VEHÍCULO: Falta aleta/guardabarros delantero derecho y espejo retrovisor derecho; presenta raspón y abolladura en lámina de puerta delantera derecha. Chasis, puntas frontales, suspensión, radiador, faros y bolsas de aire 100% INTACTOS de fábrica. Requiere trabajo de latonería y sustitución de piezas exteriores en costado derecho.',
     est_retail_value: 64200,
     images: [
       {
@@ -683,10 +683,10 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       carfaxEnabled: true,
       carfaxText: 'Lote Verificado Oficial ✓',
       carfaxTitleStatus: 'Clean Title (Aseguradora)',
-      carfaxVerifiedNotes: 'Run & Drive oficial. Llaves presentes. Sin choques estructurales.',
+      carfaxVerifiedNotes: 'Run & Drive oficial. Llaves presentes. Mecánica y motor 3.4L i-FORCE MAX al 100% con video de encendido. Chasis y bolsas intactos.',
       carfaxOwners: '1 Solo Dueño Original (15,244 mi)',
       carfaxServiceRecords: 'Garantía Oficial Toyota Vigente',
-      carfaxAccidents: 'Solo Daño Cosmético Menor',
+      carfaxAccidents: 'Detalle en Costado Derecho (Aleta, Retrovisor y Puerta)',
       extraBadges: []
     },
     created_at: new Date('2026-11-21T09:00:00Z').toISOString(),
