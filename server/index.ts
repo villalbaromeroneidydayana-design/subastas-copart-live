@@ -2470,6 +2470,11 @@ function restoreActiveSessions() {
 }
 
 // 15. PUBLICACIÓN DE FRONTEND ESTÁTICO (SPA PARA HTTPS / WSS UNIFICADO)
+const publicPath = path.resolve('public');
+if (fs.existsSync(publicPath)) {
+  app.use(express.static(publicPath));
+}
+
 const distPath = path.resolve('dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
