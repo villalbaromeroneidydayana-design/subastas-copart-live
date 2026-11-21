@@ -554,7 +554,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
       'Sistema de escape doble TRD Pro con salidas en negro',
       'Sistema de Audio Premium JBL de 14 bocinas con Subwoofer'
     ],
-    notes: 'LOTE REAL COPART #67315216. Unidad 2025 TRD Pro en condición Run & Drive verificada (motor arranca y transmisión engrana). Título Limpio oficial de Oklahoma (CT - OK). Solo abolladuras y arañazos cosméticos menores. Llaves originales presentes. Aseguradora Farmers Insurance.',
+    notes: 'LOTE REAL COPART #67315216. Unidad 2025 TRD Pro 4WD en condición RUN & DRIVE oficial (Copart verificó que el motor arranca y la transmisión engrana). Título Limpio original (OK - Clean Title) libre de gravámenes. DEFECTOS REGISTRADOS: Abolladuras y arañazos cosméticos menores en estribo y moldura plástica exterior. Puntas de chasis, radiadores, bolsas de aire y suspensión FOX 100% intactos de fábrica. MOTIVO DE SUBASTA: Liquidación por indemnización de aseguradora Farmers Insurance. Con llaves originales presentes.',
     est_retail_value: 71218,
     images: [
       {
@@ -564,7 +564,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
         category: 'exterior',
         is_primary: true,
         order: 1,
-        caption: 'Vista exterior Toyota Sequoia TRD Pro 4WD'
+        caption: 'Vista frontal exterior - 2025 Toyota Sequoia TRD Pro'
       },
       {
         id: 'img-trd-2',
@@ -573,19 +573,46 @@ export const INITIAL_VEHICLES: Vehicle[] = [
         category: 'interior',
         is_primary: false,
         order: 2,
-        caption: 'Interiores deportivos TRD Pro con acentos en rojo'
+        caption: 'Cabina interior con pantalla táctil de 14 pulgadas y volante deportivo'
+      },
+      {
+        id: 'img-trd-3',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+        category: 'exterior',
+        is_primary: false,
+        order: 3,
+        caption: 'Perfil lateral y rines forjados BBS de 18 pulgadas'
+      },
+      {
+        id: 'img-trd-4',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1200&q=80',
+        category: 'motor',
+        is_primary: false,
+        order: 4,
+        caption: 'Vano de motor 3.4L V6 i-FORCE MAX Twin-Turbo Híbrido'
+      },
+      {
+        id: 'img-trd-5',
+        vehicle_id: 'veh-sequoia-2025-trd',
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=1200&q=80',
+        category: 'danos',
+        is_primary: false,
+        order: 5,
+        caption: 'Detalle de arañazo cosmético menor en moldura plástica exterior'
       }
     ],
     custom_badges: {
       runDriveText: 'RUN & DRIVE',
-      titleTypeText: 'NY - CERTIFICATE OF TITLE',
+      titleTypeText: 'OK - CLEAN TITLE',
       carfaxEnabled: true,
       carfaxText: 'Lote Verificado Oficial ✓',
-      carfaxTitleStatus: 'NY - Clean Certificate',
-      carfaxVerifiedNotes: 'Inspeccionado en patio Newburgh NY. Suspensión, motor y caja impecables.',
-      carfaxOwners: '1 Solo Propietario',
-      carfaxServiceRecords: 'Garantía de Fábrica Vigente',
-      carfaxAccidents: 'Recuperación Bancaria (Cero Choques)',
+      carfaxTitleStatus: 'Oklahoma Clean Title (Farmers Insurance)',
+      carfaxVerifiedNotes: 'Run & Drive verificado por Copart. Llaves incluidas. Cero choques estructurales.',
+      carfaxOwners: '1 Dueño Original (13,018 mi)',
+      carfaxServiceRecords: 'Garantía Oficial Toyota Vigente',
+      carfaxAccidents: 'Sin Daños Estructurales (Solo Cosmético)',
       extraBadges: []
     },
     created_at: new Date('2026-11-21T09:00:00Z').toISOString(),

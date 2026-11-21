@@ -48,9 +48,9 @@ for (const veh of INITIAL_VEHICLES) {
     console.log('Nota vehículos:', e);
   }
 }
-const primaryVehicle = INITIAL_VEHICLES[0];
+const primaryVehicle = INITIAL_VEHICLES.find((v) => v.id === 'veh-sequoia-2025-trd') || INITIAL_VEHICLES[0];
 
-// 4. Restablecer la sesión principal con el vehículo canónico
+// 4. Restablecer la sesión principal con la Toyota Sequoia TRD Pro 2025
 db.prepare(`
   UPDATE auction_sessions
   SET title = ?,
@@ -59,11 +59,11 @@ db.prepare(`
       model = ?,
       year = ?,
       status = 'prepared',
-      starting_price = 5000,
+      starting_price = 7000,
       min_increment = 250,
-      reserve_price = 14000,
-      current_price = 5000,
-      client_max_budget = 7500,
+      reserve_price = 35000,
+      current_price = 7000,
+      client_max_budget = 35000,
       bid_count = 0,
       time_remaining_seconds = 15,
       total_duration_seconds = 15,
@@ -78,7 +78,7 @@ db.prepare(`
       updated_at = datetime('now')
   WHERE id = 'ses-live-001'
 `).run(
-  `Subasta Oficial en Vivo - 2025 Toyota Land Cruiser 1958`,
+  `Subasta Oficial en Vivo - 2025 Toyota Sequoia TRD Pro 4WD`,
   primaryVehicle.lot_number,
   primaryVehicle.brand,
   primaryVehicle.model,
