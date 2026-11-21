@@ -703,7 +703,7 @@ export const INITIAL_SESSIONS: AuctionSession[] = [
     client_snapshot: INITIAL_CLIENTS.find((c) => c.id === 'cli-004') || INITIAL_CLIENTS[0],
     starting_price: 5500,
     bid_increment: 250,
-    expected_final_price: 24000,
+    expected_final_price: 25000,
     duration_seconds: 50,
     bid_interval_seconds: 3,
     total_planned_bids: 18,
