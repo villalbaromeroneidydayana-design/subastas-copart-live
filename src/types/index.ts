@@ -69,6 +69,7 @@ export interface Vehicle {
   primary_damage?: string;
   secondary_damage?: string;
   auction_reason?: string;
+  sale_date?: string;
   has_keys: boolean;
   location?: string;
   equipment?: string[];
@@ -151,6 +152,7 @@ export interface AuctionSession {
   room_token: string;
   is_token_revoked: boolean;
   client_max_budget?: number;
+  sale_date?: string;
   broker_name?: string;
   buyer_name?: string;
   broker_access_token?: string;

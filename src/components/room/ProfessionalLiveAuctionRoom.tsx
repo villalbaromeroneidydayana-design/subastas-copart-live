@@ -1765,7 +1765,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             {/* PRECIO ACTUAL EN GRANDE */}
             <div className="my-3.5 text-center bg-[#050912] p-4 sm:p-5 rounded-xl border border-[#1b2b44] relative overflow-hidden shadow-inner">
               <span className="text-xs sm:text-sm font-black text-slate-300 uppercase tracking-widest block mb-1">
-                {lang === 'en' ? 'CURRENT BID' : 'PRECIO VIGENTE DE SUBASTA (CURRENT BID)'}
+                {session.status === 'prepared'
+                  ? (lang === 'en' ? 'STARTING BID • OPENING PRICE' : 'PRECIO BASE DE SALIDA (STARTING BID)')
+                  : (lang === 'en' ? 'CURRENT BID' : 'PRECIO VIGENTE DE SUBASTA (CURRENT BID)')}
               </span>
 
               <div className="flex items-center justify-center gap-2">
@@ -1880,49 +1882,36 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Clock className="w-4 h-4 text-amber-400" />
-                    FASE 1: SALA ABIERTA • INSPECCIÓN PREVIA
+                    {lang === 'en' ? 'PHASE 1: PRE-AUCTION INSPECTION' : 'FASE 1: INSPECCIÓN TÉCNICA PREVIA'}
                   </span>
                   <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-700/60 px-2 py-0.5 rounded font-mono font-bold">
-                    PRE-SUBASTA
+                    {lang === 'en' ? 'CATALOG OPEN' : 'CATÁLOGO DISPONIBLE'}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="bg-[#08101d] p-2 rounded border border-slate-800">
-                    <span className="text-[9px] text-slate-500 block uppercase font-bold">Hora Programada</span>
-                    <span className="font-bold text-white text-xs font-mono">HOY, 12:00 PM EST</span>
+                    <span className="text-[9px] text-slate-500 block uppercase font-bold">
+                      {lang === 'en' ? 'Scheduled Sale Date' : 'Fecha Oficial de Subasta'}
+                    </span>
+                    <span className="font-bold text-amber-300 text-xs font-mono">
+                      {(vehicle as any)?.sale_date || (session as any)?.sale_date || 'Martes, 24 Nov 2026 • 11:00 AM EST'}
+                    </span>
                   </div>
                   <div className="bg-[#08101d] p-2 rounded border border-slate-800">
-                    <span className="text-[9px] text-slate-500 block uppercase font-bold">Cuenta Regresiva Estimada</span>
-                    <span className="font-mono font-black text-amber-400 text-xs animate-pulse">03:45 MIN</span>
-                  </div>
-                </div>
-
-                <div className="bg-[#08101d] p-2 rounded border border-slate-800 space-y-1">
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 border-b border-slate-800/60 pb-1">
-                    <span className="font-bold uppercase flex items-center gap-1 text-emerald-400">
-                      <Users className="w-3.5 h-3.5" />
-                      <span>Movimiento de Espectadores Reales:</span>
+                    <span className="text-[9px] text-slate-500 block uppercase font-bold">
+                      {lang === 'en' ? 'Bidding Lane Status' : 'Estado de Carril'}
                     </span>
-                    <span className="font-mono font-bold text-emerald-400">{viewersCount} en sala</span>
-                  </div>
-                  <div className="space-y-1 pt-1 max-h-20 overflow-y-auto">
-                    {spectatorEvents.slice(0, 3).map((evt) => (
-                      <div key={evt.id} className="text-[10px] text-slate-300 flex items-center justify-between font-mono">
-                        <span className="flex items-center gap-1.5">
-                          <span className={`w-1.5 h-1.5 rounded-full ${evt.type === 'join' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                          <span>{evt.text}</span>
-                        </span>
-                        <span className="text-slate-500 text-[9px]">{evt.time}</span>
-                      </div>
-                    ))}
+                    <span className="font-mono font-black text-emerald-400 text-xs">
+                      {lang === 'en' ? 'NO ACTIVE BIDS YET' : 'SIN OFERTAS EN CURSO'}
+                    </span>
                   </div>
                 </div>
 
                 <p className="text-[11px] text-slate-300 leading-relaxed italic border-t border-slate-800/80 pt-1.5">
                   {isBroker
-                    ? 'Como Broker Autorizado, tu terminal está conectada con la Paleta #101 lista para pujar en cuanto el subastador dé inicio a la subasta.'
-                    : 'Puedes observar el vehículo, las fotografías y la ficha técnica. Tu broker autorizado iniciará las pujas en cuanto comience la subasta.'}
+                    ? 'Terminal de broker conectada en espera. Podrás dar inicio formal a la subasta y activar las posturas cuando esté coordinado.'
+                    : 'Catálogo oficial de inspección técnica. La mesa de ofertas en vivo y el reloj de puja se activarán automáticamente una vez que el martillero abra formalmente el carril.'}
                 </p>
 
                 {/* EXPEDIENTE TÉCNICO Y AUDITORÍA DEL LOTE */}
@@ -2305,121 +2294,151 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
           {/* REGISTRO DE ACTIVIDAD Y PARTICIPANTES REALES */}
           <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3 flex-1 flex flex-col min-h-[240px] shadow-xl text-xs">
-
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveTab('bids')}
-                  className={`font-bold pb-1 transition border-b-2 ${activeTab === 'bids'
-                      ? 'border-amber-400 text-amber-400'
-                      : 'border-transparent text-slate-400 hover:text-white'
-                    }`}
-                >
-                  {t('tabBidHistory')} ({bids.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('participants')}
-                  className={`font-bold pb-1 transition border-b-2 ${activeTab === 'participants'
-                      ? 'border-amber-400 text-amber-400'
-                      : 'border-transparent text-slate-400 hover:text-white'
-                    }`}
-                >
-                  {t('tabParticipants')} ({participants.length})
-                </button>
+            {session.status === 'prepared' ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-5 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-blue-950/80 border border-blue-500/50 flex items-center justify-center text-amber-400">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">
+                    {lang === 'en' ? 'Lot Scheduled for Official Copart Auction' : 'Lote Programado para Subasta Oficial Copart'}
+                  </h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">
+                    {lang === 'en'
+                      ? 'This vehicle is currently in pre-auction inspection mode. Authorized floor paddles, live bidding telemetry, and the 15-second countdown will engage when the auction begins.'
+                      : 'Este vehículo se encuentra en período de inspección técnica previa. La mesa de posturas, el reloj de 15 segundos y las paletas autorizadas de sala se activarán automáticamente en vivo al dar inicio formal a la subasta.'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-1 font-mono text-[11px]">
+                  <span className="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                    Patio: <strong className="text-white">{vehicle?.location || 'OK - Oklahoma City'}</strong>
+                  </span>
+                  <span className="px-2.5 py-1 rounded bg-amber-950/50 border border-amber-800/60 text-amber-300 font-bold">
+                    📅 {(vehicle as any)?.sale_date || 'Martes, 24 Nov 2026 • 11:00 AM EST'}
+                  </span>
+                  <span className="px-2.5 py-1 rounded bg-emerald-950/50 border border-emerald-800/60 text-emerald-300 font-bold">
+                    Base de Salida: ${Number(session?.starting_price || 5500).toLocaleString()} USD
+                  </span>
+                </div>
               </div>
-
-              <span className="text-[10px] text-emerald-400 font-mono font-bold">
-                {lang === 'en' ? 'WEBSOCKET ACTIVE' : 'WEBSOCKET ACTIVO'}
-              </span>
-            </div>
-
-            {/* TAB 1: FLUJO DE OFERTAS REALES */}
-            {activeTab === 'bids' && (
-              <div className="flex-1 overflow-y-auto max-h-[260px] space-y-1.5 pr-1">
-                {bids.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-slate-500 py-8">
-                    Esperando primera oferta en sala...
+            ) : (
+              <>
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab('bids')}
+                      className={`font-bold pb-1 transition border-b-2 ${activeTab === 'bids'
+                          ? 'border-amber-400 text-amber-400'
+                          : 'border-transparent text-slate-400 hover:text-white'
+                        }`}
+                    >
+                      {t('tabBidHistory')} ({bids.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('participants')}
+                      className={`font-bold pb-1 transition border-b-2 ${activeTab === 'participants'
+                          ? 'border-amber-400 text-amber-400'
+                          : 'border-transparent text-slate-400 hover:text-white'
+                        }`}
+                    >
+                      {t('tabParticipants')} ({participants.length})
+                    </button>
                   </div>
-                ) : (
-                  bids.map((b) => (
-                    <div
-                      key={b.id}
-                      className={`flex items-center justify-between p-2 rounded text-xs border ${(b as any).paddle_number?.includes('101')
-                          ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-200'
-                          : 'bg-[#050912] border-slate-800/80 text-slate-200'
-                        }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9.5px] font-mono bg-blue-950 text-blue-300 border border-blue-800 px-1.5 py-0.5 rounded font-bold">
-                          #{b.sequence_number}
-                        </span>
-                        <span className="font-bold text-amber-300">
-                          {(b as any).paddle_number || b.bidder_name}
-                        </span>
-                        <span className="text-slate-400 text-[11px] truncate max-w-[120px]">
-                          {b.bidder_name}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          {b.timestamp ? new Date(b.timestamp).toLocaleTimeString() : ''}
-                        </span>
-                        <span className="font-mono font-black text-emerald-400 text-sm">
-                          ${b.amount.toLocaleString()} USD
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                    {lang === 'en' ? 'WEBSOCKET ACTIVE' : 'WEBSOCKET ACTIVO'}
+                  </span>
+                </div>
 
-            {/* TAB 2: PALETAS AUTORIZADAS EN SALA */}
-            {activeTab === 'participants' && (
-              <div className="flex-1 overflow-y-auto max-h-[260px] space-y-1.5 pr-1">
-                {[
-                  { paddle: 'Paleta #101', name: session.broker_name || 'Broker Autorizado (Representante)', loc: 'Miami, FL', isBroker: true },
-                  { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX' },
-                  { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA' },
-                  { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA' },
-                  { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH' },
-                  { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX' },
-                  { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL' },
-                ].map((p) => {
-                  const isLeading = (session as any).currentWinnerPaddle === p.paddle;
-                  return (
-                    <div
-                      key={p.paddle}
-                      className={`flex items-center justify-between p-2 rounded border text-xs ${isLeading
-                          ? 'bg-emerald-950/60 border-emerald-500/80 shadow'
-                          : 'bg-[#050912] border-slate-800/80'
-                        }`}
-                    >
-                      <div>
-                        <div className="font-bold text-white flex items-center gap-1.5">
-                          <span className={`font-mono font-black ${isLeading ? 'text-emerald-400' : 'text-amber-400'}`}>{p.paddle}</span>
-                          <span>•</span>
-                          <span className="truncate max-w-[140px]">{p.name}</span>
-                          {p.isBroker && (
-                            <span className="bg-blue-900/60 text-blue-300 text-[9px] px-1.5 py-0.2 rounded font-black">
-                              BROKER
+                {/* TAB 1: FLUJO DE OFERTAS REALES */}
+                {activeTab === 'bids' && (
+                  <div className="flex-1 overflow-y-auto max-h-[260px] space-y-1.5 pr-1">
+                    {bids.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-xs text-slate-500 py-8">
+                        Esperando primera oferta en sala...
+                      </div>
+                    ) : (
+                      bids.map((b) => (
+                        <div
+                          key={b.id}
+                          className={`flex items-center justify-between p-2 rounded text-xs border ${(b as any).paddle_number?.includes('101')
+                              ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-200'
+                              : 'bg-[#050912] border-slate-800/80 text-slate-200'
+                            }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9.5px] font-mono bg-blue-950 text-blue-300 border border-blue-800 px-1.5 py-0.5 rounded font-bold">
+                              #{b.sequence_number}
                             </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-slate-400">{p.loc}</span>
-                      </div>
+                            <span className="font-bold text-amber-300">
+                              {(b as any).paddle_number || b.bidder_name}
+                            </span>
+                            <span className="text-slate-400 text-[11px] truncate max-w-[120px]">
+                              {b.bidder_name}
+                            </span>
+                          </div>
 
-                      <span className={`px-2 py-0.5 rounded text-[9.5px] font-bold uppercase border ${isLeading
-                          ? 'bg-emerald-500 text-slate-950 border-emerald-300 font-black animate-pulse'
-                          : 'bg-emerald-950 border-emerald-700/60 text-emerald-300'
-                        }`}>
-                        {isLeading ? (lang === 'en' ? 'HIGH BIDDER' : 'LÍDER') : (lang === 'en' ? 'AUTHORIZED' : 'AUTORIZADO')}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {b.timestamp ? new Date(b.timestamp).toLocaleTimeString() : ''}
+                            </span>
+                            <span className="font-mono font-black text-emerald-400 text-sm">
+                              ${b.amount.toLocaleString()} USD
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 2: PALETAS AUTORIZADAS EN SALA */}
+                {activeTab === 'participants' && (
+                  <div className="flex-1 overflow-y-auto max-h-[260px] space-y-1.5 pr-1">
+                    {[
+                      { paddle: 'Paleta #101', name: session.broker_name || 'Broker Autorizado (Representante)', loc: 'Miami, FL', isBroker: true },
+                      { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX' },
+                      { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA' },
+                      { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA' },
+                      { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH' },
+                      { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX' },
+                      { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL' },
+                    ].map((p) => {
+                      const isLeading = (session as any).currentWinnerPaddle === p.paddle;
+                      return (
+                        <div
+                          key={p.paddle}
+                          className={`flex items-center justify-between p-2 rounded border text-xs ${isLeading
+                              ? 'bg-emerald-950/60 border-emerald-500/80 shadow'
+                              : 'bg-[#050912] border-slate-800/80'
+                            }`}
+                        >
+                          <div>
+                            <div className="font-bold text-white flex items-center gap-1.5">
+                              <span className={`font-mono font-black ${isLeading ? 'text-emerald-400' : 'text-amber-400'}`}>{p.paddle}</span>
+                              <span>•</span>
+                              <span className="truncate max-w-[140px]">{p.name}</span>
+                              {p.isBroker && (
+                                <span className="bg-blue-900/60 text-blue-300 text-[9px] px-1.5 py-0.2 rounded font-black">
+                                  BROKER
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-slate-400">{p.loc}</span>
+                          </div>
+
+                          <span className={`px-2 py-0.5 rounded text-[9.5px] font-bold uppercase border ${isLeading
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-300 font-black animate-pulse'
+                              : 'bg-emerald-950 border-emerald-700/60 text-emerald-300'
+                            }`}>
+                            {isLeading ? (lang === 'en' ? 'HIGH BIDDER' : 'LÍDER') : (lang === 'en' ? 'AUTHORIZED' : 'AUTORIZADO')}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -544,6 +544,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     primary_damage: 'Minor Dents/Scratches',
     secondary_damage: 'Ninguno',
     auction_reason: 'Liquidación de Aseguradora Farmers Insurance (Título Limpio / Sin Choque Estructural)',
+    sale_date: 'Martes, 24 de Noviembre de 2026 • 11:00 AM EST',
     has_keys: true,
     location: 'OK - Oklahoma City',
     equipment: [
@@ -699,6 +700,7 @@ export const INITIAL_SESSIONS: AuctionSession[] = [
     vehicle_id: 'veh-sequoia-2025-trd',
     title: 'Subasta Oficial en Vivo - 2025 Toyota Sequoia TRD Pro 4WD',
     status: 'prepared',
+    sale_date: 'Martes, 24 de Noviembre de 2026 • 11:00 AM EST',
     vehicle_snapshot: INITIAL_VEHICLES.find((v) => v.id === 'veh-sequoia-2025-trd') || INITIAL_VEHICLES[0],
     client_snapshot: INITIAL_CLIENTS.find((c) => c.id === 'cli-004') || INITIAL_CLIENTS[0],
     starting_price: 5500,
