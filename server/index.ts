@@ -446,7 +446,7 @@ function stopServerClock(sessionId: string) {
   }
 }
 
-function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold') {
+function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold', paramWinnerPaddle?: string, paramWinnerName?: string) {
   stopServerClock(sessionId);
   const session = db.prepare('SELECT * FROM auction_sessions WHERE id = ?').get(sessionId) as any;
   if (!session) return;
@@ -455,16 +455,18 @@ function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold') {
   const now = new Date().toISOString();
 
   // El ganador oficial es la última paleta que tenga la mejor oferta al momento de adjudicar
-  let winnerPaddle = session.current_winner_paddle;
-  let winnerName = session.current_winner_name;
+  let winnerPaddle = paramWinnerPaddle || session.current_winner_paddle;
+  let winnerName = paramWinnerName || session.current_winner_name;
   let winnerId = session.current_winner_id;
 
   if (finalStatus === 'unsold') {
     winnerPaddle = 'N/A';
     winnerName = 'Sin adjudicación (UNSOLD)';
-  } else if (!winnerPaddle) {
+  } else if (!winnerPaddle || winnerPaddle === 'Paleta #101' || winnerPaddle.includes('101')) {
     winnerPaddle = 'Paleta #101';
-    winnerName = session.buyer_name || 'Broker Autorizado';
+    winnerName = (paramWinnerName && !paramWinnerName.includes('Representante'))
+      ? paramWinnerName
+      : (session.broker_name && !session.broker_name.includes('Representante') ? session.broker_name : 'Carlos Mendoza');
   }
 
   // 1. REGISTRO OFICIAL DEL RESULTADO Y ACTUALIZACIÓN DE ESTADO
@@ -1579,10 +1581,10 @@ app.post('/api/sessions/:id/viewers', (req, res) => {
 
 // 7e. ADJUDICACIÓN SOBERANA (SOLD / UNSOLD)
 app.post('/api/sessions/:id/adjudicate', (req, res) => {
-  const { decision } = req.body; // 'sold' | 'unsold'
+  const { decision, winnerPaddle, winnerName } = req.body; // 'sold' | 'unsold'
   const session = findSession(req.params.id);
   const targetId = session?.id || req.params.id;
-  finalizeAuction(targetId, decision === 'unsold' ? 'unsold' : 'sold');
+  finalizeAuction(targetId, decision === 'unsold' ? 'unsold' : 'sold', winnerPaddle, winnerName);
   res.json({ success: true, decision: decision || 'sold' });
 });
 

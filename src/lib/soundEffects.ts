@@ -203,25 +203,34 @@ class SoundManager {
     }
   }
 
-  // Locución por voz del subastador en inglés (Copart Live Auctioneer Voice)
-  // Garantiza SIEMPRE voz masculina profunda de subastador americano (Lane A)
-  public speak(phrase: string, rate: number = 1.10) {
+  // Locución por voz del subastador (Copart Live Auctioneer Voice)
+  // Soporta locución nativa en inglés o español con modulación masculina de subastador
+  public speak(phrase: string, rate: number = 1.10, lang: string = 'en-US') {
     if (this.isMuted) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
     try {
       window.speechSynthesis.cancel();
 
+      const isSpanish = lang.startsWith('es') || /vendido|paleta|dólares|pesos/i.test(phrase);
       const utterance = new SpeechSynthesisUtterance(phrase);
-      utterance.lang = 'en-US';
-      utterance.rate = rate; // Ritmo acelerado auténtico de subastador
+      utterance.lang = isSpanish ? 'es-US' : 'en-US';
+      utterance.rate = rate; // Ritmo auténtico de subastador
       utterance.volume = 1.0;
-      utterance.pitch = 0.84; // Tono grave profundo inequívocamente masculino
+      utterance.pitch = isSpanish ? 0.92 : 0.84;
 
-      const chosenVoice = this.cachedMaleVoice || this.findBestMaleVoice();
-
-      if (chosenVoice) {
-        utterance.voice = chosenVoice;
+      if (isSpanish) {
+        const voices = window.speechSynthesis.getVoices();
+        const spanishVoice = voices.find(v => (v.lang === 'es-US' || v.lang.startsWith('es')) && ['jorge', 'raul', 'miguel', 'diego', 'carlos', 'male', 'hombre'].some(k => v.name.toLowerCase().includes(k)))
+          || voices.find(v => v.lang === 'es-US' || v.lang.startsWith('es'));
+        if (spanishVoice) {
+          utterance.voice = spanishVoice;
+        }
+      } else {
+        const chosenVoice = this.cachedMaleVoice || this.findBestMaleVoice();
+        if (chosenVoice) {
+          utterance.voice = chosenVoice;
+        }
       }
 
       window.speechSynthesis.speak(utterance);
@@ -263,8 +272,8 @@ class SoundManager {
     }
   }
 
-  // Fanfarria de victoria / adjudicación (Sold!) con voz en inglés
-  public playSoldFanfare(price?: number, paddle?: string) {
+  // Fanfarria de victoria / adjudicación (Sold!) anunciando ganador
+  public playSoldFanfare(price?: number, paddle?: string, winnerName?: string) {
     const ctx = this.getContext();
 
     try {
@@ -290,13 +299,23 @@ class SoundManager {
         osc.stop(startTime + 0.45);
       });
 
-      // Voz de Sold al estilo Copart
+      // Voz de adjudicación: "¡Vendido a la paleta 101, [nombre]!"
       setTimeout(() => {
-        if (price) {
-          this.speak(`Sold! Sold for ${price.toLocaleString()} dollars!`, 1.02);
+        const cleanPaddle = paddle ? paddle.replace(/[^0-9]/g, '') : '101';
+        const cleanName = winnerName && !winnerName.toLowerCase().includes('representante') ? winnerName.trim() : '';
+
+        let phrase = '';
+        if (cleanPaddle === '101' || cleanPaddle.includes('101')) {
+          phrase = cleanName 
+            ? `¡Vendido a la paleta 101, ${cleanName}!` 
+            : `¡Vendido a la paleta 101!`;
+        } else if (cleanName) {
+          phrase = `¡Vendido a la paleta ${cleanPaddle}, ${cleanName}!`;
         } else {
-          this.speak('Sold! Sold!', 1.02);
+          phrase = `¡Vendido a la paleta ${cleanPaddle || '101'}!`;
         }
+
+        this.speak(phrase, 1.05, 'es-US');
       }, 700);
     } catch {
       // ignore

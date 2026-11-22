@@ -631,7 +631,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
   // 4. ADJUDICACIÓN MANUAL (SOLD / UNSOLD)
   const handleAdjudicate = async (decision: 'sold' | 'unsold') => {
-    const winner = (session as any).currentWinnerPaddle || session.current_bidder_name || (bids.length > 0 ? bids[0].paddleNumber : 'Paleta #101');
+    const winner = (session as any).currentWinnerPaddle || (session as any).current_winner_paddle || session.current_bidder_name || (bids.length > 0 ? bids[0].paddleNumber : 'Paleta #101');
+    const winnerName = (winner === 'Paleta #101' || winner.includes('101'))
+      ? (lotBrokerName || 'Carlos Mendoza')
+      : ((session as any).currentWinnerName || (session as any).current_winner_name || 'Postor en Sala');
     const price = Number(session.current_price || 5000);
 
     setSession((prev) => ({
@@ -640,11 +643,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       time_remaining_seconds: 0,
       current_winner_paddle: decision === 'sold' ? winner : 'N/A',
       currentWinnerPaddle: decision === 'sold' ? winner : 'N/A',
+      current_winner_name: decision === 'sold' ? winnerName : null,
+      currentWinnerName: decision === 'sold' ? winnerName : null,
     }));
     
     if (decision === 'sold') {
       try {
-        sounds.playSoldFanfare(price);
+        sounds.playSoldFanfare(price, winner, winnerName);
         confetti({
           particleCount: 160,
           spread: 90,
@@ -655,7 +660,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
       try {
         const docRes = await store.createDocumentLink(session.id, {
-          clientName: (session as any).currentWinnerName || lotBuyerName || 'Carlos Mendoza (Comprador)',
+          clientName: winnerName,
           clientEmail: 'cliente@subastas.com',
           expiresInDays: 7,
         });
@@ -669,8 +674,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       } catch {}
     }
 
-    await store.adjudicateAuction(session.id, decision);
-    showFeedback(decision === 'sold' ? `🔨 Lote ADJUDICADO (SOLD) a ${winner}!` : '⛔ Lote marcado como NO VENDIDO (UNSOLD)');
+    await store.adjudicateAuction(session.id, decision, winner, winnerName, price);
+    showFeedback(decision === 'sold' ? `🔨 Lote ADJUDICADO (SOLD) a ${winner} (${winnerName})!` : '⛔ Lote marcado como NO VENDIDO (UNSOLD)');
     await syncSessionData();
   };
 

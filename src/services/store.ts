@@ -201,7 +201,9 @@ class RealAuctionStore {
       sounds.playBidPing();
       this.notify();
     } else if (data.type === 'AUCTION_FINALIZED') {
-      sounds.playSoldFanfare();
+      if (data.decision === 'sold' || data.status === 'sold') {
+        sounds.playSoldFanfare(data.finalPrice || data.currentPrice, data.winnerPaddle, data.winnerName);
+      }
       this.notify();
     } else if (data.type === 'CLOCK_TICK') {
       this.notify();
@@ -1046,19 +1048,29 @@ class RealAuctionStore {
     }
   }
 
-  public async adjudicateAuction(sessionId: string, decision: 'sold' | 'unsold'): Promise<boolean> {
+  public async adjudicateAuction(
+    sessionId: string,
+    decision: 'sold' | 'unsold',
+    winnerPaddle?: string,
+    winnerName?: string,
+    currentPrice?: number
+  ): Promise<boolean> {
     const target = sessionId || 'ses-live-001';
     this.stopLocalClock();
     this.localSessionState.status = decision;
+    if (winnerPaddle) this.localSessionState.currentWinnerPaddle = winnerPaddle;
+    if (winnerName) this.localSessionState.currentWinnerName = winnerName;
+    if (currentPrice) this.localSessionState.currentPrice = currentPrice;
 
     const adjMsg = {
       type: 'AUCTION_FINALIZED',
       sessionId: target,
       decision,
       status: decision,
-      currentPrice: this.localSessionState.currentPrice,
-      winnerPaddle: this.localSessionState.currentWinnerPaddle || 'Paleta #101',
-      winnerName: this.localSessionState.currentWinnerName || 'Broker Autorizado',
+      currentPrice: currentPrice || this.localSessionState.currentPrice,
+      finalPrice: currentPrice || this.localSessionState.currentPrice,
+      winnerPaddle: winnerPaddle || this.localSessionState.currentWinnerPaddle || 'Paleta #101',
+      winnerName: winnerName || this.localSessionState.currentWinnerName || 'Carlos Mendoza',
     };
     this.dispatchSyncEvent(adjMsg, true);
 
@@ -1066,7 +1078,7 @@ class RealAuctionStore {
       const res = await fetch(`${SERVER_URL}/api/sessions/${target}/adjudicate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision })
+        body: JSON.stringify({ decision, winnerPaddle, winnerName, currentPrice })
       });
       return res.ok;
     } catch {

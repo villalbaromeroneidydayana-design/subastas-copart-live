@@ -198,10 +198,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     setIsSubmittingBid(false);
   };
 
-  const triggerSoldConfettiCelebration = useCallback(() => {
+  const triggerSoldConfettiCelebration = useCallback((winnerPaddleParam?: string, winnerNameParam?: string) => {
     try {
       const price = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
-      sounds.playSoldFanfare(price);
+      const winnerPaddle = winnerPaddleParam || (session as any)?.current_winner_paddle || (session as any)?.currentWinnerPaddle || (bids.length > 0 ? ((bids[0] as any).paddle_number || (bids[0] as any).paddleNumber) : 'Paleta #101');
+      const winnerName = winnerNameParam || (session as any)?.current_winner_name || (session as any)?.currentWinnerName || (session as any)?.broker_name || 'Carlos Mendoza';
+      sounds.playSoldFanfare(price, winnerPaddle, winnerName);
       // Cañón central con colores vibrantes
       confetti({
         particleCount: 160,
@@ -381,7 +383,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       if (data.session.status === 'sold') {
         if (!hasCelebratedSoldRef.current) {
           hasCelebratedSoldRef.current = true;
-          triggerSoldConfettiCelebration();
+          triggerSoldConfettiCelebration(data.session.current_winner_paddle, data.session.current_winner_name);
         }
       } else {
         hasCelebratedSoldRef.current = false;
@@ -644,7 +646,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           }));
           if ((finalDecision === 'sold') && !hasCelebratedSoldRef.current) {
             hasCelebratedSoldRef.current = true;
-            triggerSoldConfettiCelebration();
+            triggerSoldConfettiCelebration(msg.winnerPaddle, msg.winnerName);
           }
           fetchStateFromServer();
         } else if (msg.type === 'AUCTION_RESET') {
@@ -695,7 +697,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
           if (msg.status === 'sold' && !hasCelebratedSoldRef.current) {
             hasCelebratedSoldRef.current = true;
-            triggerSoldConfettiCelebration();
+            triggerSoldConfettiCelebration(msg.winnerPaddle, msg.winnerName);
           } else if (msg.status !== 'sold') {
             hasCelebratedSoldRef.current = false;
             if (msg.status === 'paused') {
@@ -1258,8 +1260,31 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           {/* FOTOGRAFÍA PRINCIPAL CON NAVEGACIÓN Y ZOOM */}
           <div className="relative bg-[#09101c] border border-[#1b2b44] rounded-lg overflow-hidden shadow-2xl group">
 
+            {/* LETRERO GRANDE OFICIAL: VEHÍCULO VENDIDO (SOLD) */}
+            {session.status === 'sold' && (
+              <div className="w-full bg-gradient-to-r from-red-700 via-rose-600 to-red-700 text-white py-3 px-4 flex items-center justify-between border-b-4 border-red-400 shadow-2xl animate-fadeIn relative z-40">
+                <div className="flex items-center gap-3">
+                  <span className="w-3.5 h-3.5 rounded-full bg-white animate-ping shrink-0" />
+                  <div className="flex items-center gap-2">
+                    <Gavel className="w-6 h-6 text-amber-300 fill-amber-300 shrink-0" />
+                    <span className="font-black text-base sm:text-xl tracking-widest uppercase drop-shadow">
+                      VEHÍCULO VENDIDO • SOLD
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono font-black text-amber-300 text-sm sm:text-base block drop-shadow">
+                    ADJUDICADO: {(session as any).current_winner_paddle || (session as any).currentWinnerPaddle || 'Paleta #101'}
+                  </span>
+                  <span className="text-[11px] text-white/95 font-bold block truncate max-w-[240px]">
+                    {(session as any).current_winner_name || (session as any).currentWinnerName || (session as any).broker_name || 'Carlos Mendoza'} • ${(Number(session.current_price || 5000)).toLocaleString()} USD
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Badges Superiores sobre la Fotografía */}
-            <div className="absolute top-2.5 left-2.5 z-20 flex flex-wrap gap-1.5">
+            <div className={`absolute ${session.status === 'sold' ? 'top-16' : 'top-2.5'} left-2.5 z-20 flex flex-wrap gap-1.5 transition-all`}>
               <span
                 className="bg-[#002855]/95 text-white font-black text-xs px-2.5 py-1 rounded border border-blue-400/40 shadow backdrop-blur flex items-center gap-1.5"
                 title="Lote oficial verificado"
@@ -1283,7 +1308,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
 
             {/* INSIGNIAS EXCLUSIVAS COPART: Enlace al Lote Real con Video/Motor, Carfax y Verificación */}
-            <div className="absolute top-11 left-2.5 z-20 flex flex-wrap gap-1.5">
+            <div className={`absolute ${session.status === 'sold' ? 'top-[92px]' : 'top-11'} left-2.5 z-20 flex flex-wrap gap-1.5 transition-all`}>
               {/* Acceso Directo Oficial al Lote Completo (Fotos HD, Video y Ficha Original) */}
               <a
                 href={copartLotUrl}
@@ -1403,6 +1428,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               className="relative w-full aspect-[16/10] bg-black flex items-center justify-center overflow-hidden cursor-pointer"
               onClick={() => setIsGalleryOpen(true)}
             >
+              {session.status === 'sold' && (
+                <div className="absolute inset-0 z-30 bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none animate-fadeIn">
+                  <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-black text-3xl sm:text-5xl px-8 sm:px-12 py-4 sm:py-5 rounded-2xl shadow-[0_0_50px_rgba(220,38,38,0.95)] border-4 border-white tracking-widest uppercase transform -rotate-6 animate-pulse flex flex-col items-center">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Gavel className="w-8 h-8 sm:w-11 sm:h-11 text-amber-300 fill-amber-300" />
+                      <span>¡VENDIDO!</span>
+                    </div>
+                    <span className="text-xs sm:text-base tracking-widest text-amber-200 uppercase font-mono mt-1">
+                      SOLD • {(session as any).current_winner_paddle || (session as any).currentWinnerPaddle || 'Paleta #101'}
+                    </span>
+                  </div>
+                </div>
+              )}
               {activeImage ? (
                 <img
                   src={activeImage.url}
