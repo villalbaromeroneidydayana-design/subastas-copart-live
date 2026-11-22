@@ -428,11 +428,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     };
   }, [session.id]);
 
-  // Mantener el importe sugerido un paso adelante
+  // Mantener el importe sugerido un paso adelante sobre el precio actual (+50 USD por defecto)
   useEffect(() => {
     const curr = Number(session.current_price || (session as any).currentPrice || 5000);
-    const inc = Number(session.bid_increment || (session as any).minIncrement || 250);
-    setBidAmountInput(String(curr + inc));
+    setBidAmountInput(String(curr + 50));
   }, [session.current_price]);
 
   const showFeedback = (text: string, type: 'success' | 'error' = 'success') => {
@@ -536,6 +535,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
     if (res.success) {
       showFeedback(`✓ Oferta de $${amount.toLocaleString()} enviada exitosamente con ${selectedPaddle}`);
+      setBidAmountInput(String(amount + 50));
       await syncSessionData();
     } else {
       showFeedback(res.error || 'Error al procesar la oferta', 'error');
@@ -574,10 +574,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     await syncSessionData();
   };
 
-  // 2. INCREMENTOS RÁPIDOS
+  // 2. INCREMENTOS RÁPIDOS CALCULADOS EXACTAMENTE SOBRE EL PRECIO ACTUAL EN SALA
   const applyIncrement = (incrementValue: number) => {
-    const curr = Number(bidAmountInput) || Number(session.current_price || 5000);
-    setBidAmountInput(String(curr + incrementValue));
+    const livePrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
+    setBidAmountInput(String(livePrice + incrementValue));
   };
 
   // 3. LLAMADAS DEL SUBASTADOR (GOING ONCE, GOING TWICE, FAIR WARNING)
@@ -684,7 +684,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
     if (res.success) {
       showFeedback(`⚡ Broker #101 ofertó $${amount.toLocaleString()} USD`);
-      setBidAmountInput(String(amount + (session.bid_increment || 250)));
+      setBidAmountInput(String(amount + 50));
       await syncSessionData();
       return true;
     } else {
