@@ -310,6 +310,8 @@ class SoundManager {
 
   // Fanfarria de victoria / adjudicación (Sold!) anunciando ganador
   public playSoldFanfare(price?: number, paddle?: string, winnerName?: string) {
+    this.isMuted = false;
+    this.unlockAudio();
     const ctx = this.getContext();
 
     try {

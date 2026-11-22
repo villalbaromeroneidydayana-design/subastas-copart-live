@@ -211,13 +211,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   const triggerSoldConfettiCelebration = useCallback((winnerPaddleParam?: string, winnerNameParam?: string) => {
     try {
+      // 1. AUTO-SCROLL INMEDIATO Y SUAVE HACIA ARRIBA PARA MOSTRAR EL VEHÍCULO VENDIDO
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
       const price = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
       const winnerPaddle = winnerPaddleParam || (session as any)?.current_winner_paddle || (session as any)?.currentWinnerPaddle || (bids.length > 0 ? ((bids[0] as any).paddle_number || (bids[0] as any).paddleNumber) : 'Paleta #101');
       let winnerName = winnerNameParam || (session as any)?.current_winner_name || (session as any)?.currentWinnerName || (session as any)?.broker_name;
       if (!winnerName || winnerName.includes('Representante') || winnerName.includes('Broker Autorizado')) {
         const p101 = participants.find((p: any) => p.paddleNumber === 'Paleta #101' || p.paddle_number === 'Paleta #101');
-        winnerName = p101?.name || (session as any)?.brokerName || 'Carlos Mendoza';
+        winnerName = p101?.name || (session as any)?.brokerName || 'Richard';
       }
+      sounds.unlockAudio();
       sounds.playSoldFanfare(price, winnerPaddle, winnerName);
       // Cañón central con colores vibrantes
       confetti({
@@ -396,10 +402,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       }
 
       if (data.session.status === 'sold') {
-        if (!hasCelebratedSoldRef.current) {
-          hasCelebratedSoldRef.current = true;
-          triggerSoldConfettiCelebration(data.session.current_winner_paddle, data.session.current_winner_name);
-        }
+        hasCelebratedSoldRef.current = true;
       } else {
         hasCelebratedSoldRef.current = false;
       }
@@ -659,8 +662,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             current_winner_paddle: msg.winnerPaddle || (prev as any).current_winner_paddle,
             time_remaining_seconds: 0,
           }));
-          if ((finalDecision === 'sold') && !hasCelebratedSoldRef.current) {
-            hasCelebratedSoldRef.current = true;
+          if (finalDecision === 'sold') {
             triggerSoldConfettiCelebration(msg.winnerPaddle, msg.winnerName);
           }
           fetchStateFromServer();
@@ -710,8 +712,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             brokerLocation: msg.brokerLocation || (prev as any).broker_location,
           }));
 
-          if (msg.status === 'sold' && !hasCelebratedSoldRef.current) {
-            hasCelebratedSoldRef.current = true;
+          if (msg.status === 'sold') {
             triggerSoldConfettiCelebration(msg.winnerPaddle, msg.winnerName);
           } else if (msg.status !== 'sold') {
             hasCelebratedSoldRef.current = false;
