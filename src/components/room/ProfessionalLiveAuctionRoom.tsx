@@ -1405,142 +1405,38 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </div>
             )}
 
-            {/* Badges Superiores sobre la Fotografía */}
-            <div className={`absolute ${session.status === 'sold' ? 'top-24 sm:top-16' : 'top-2.5'} left-2.5 z-20 flex flex-wrap gap-1.5 transition-all`}>
+            {/* Badges Superiores sobre la Fotografía (SÓLO LOTE Y VIEW FULL VEHICLE) */}
+            <div className={`absolute ${session.status === 'sold' ? 'top-20 sm:top-14' : 'top-2.5'} left-2.5 z-20 flex flex-wrap items-center gap-2 transition-all`}>
               <span
-                className="bg-[#002855]/95 text-white font-black text-xs px-2.5 py-1 rounded border border-blue-400/40 shadow backdrop-blur flex items-center gap-1.5"
-                title="Lote oficial verificado"
+                className="bg-[#002855]/95 text-white font-black text-xs px-2.5 py-1 rounded border border-blue-400/50 shadow backdrop-blur flex items-center gap-1.5"
+                title="Lote oficial Copart"
               >
                 <span>{t('lotPrefix')} #{vehicle?.lot_number || '48291032'}</span>
               </span>
-              <span className={`text-xs font-black px-2.5 py-1 rounded shadow backdrop-blur ${(vehicle?.custom_badges?.runDriveText || vehicle?.vehicle_condition) === 'run_and_drive' || (vehicle?.custom_badges?.runDriveText && vehicle.custom_badges.runDriveText.toLowerCase().includes('run'))
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-amber-600 text-white'
-                }`}>
-                {vehicle?.custom_badges?.runDriveText || (vehicle?.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS')}
-              </span>
-              <span className="bg-slate-900/90 text-amber-300 border border-amber-400/40 font-mono text-xs px-2.5 py-1 rounded shadow">
-                {vehicle?.custom_badges?.titleTypeText || `${(vehicle?.title_type || 'clean').toUpperCase()} TITLE`}
-              </span>
-              {activeImage?.category && (
-                <span className="bg-blue-950/90 text-blue-300 border border-blue-600/50 uppercase font-bold text-[10px] px-2 py-0.5 rounded shadow">
-                  {activeImage.category}
-                </span>
-              )}
-            </div>
 
-            {/* INSIGNIAS EXCLUSIVAS COPART: Enlace al Lote Real con Video/Motor, Carfax y Verificación */}
-            <div className={`absolute ${session.status === 'sold' ? 'top-[92px]' : 'top-11'} left-2.5 z-20 flex flex-wrap gap-1.5 transition-all`}>
-              {/* Acceso Directo Oficial al Lote Completo (Fotos HD, Video y Ficha Original) */}
+              {/* Acceso Directo Oficial al Lote en Copart */}
               <a
                 href={copartLotUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 border-amber-400 hover:border-amber-300 transition active:scale-95 ring-1 ring-amber-400/40"
-                title="Ver todas las fotografías HD, video, inspección y detalles completos del lote"
+                className="px-2.5 py-1 rounded text-xs font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855]/95 hover:bg-[#003d80] text-amber-300 border-amber-400/70 hover:border-amber-300 transition active:scale-95"
+                title="Ver todas las fotografías HD y expediente completo en Copart.com"
               >
+                <span>{lang === 'en' ? 'VIEW FULL VEHICLE' : 'VER VEHÍCULO COMPLETO'}</span>
                 <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-                <span>{lang === 'en' ? 'VIEW FULL VEHICLE ↗' : 'VER VEHÍCULO COMPLETO ↗'}</span>
               </a>
-
-              {/* Botón Video de Motor Encendido Oficial Copart */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsVideoModalOpen(true);
-                }}
-                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-rose-950/90 hover:bg-rose-900 text-rose-300 border-rose-500/80 hover:border-rose-400 transition active:scale-95 animate-pulse"
-                title="Reproducir video oficial de vano motor encendido y prueba de escape Copart"
-              >
-                <Play className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
-                <span>{lang === 'en' ? 'Engine Run Video ▶' : 'Video Motor Encendido ▶'}</span>
-              </button>
-
-              {/* Botón 360° Walkaround - Solo si está expresamente habilitado */}
-              {vehicle?.custom_badges?.threeSixtyEnabled === true && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleToggle360();
-                  }}
-                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${is360Active
-                      ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-300 animate-pulse'
-                      : 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
-                    }`}
-                  title="Activar vista panorámica y giro 360° de las fotografías"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${is360Active ? 'animate-spin' : ''}`} />
-                  <span>{is360Active ? '360° Active...' : (vehicle?.custom_badges?.threeSixtyText || '360° View 🔄')}</span>
-                </button>
-              )}
-
-              {/* Botón Carfax Report - Solo si cuenta con documentación respaldada */}
-              {vehicle?.custom_badges?.carfaxEnabled === true && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsCarfaxModalOpen(true);
-                  }}
-                  className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400 transition active:scale-95"
-                  title="Consultar reporte oficial de historial Carfax / AutoCheck"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{vehicle?.custom_badges?.carfaxText || 'Carfax Clean ✓'}</span>
-                </button>
-              )}
-
-              {/* Botón 6 Comprobaciones Oficiales Copart */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsVerificationModalOpen(true);
-                }}
-                className="px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 bg-[#002855]/90 hover:bg-[#002855] text-amber-300 border-amber-500/60 hover:border-amber-400 transition active:scale-95"
-                title="Comprobaciones Oficiales de Seguridad Copart (Vehículo, Subasta, Broker, Oferta, Resultado, Pago)"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                <span>6 Comprobaciones Copart ✓</span>
-              </button>
-
-              {/* Botones e Insignias Extra Configuradas por el Usuario */}
-              {vehicle?.custom_badges?.extraBadges && vehicle.custom_badges.extraBadges.map((badge) => (
-                <button
-                  key={badge.id}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveExtraBadgeModal(badge);
-                  }}
-                  className={`px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-wider backdrop-blur-md border shadow-lg flex items-center gap-1.5 transition active:scale-95 ${badge.color === 'emerald'
-                      ? 'bg-black/85 hover:bg-black text-emerald-300 border-emerald-500/50 hover:border-emerald-400'
-                      : badge.color === 'blue'
-                        ? 'bg-black/85 hover:bg-black text-blue-300 border-blue-500/50 hover:border-blue-400'
-                        : badge.color === 'purple'
-                          ? 'bg-black/85 hover:bg-black text-purple-300 border-purple-500/50 hover:border-purple-400'
-                          : 'bg-black/85 hover:bg-black text-amber-300 border-amber-500/50 hover:border-amber-400'
-                    }`}
-                  title={badge.modalTitle || badge.label}
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>{badge.label}</span>
-                </button>
-              ))}
             </div>
 
             {/* Botón de Galería en Pantalla Completa */}
-            <div className="absolute top-2.5 right-2.5 z-20">
+            <div className={`absolute ${session.status === 'sold' ? 'top-20 sm:top-14' : 'top-2.5'} right-2.5 z-20 transition-all`}>
               <button
                 type="button"
                 onClick={() => setIsGalleryOpen(true)}
-                className="bg-black/75 hover:bg-black text-white text-xs font-bold px-2.5 py-1.5 rounded-lg backdrop-blur border border-slate-700/80 shadow flex items-center gap-1.5 transition active:scale-95"
+                className="bg-black/75 hover:bg-black text-white text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur border border-slate-700/80 shadow flex items-center gap-1.5 transition active:scale-95"
                 title="Ampliar fotografía a pantalla completa (Galería HD)"
               >
-                <Eye className="w-4 h-4 text-amber-400" />
+                <Eye className="w-3.5 h-3.5 text-amber-400" />
                 <span className="hidden sm:inline">Galería HD</span>
               </button>
             </div>
@@ -1684,6 +1580,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
           {/* FICHA TÉCNICA PROFESIONAL DE INVENTARIO */}
           <div className="bg-[#09101c] border border-[#1b2b44] rounded-lg p-3.5 sm:p-5 shadow-xl text-xs sm:text-sm">
+            {/* Insignias de Lote Verificado colocadas abajo para dejar la fotografía 100% limpia */}
+            <div className="flex flex-wrap items-center gap-2 mb-3.5 pb-2.5 border-b border-slate-800/80">
+              <span className="bg-emerald-950/90 text-emerald-300 border border-emerald-500/60 font-black text-xs px-2.5 py-1 rounded shadow flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>LOTE VERIFICADO COPART ✓</span>
+              </span>
+              <span className={`text-xs font-black px-2.5 py-1 rounded shadow ${(vehicle?.custom_badges?.runDriveText || vehicle?.vehicle_condition) === 'run_and_drive' || (vehicle?.custom_badges?.runDriveText && vehicle.custom_badges.runDriveText.toLowerCase().includes('run'))
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-amber-600 text-white'
+                }`}>
+                {vehicle?.custom_badges?.runDriveText || (vehicle?.vehicle_condition === 'run_and_drive' ? 'RUN & DRIVE' : 'STARTS')}
+              </span>
+              <span className="bg-slate-900 text-amber-300 border border-amber-400/40 font-mono text-xs px-2.5 py-1 rounded shadow">
+                {vehicle?.custom_badges?.titleTypeText || `${(vehicle?.title_type || 'clean').toUpperCase()} TITLE`}
+              </span>
+              <span className="bg-blue-950/80 text-blue-300 border border-blue-600/40 text-xs px-2.5 py-1 rounded shadow font-bold">
+                {vehicle?.location || 'Atlanta East Yard 12 (Georgia)'}
+              </span>
+            </div>
+
             <div className="border-b border-slate-800 pb-3.5 mb-3.5 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide">
