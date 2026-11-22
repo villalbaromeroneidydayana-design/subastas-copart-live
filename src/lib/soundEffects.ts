@@ -299,42 +299,20 @@ class SoundManager {
         osc.stop(startTime + 0.45);
       });
 
-      // Voz de adjudicación: "¡Vendido a la paleta 101, [nombre]!"
+      // Voz oficial de adjudicación estilo Copart VB3: Solo número de paleta en inglés
       setTimeout(() => {
         const cleanPaddle = paddle ? paddle.replace(/[^0-9]/g, '') : '101';
         
-        // Extracción limpia del nombre del comprador (limpiando sufijos como Broker Rep, Comprador, etc.)
-        let cleanName = '';
-        if (winnerName) {
-          cleanName = winnerName
-            .replace(/\(.*?\)/g, '')
-            .replace(/\[.*?\]/g, '')
-            .replace(/broker\s*autorizado/gi, '')
-            .replace(/broker/gi, '')
-            .replace(/representante/gi, '')
-            .replace(/rep\.?/gi, '')
-            .replace(/paleta/gi, '')
-            .replace(/#\d+/gi, '')
-            .trim();
-        }
-        
-        // Si tras limpiar quedó vacío y la paleta es la 101, asegurar nombre
-        if (!cleanName && (cleanPaddle === '101' || cleanPaddle.includes('101'))) {
-          cleanName = 'Carlos Mendoza';
-        }
-
         let phrase = '';
         if (cleanPaddle === '101' || cleanPaddle.includes('101')) {
-          phrase = cleanName 
-            ? `¡Vendido a la paleta 101, ${cleanName}!` 
-            : `¡Vendido a la paleta 101, Carlos Mendoza!`;
-        } else if (cleanName) {
-          phrase = `¡Vendido a la paleta ${cleanPaddle}, ${cleanName}!`;
+          phrase = 'Sold! Sold to bidder one-o-one!';
+        } else if (cleanPaddle) {
+          phrase = `Sold! Sold to bidder ${cleanPaddle}!`;
         } else {
-          phrase = `¡Vendido a la paleta ${cleanPaddle || '101'}!`;
+          phrase = 'Sold! Sold to bidder one-o-one!';
         }
 
-        this.speak(phrase, 1.05, 'es-US');
+        this.speak(phrase, 1.10, 'en-US');
       }, 700);
     } catch {
       // ignore
