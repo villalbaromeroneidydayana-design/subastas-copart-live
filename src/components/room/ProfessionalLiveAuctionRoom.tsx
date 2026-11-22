@@ -1751,27 +1751,27 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <span className="text-base sm:text-lg font-bold text-slate-400 self-end mb-2">USD</span>
               </div>
 
-              {/* Indicador de Postor Vigente */}
+              {/* Indicador de Postor Vigente Oficial Copart VB3 */}
               <div className="mt-2.5 flex items-center justify-center">
-                {(session as any).currentWinnerPaddle || session.current_bidder_name ? (
-                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold ${isBrokerWinning
-                      ? 'bg-emerald-950/90 border border-emerald-400 text-emerald-300 animate-pulse shadow'
-                      : 'bg-rose-950/90 border border-rose-600/80 text-rose-300 shadow'
-                    }`}>
-                    {isBrokerWinning ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>{lang === 'en' ? "YOU'RE HIGH BIDDER!" : '¡TU BROKER VA GANANDO LA PUJA!'} ({(session as any).currentWinnerPaddle})</span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="w-4 h-4 text-rose-400" />
-                        <span>{lang === 'en' ? 'OUTBID BY:' : 'SUPERADO POR:'} {(session as any).currentWinnerPaddle} - {(session as any).currentWinnerName}</span>
-                      </>
-                    )}
+                {((session as any).currentWinnerPaddle || (session as any).current_winner_paddle || session.current_bidder_name) ? (
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-emerald-950/90 border border-emerald-400/80 text-emerald-300 shadow">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 animate-pulse" />
+                    <span>
+                      {lang === 'en' ? 'HIGH BIDDER:' : 'POSTURA LÍDER EN MESA:'}{' '}
+                      <strong className="text-white font-mono">
+                        {(session as any).currentWinnerPaddle || (session as any).current_winner_paddle}
+                      </strong>
+                      {((session as any).currentWinnerName || session.current_bidder_name) && (
+                        <span className="text-slate-300 font-normal">
+                          {' '}- {(session as any).currentWinnerName || session.current_bidder_name}
+                        </span>
+                      )}
+                    </span>
                   </div>
                 ) : (
-                  <span className="text-xs text-slate-500">{t('noBidsYet')}</span>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {lang === 'en' ? 'Waiting for opening bid in Lane A...' : 'Esperando primera postura en Carril A...'}
+                  </span>
                 )}
               </div>
 
@@ -1921,132 +1921,139 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </div>
               </div>
 
-              {/* PALETA #101 DESTACADA (SU BROKER AUTORIZADO) */}
+              {/* DEFINICIÓN OFICIAL DE TODAS LAS PALETAS (TODAS IGUALES) */}
               {(() => {
-                const brokerPaddle = {
-                  number: 'Paleta #101',
-                  name: session.broker_name || 'Carlos Mendoza',
-                  company: 'Broker Autorizado (Representante)',
-                  location: 'Miami, FL',
-                  isBroker: true,
-                };
-                const winnerPaddle = (session as any).currentWinnerPaddle || (session as any).current_winner_paddle || (bids.length > 0 ? ((bids[0] as any).paddle_number || (bids[0] as any).paddleNumber) : '');
-                const isBrokerLeader = Boolean(
-                  (winnerPaddle && (winnerPaddle.includes('101') || winnerPaddle.includes('Paleta #101'))) ||
-                  ((session as any).current_bidder_name && (session as any).current_bidder_name.includes('101'))
-                );
+                const ALL_PADDLES = [
+                  { number: 'Paleta #101', defaultName: session.broker_name || 'Carlos Mendoza', defaultLoc: 'Miami, FL' },
+                  { number: 'Paleta #108', defaultName: 'AutoExport Dallas LLC', defaultLoc: 'Dallas, TX' },
+                  { number: 'Paleta #214', defaultName: 'Pacific Salvage Auctions', defaultLoc: 'Los Angeles, CA' },
+                  { number: 'Paleta #305', defaultName: 'Global Fleet Buyers', defaultLoc: 'Atlanta, GA' },
+                  { number: 'Paleta #412', defaultName: 'Buckeye Motor Exchange', defaultLoc: 'Columbus, OH' },
+                  { number: 'Paleta #519', defaultName: 'Lone Star Salvage Group', defaultLoc: 'Houston, TX' },
+                  { number: 'Paleta #623', defaultName: 'Midwest Premier Liquidation', defaultLoc: 'Chicago, IL' },
+                ];
+
+                const winnerPaddleRaw = (session as any).currentWinnerPaddle || 
+                                       (session as any).current_winner_paddle || 
+                                       (bids.length > 0 ? ((bids[0] as any).paddle_number || (bids[0] as any).paddleNumber) : null);
+
+                const leaderPaddle = winnerPaddleRaw
+                  ? ALL_PADDLES.find(p => winnerPaddleRaw.includes(p.number) || winnerPaddleRaw.includes(p.number.replace('Paleta #', ''))) || {
+                      number: winnerPaddleRaw,
+                      defaultName: (session as any).currentWinnerName || session.current_bidder_name || 'Postor en Sala',
+                      defaultLoc: 'USA Online'
+                    }
+                  : null;
+
+                const leaderServerPart = leaderPaddle ? participants.find((part: any) => part.paddleNumber === leaderPaddle.number || part.paddle_number === leaderPaddle.number) : null;
+                const leaderName = leaderServerPart?.name || leaderPaddle?.defaultName || 'Postor en Sala';
+                const leaderLoc = leaderServerPart?.location || leaderPaddle?.defaultLoc || 'USA';
 
                 return (
-                  <div
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      isBrokerLeader
-                        ? 'bg-emerald-950/80 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.35)] ring-2 ring-emerald-400/60 animate-fadeIn'
-                        : 'bg-[#081224] border-blue-600/60 hover:border-blue-500 shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-black text-sm text-amber-400">
-                          PALETA #101
-                        </span>
-                        <span className="bg-blue-900/90 text-blue-200 border border-blue-500/50 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                          SU BROKER AUTORIZADO
-                        </span>
-                      </div>
+                  <>
+                    {/* TARJETA DEL LÍDER ACTUAL ARRIBA (CUALQUIERA QUE VAYA GANANDO) */}
+                    {leaderPaddle ? (
+                      <div className="p-3 rounded-lg border-2 bg-emerald-950/80 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400 animate-fadeIn">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-sm text-emerald-300">
+                              {leaderPaddle.number}
+                            </span>
+                            <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 shadow">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
+                              👑 LÍDER ACTUAL (HIGH BID)
+                            </span>
+                          </div>
+                          <span className="font-mono font-black text-emerald-400 text-sm">
+                            ${Number(session?.current_price ?? 5000).toLocaleString()} USD
+                          </span>
+                        </div>
 
-                      {isBrokerLeader ? (
-                        <span className="text-[10px] bg-emerald-500 text-slate-950 font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1.5 shadow">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
-                          👑 LÍDER ACTUAL (HIGH BID)
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                          EN SALA • CONECTADO
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-baseline justify-between mt-1.5">
-                      <div>
-                        <span className="text-white font-bold text-xs block leading-tight">
-                          {brokerPaddle.name}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          {brokerPaddle.location} • Representación Oficial en Patio
-                        </span>
+                        <div className="flex items-baseline justify-between mt-1.5">
+                          <div>
+                            <span className="text-white font-bold text-xs block leading-tight">
+                              {leaderName}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {leaderLoc}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                            POSTURA CONFIRMADA
+                          </span>
+                        </div>
                       </div>
-                      {isBrokerLeader && (
-                        <span className="font-mono font-black text-emerald-400 text-sm">
-                          ${Number(session?.current_price ?? 5000).toLocaleString()} USD
-                        </span>
-                      )}
+                    ) : (
+                      <div className="p-3 rounded-lg border bg-[#081224] border-slate-800 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-black text-amber-400 text-xs">
+                            CARRIL A • EN ESPERA DE OFERTAS
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            7 POSTORES EN SALA
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          El postor que emita la primera oferta tomará la cabeza del carril.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* GRILLA DE TODAS LAS 7 PALETAS EN SALA (TODAS CON EL MISMO DISEÑO) */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {ALL_PADDLES.map((p) => {
+                        const isLeader = Boolean(
+                          winnerPaddleRaw && (winnerPaddleRaw.includes(p.number) || winnerPaddleRaw.includes(p.number.replace('Paleta #', '')))
+                        );
+                        const serverPart = participants.find((part: any) => part.paddleNumber === p.number || part.paddle_number === p.number);
+                        const displayName = serverPart?.name || p.defaultName;
+                        const displayLoc = serverPart?.location || p.defaultLoc;
+
+                        return (
+                          <div
+                            key={p.number}
+                            className={`p-2 rounded-lg border text-xs transition-all ${
+                              isLeader
+                                ? 'bg-emerald-950/70 border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400 animate-fadeIn'
+                                : 'bg-[#060c18] border-slate-800/80 hover:border-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className={`font-mono font-black text-xs ${isLeader ? 'text-emerald-300' : 'text-slate-300'}`}>
+                                {p.number}
+                              </span>
+                              {isLeader ? (
+                                <span className="text-[8.5px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.2 rounded uppercase flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
+                                  LÍDER
+                                </span>
+                              ) : (
+                                <span className="text-[9px] text-slate-500 font-mono flex items-center gap-1">
+                                  <span className="w-1 h-1 rounded-full bg-emerald-500/70" />
+                                  SALA
+                                </span>
+                              )}
+                            </div>
+
+                            <span className="text-white font-bold text-[11px] block truncate mt-1 leading-snug">
+                              {displayName}
+                            </span>
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">
+                              <span className="truncate">{displayLoc}</span>
+                              {isLeader && (
+                                <span className="font-mono font-bold text-emerald-400 text-[11px]">
+                                  ${Number(session?.current_price ?? 5000).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
+                  </>
                 );
               })()}
-
-              {/* GRILLA DE PALETAS COMPETIDORAS EN SALA (6 POSTORES OFICIALES) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[
-                  { number: 'Paleta #108', defaultName: 'AutoExport Dallas LLC', defaultLoc: 'Dallas, TX', type: 'Distribuidor' },
-                  { number: 'Paleta #214', defaultName: 'Pacific Salvage Auctions', defaultLoc: 'Los Angeles, CA', type: 'Subastador' },
-                  { number: 'Paleta #305', defaultName: 'Global Fleet Buyers', defaultLoc: 'Atlanta, GA', type: 'Exportador' },
-                  { number: 'Paleta #412', defaultName: 'Buckeye Motor Exchange', defaultLoc: 'Columbus, OH', type: 'Mayorista' },
-                  { number: 'Paleta #519', defaultName: 'Lone Star Salvage Group', defaultLoc: 'Houston, TX', type: 'Distribuidor' },
-                  { number: 'Paleta #623', defaultName: 'Midwest Premier Liquidation', defaultLoc: 'Chicago, IL', type: 'Comercial' },
-                ].map((p) => {
-                  const winnerPaddle = (session as any).currentWinnerPaddle || (session as any).current_winner_paddle || (bids.length > 0 ? ((bids[0] as any).paddle_number || (bids[0] as any).paddleNumber) : '');
-                  const isLeader = Boolean(
-                    winnerPaddle && (winnerPaddle.includes(p.number) || winnerPaddle.includes(p.number.replace('Paleta #', '')))
-                  );
-
-                  // Si el servidor tiene un nombre personalizado para este postor, lo usamos
-                  const serverPart = participants.find((part: any) => part.paddleNumber === p.number || part.paddle_number === p.number);
-                  const displayName = serverPart?.name || p.defaultName;
-                  const displayLoc = serverPart?.location || p.defaultLoc;
-
-                  return (
-                    <div
-                      key={p.number}
-                      className={`p-2 rounded-lg border text-xs transition-all ${
-                        isLeader
-                          ? 'bg-amber-950/70 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] ring-1 ring-amber-400 animate-fadeIn'
-                          : 'bg-[#060c18] border-slate-800/80 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`font-mono font-black text-xs ${isLeader ? 'text-amber-300' : 'text-slate-300'}`}>
-                          {p.number}
-                        </span>
-                        {isLeader ? (
-                          <span className="text-[8.5px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded uppercase flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
-                            LÍDER
-                          </span>
-                        ) : (
-                          <span className="text-[9px] text-slate-500 font-mono flex items-center gap-1">
-                            <span className="w-1 h-1 rounded-full bg-emerald-500/70" />
-                            SALA
-                          </span>
-                        )}
-                      </div>
-
-                      <span className="text-white font-bold text-[11px] block truncate mt-1 leading-snug">
-                        {displayName}
-                      </span>
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">
-                        <span className="truncate">{displayLoc}</span>
-                        {isLeader && (
-                          <span className="font-mono font-bold text-amber-300 text-[11px]">
-                            ${Number(session?.current_price ?? 5000).toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
             {/* MESA DE OFERTAS EN TIEMPO REAL (HISTORIAL DE PUJAS EN VIVO) */}
@@ -2068,7 +2075,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </div>
               </div>
 
-              {/* FEED DE PUJAS EN VIVO */}
+              {/* FEED DE PUJAS EN VIVO (TODOS LOS POSTORES CON FORMATO EQUITATIVO) */}
               <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
                 {bids.length === 0 ? (
                   <div className="p-3.5 rounded-lg bg-[#060c18] border border-slate-800/80 text-center space-y-1">
@@ -2084,31 +2091,22 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   </div>
                 ) : (
                   bids.map((b) => {
-                    const isClient = (b as any).paddle_number?.includes('101') || b.bidder_name?.includes('101') || b.is_client;
+                    const paddleLabel = (b as any).paddle_number || b.bidder_name || 'Paleta';
                     return (
                       <div
                         key={b.id}
-                        className={`flex items-center justify-between p-2 rounded-lg text-xs border transition-all ${
-                          isClient
-                            ? 'bg-emerald-950/70 border-emerald-500/70 text-emerald-200 shadow-sm'
-                            : 'bg-[#060c18] border-slate-800/80 text-slate-200'
-                        }`}
+                        className="flex items-center justify-between p-2 rounded-lg text-xs border bg-[#060c18] border-slate-800/80 text-slate-200 transition-all"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-[9.5px] font-mono bg-blue-950 text-blue-300 border border-blue-800 px-1.5 py-0.5 rounded font-bold shrink-0">
                             #{b.sequence_number}
                           </span>
-                          <span className={`font-mono font-black text-xs shrink-0 ${isClient ? 'text-emerald-300' : 'text-amber-400'}`}>
-                            {(b as any).paddle_number || (isClient ? 'Paleta #101' : 'Paleta')}
+                          <span className="font-mono font-black text-xs shrink-0 text-amber-400">
+                            {paddleLabel}
                           </span>
-                          <span className="text-slate-300 text-[11px] font-medium truncate max-w-[130px]">
+                          <span className="text-slate-300 text-[11px] font-medium truncate max-w-[140px]">
                             {b.bidder_name}
                           </span>
-                          {isClient && (
-                            <span className="text-[8.5px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.2 rounded uppercase tracking-wider shrink-0">
-                              SU BROKER
-                            </span>
-                          )}
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
