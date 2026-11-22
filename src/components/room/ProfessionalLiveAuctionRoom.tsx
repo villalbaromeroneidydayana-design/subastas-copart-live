@@ -1008,12 +1008,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             try {
               sounds.setMuted(false);
               setIsAudioMuted(false);
+              sounds.unlockAudio();
               sounds.playBidPing();
+              sounds.speak('Audio connected', 1.1, 'en-US');
             } catch { }
           }}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white text-center py-2.5 px-4 text-xs sm:text-sm font-black cursor-pointer shadow-2xl flex items-center justify-center gap-2 border-b-2 border-emerald-300 z-50 sticky top-0 transition animate-pulse"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white text-center py-3 px-4 text-xs sm:text-sm font-black cursor-pointer shadow-2xl flex items-center justify-center gap-2 border-b-2 border-emerald-300 z-50 sticky top-0 transition animate-pulse"
         >
-          <Volume2 className="w-4 h-4 animate-bounce" />
+          <Volume2 className="w-5 h-5 animate-bounce" />
           <span>🔊 TOCA AQUÍ PARA ACTIVAR EL AUDIO EN VIVO DE LA SUBASTA (LANE A)</span>
         </div>
       )}

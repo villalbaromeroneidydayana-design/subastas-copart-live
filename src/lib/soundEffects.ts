@@ -8,21 +8,10 @@ class SoundManager {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      const unlock = () => {
-        try {
-          const c = this.getContext();
-          if (c && c.state === 'suspended') {
-            c.resume();
-          }
-          if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            const u = new SpeechSynthesisUtterance(' ');
-            u.volume = 0.01;
-            window.speechSynthesis.speak(u);
-          }
-        } catch { }
-      };
+      const unlock = () => this.unlockAudio();
       window.addEventListener('click', unlock, { passive: true });
       window.addEventListener('touchstart', unlock, { passive: true });
+      window.addEventListener('touchend', unlock, { passive: true });
       window.addEventListener('keydown', unlock, { passive: true });
 
       // Precargar y resolver de inmediato la mejor voz masculina disponible
@@ -34,6 +23,27 @@ class SoundManager {
         window.speechSynthesis.onvoiceschanged = updateVoice;
       }
     }
+  }
+
+  public unlockAudio() {
+    try {
+      const c = this.getContext();
+      if (c && c.state === 'suspended') {
+        c.resume();
+      }
+      if (c) {
+        const buffer = c.createBuffer(1, 1, 22050);
+        const source = c.createBufferSource();
+        source.buffer = buffer;
+        source.connect(c.destination);
+        source.start(0);
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      }
+    } catch { }
   }
 
   private getContext(): AudioContext | null {
@@ -70,7 +80,8 @@ class SoundManager {
       'george', 'james', 'andrew', 'alex', 'matthew', 'brian', 
       'daniel', 'ryan', 'steffan', 'fred', 'oliver', 'tom', 
       'evan', 'nathan', 'aaron', 'richard', 'william', 'thomas', 
-      'charles', 'edward', 'jack', 'natural male', 'male', 'hombre'
+      'charles', 'edward', 'jack', 'natural male', 'male', 'hombre',
+      'google us english'
     ];
 
     // Nombres y etiquetas femeninas a excluir con rigor absoluto
@@ -81,7 +92,7 @@ class SoundManager {
       'kendra', 'ivy', 'kimberly', 'salli', 'allison', 'elena', 
       'monica', 'paulina', 'helena', 'laura', 'alice', 'kate', 
       'fiona', 'moira', 'tessa', 'veena', 'female', 'woman', 
-      'girl', 'mujer', 'her', 'she', 'google us english'
+      'girl', 'mujer', 'her', 'she'
     ];
 
     // Prioridad 1: Voz en inglés estadounidense con nombre clave masculino
@@ -110,6 +121,16 @@ class SoundManager {
     // Prioridad 4: Si no hay filtro, descartar cualquier voz femenina detectable
     if (!voice) {
       voice = voices.find((v) => !femaleKeywords.some((k) => v.name.toLowerCase().includes(k)));
+    }
+
+    // Prioridad 5 (Garantía Móvil): Cualquier voz en inglés disponible
+    if (!voice) {
+      voice = voices.find((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
+    }
+
+    // Prioridad 6 (Fallback total): Primera voz del dispositivo
+    if (!voice && voices.length > 0) {
+      voice = voices[0];
     }
 
     return voice || null;
@@ -215,7 +236,12 @@ class SoundManager {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
     try {
-      window.speechSynthesis.cancel();
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
 
       const isSpanish = lang.startsWith('es') || /vendido|paleta|dólares|pesos/i.test(phrase);
       const utterance = new SpeechSynthesisUtterance(phrase);
@@ -238,7 +264,12 @@ class SoundManager {
         }
       }
 
-      window.speechSynthesis.speak(utterance);
+      // 40ms timeout para evitar que el motor de voz de Chrome/iOS mobile mate el habla
+      setTimeout(() => {
+        try {
+          window.speechSynthesis.speak(utterance);
+        } catch { }
+      }, 40);
     } catch {
       // speech synthesis error ignore
     }
