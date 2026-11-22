@@ -209,6 +209,27 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     setIsSubmittingBid(false);
   };
 
+  const scrollToClockTerminal = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const el = document.getElementById('auction-live-terminal');
+        if (el) {
+          const yOffset = -70; // Margen para el header fijo/sticky superior
+          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+        }
+      }, 150);
+    }
+  }, []);
+
+  const prevSessionStatusRef = useRef<string>(session?.status || 'prepared');
+  useEffect(() => {
+    if (session?.status === 'open' && prevSessionStatusRef.current !== 'open') {
+      scrollToClockTerminal();
+    }
+    prevSessionStatusRef.current = session?.status || 'prepared';
+  }, [session?.status, scrollToClockTerminal]);
+
   const triggerSoldConfettiCelebration = useCallback((winnerPaddleParam?: string, winnerNameParam?: string) => {
     try {
       // 1. AUTO-SCROLL INMEDIATO Y SUAVE HACIA ARRIBA PARA MOSTRAR EL VEHÍCULO VENDIDO
@@ -496,6 +517,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         } else if (msg.type === 'AUCTION_STARTED') {
           setIsRoomAccessExpired(false);
           hasCelebratedSoldRef.current = false;
+          scrollToClockTerminal();
           setSession((prev) => ({
             ...prev,
             status: 'open',
@@ -721,6 +743,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             } else if (msg.status === 'unsold') {
               sounds.playUnsoldVoice();
             } else if (msg.type === 'AUCTION_STARTED' || msg.status === 'open') {
+              scrollToClockTerminal();
               if (vehicle?.custom_badges?.auctioneerVoiceGender) {
                 sounds.setVoiceGender(vehicle.custom_badges.auctioneerVoiceGender);
               }
@@ -755,7 +778,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     return () => {
       unsubscribeWs();
     };
-  }, [isBroker, role, fetchStateFromServer, triggerSoldConfettiCelebration]);
+  }, [isBroker, role, fetchStateFromServer, triggerSoldConfettiCelebration, scrollToClockTerminal]);
 
   // Actualización en tiempo real del horario oficial de Estados Unidos (Eastern Time / EST)
   useEffect(() => {
@@ -1784,7 +1807,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
 
         {/* COLUMNA DERECHA (5 COLUMNAS): TERMINAL DE OFERTAS EN DIRECTO */}
-        <div className="lg:col-span-5 flex flex-col gap-3">
+        <div id="auction-live-terminal" className="lg:col-span-5 flex flex-col gap-3">
 
           <div className={`bg-[#09101c] border-2 rounded-lg p-4 sm:p-5 shadow-2xl transition-all duration-300 ${bidFlash ? 'border-emerald-400 bg-emerald-950/20' : 'border-[#1b2b44]'
             }`}>
