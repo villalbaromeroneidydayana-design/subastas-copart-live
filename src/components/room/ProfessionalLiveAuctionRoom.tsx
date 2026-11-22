@@ -202,7 +202,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     try {
       const price = Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000);
       const winnerPaddle = winnerPaddleParam || (session as any)?.current_winner_paddle || (session as any)?.currentWinnerPaddle || (bids.length > 0 ? ((bids[0] as any).paddle_number || (bids[0] as any).paddleNumber) : 'Paleta #101');
-      const winnerName = winnerNameParam || (session as any)?.current_winner_name || (session as any)?.currentWinnerName || (session as any)?.broker_name || 'Carlos Mendoza';
+      let winnerName = winnerNameParam || (session as any)?.current_winner_name || (session as any)?.currentWinnerName || (session as any)?.broker_name;
+      if (!winnerName || winnerName.includes('Representante') || winnerName.includes('Broker Autorizado')) {
+        const p101 = participants.find((p: any) => p.paddleNumber === 'Paleta #101' || p.paddle_number === 'Paleta #101');
+        winnerName = p101?.name || (session as any)?.brokerName || 'Carlos Mendoza';
+      }
       sounds.playSoldFanfare(price, winnerPaddle, winnerName);
       // Cañón central con colores vibrantes
       confetti({

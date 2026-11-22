@@ -302,13 +302,32 @@ class SoundManager {
       // Voz de adjudicación: "¡Vendido a la paleta 101, [nombre]!"
       setTimeout(() => {
         const cleanPaddle = paddle ? paddle.replace(/[^0-9]/g, '') : '101';
-        const cleanName = winnerName && !winnerName.toLowerCase().includes('representante') ? winnerName.trim() : '';
+        
+        // Extracción limpia del nombre del comprador (limpiando sufijos como Broker Rep, Comprador, etc.)
+        let cleanName = '';
+        if (winnerName) {
+          cleanName = winnerName
+            .replace(/\(.*?\)/g, '')
+            .replace(/\[.*?\]/g, '')
+            .replace(/broker\s*autorizado/gi, '')
+            .replace(/broker/gi, '')
+            .replace(/representante/gi, '')
+            .replace(/rep\.?/gi, '')
+            .replace(/paleta/gi, '')
+            .replace(/#\d+/gi, '')
+            .trim();
+        }
+        
+        // Si tras limpiar quedó vacío y la paleta es la 101, asegurar nombre
+        if (!cleanName && (cleanPaddle === '101' || cleanPaddle.includes('101'))) {
+          cleanName = 'Carlos Mendoza';
+        }
 
         let phrase = '';
         if (cleanPaddle === '101' || cleanPaddle.includes('101')) {
           phrase = cleanName 
             ? `¡Vendido a la paleta 101, ${cleanName}!` 
-            : `¡Vendido a la paleta 101!`;
+            : `¡Vendido a la paleta 101, Carlos Mendoza!`;
         } else if (cleanName) {
           phrase = `¡Vendido a la paleta ${cleanPaddle}, ${cleanName}!`;
         } else {

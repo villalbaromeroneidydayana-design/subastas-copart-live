@@ -193,7 +193,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         setLotReservePrice(Number(data.session.reserve_price ?? data.session.reservePrice ?? 12000));
         setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500));
         if (data.session.broker_name || data.session.brokerName) {
-          setLotBrokerName(data.session.broker_name || data.session.brokerName);
+          const rawBroker = data.session.broker_name || data.session.brokerName;
+          if (rawBroker && !rawBroker.includes('Representante') && !rawBroker.includes('Broker Autorizado')) {
+            setLotBrokerName(rawBroker);
+          }
         }
         if (data.session.broker_location || data.session.brokerLocation) {
           setLotBrokerLocation(data.session.broker_location || data.session.brokerLocation);
@@ -201,7 +204,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         if (data.participants && Array.isArray(data.participants)) {
           const p101 = data.participants.find((p: any) => p.paddleNumber === 'Paleta #101' || p.paddle_number === 'Paleta #101');
           if (p101) {
-            if (p101.name) setLotBrokerName(p101.name);
+            if (p101.name && !p101.name.includes('Representante') && !p101.name.includes('Broker Autorizado')) {
+              setLotBrokerName(p101.name.replace(/\(.*?\)/g, '').trim());
+            }
             if (p101.location) setLotBrokerLocation(p101.location);
           }
         }
