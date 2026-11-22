@@ -1297,6 +1297,30 @@ app.post('/api/sessions/:id/restore-access', (req, res) => {
   res.json({ success: true, target, restored: true });
 });
 
+// 3g. ROTAR TOKEN DE ACCESO DEL CLIENTE (ENLACE DE 1 SOLO USO)
+app.post('/api/sessions/:id/rotate-buyer-token', (req, res) => {
+  const session = findSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+  const newToken = 'bdr_buyer_' + crypto.randomBytes(4).toString('hex');
+  db.prepare(`
+    UPDATE auction_sessions 
+    SET buyer_access_token = ?, buyer_token_revoked = 0, is_token_revoked = 0, updated_at = ?
+    WHERE id = ?
+  `).run(newToken, new Date().toISOString(), session.id);
+
+  broadcast({
+    type: 'PARTICIPANTS_UPDATED',
+    sessionId: session.id,
+    buyerAccessToken: newToken,
+  });
+
+  res.json({
+    success: true,
+    buyerAccessToken: newToken,
+    buyerLink: `#/sala/${session.room_token}?cliente=${newToken}`,
+  });
+});
+
 // 4. Iniciar subasta (Administrador / Consola de Subastador)
 app.post('/api/sessions/:id/start', (req, res) => {
   const session = findSession(req.params.id);

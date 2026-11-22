@@ -37,7 +37,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Minus,
-  Megaphone
+  Megaphone,
+  Lock
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
@@ -687,9 +688,33 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   // Enlaces de acceso
   const origin = window.location.origin;
   const basePath = window.location.pathname.replace(/\/$/, '');
+  const vercelBase = 'https://subastas-copart-live.vercel.app';
+  const currentBuyerToken = (session as any).buyer_access_token || (session as any).buyerAccessToken || 'bdr_buyer_m729k1';
   const publicRoomUrl = `${origin}${basePath}/#/sala/${session.room_token || 'copart-live-m729k1'}`;
   const brokerUrl = `${origin}${basePath}/#/sala/${session.room_token || 'copart-live-m729k1'}?broker=${session.broker_access_token || 'bdr_broker_m729k1'}`;
-  const buyerUrl = `${origin}${basePath}/#/sala/${session.room_token || 'copart-live-m729k1'}?cliente=${session.buyer_access_token || 'bdr_buyer_m729k1'}`;
+  const buyerUrl = `${vercelBase}/#/sala/${session.room_token || 'copart-live-m729k1'}?cliente=${currentBuyerToken}`;
+
+  const handleRevokeClientAccess = async () => {
+    await store.revokeParticipantAccess(session.id, 'buyer');
+    showFeedback('🔒 Acceso de este cliente BLOQUEADO permanentemente. El cliente ya no puede ingresar a la sala.');
+    await syncSessionData();
+  };
+
+  const handleRotateBuyerToken = async () => {
+    const res = await store.rotateBuyerToken(session.id);
+    if (res.success && res.buyerAccessToken) {
+      setSession((prev) => ({
+        ...prev,
+        buyer_access_token: res.buyerAccessToken,
+        buyerAccessToken: res.buyerAccessToken,
+        buyer_token_revoked: false,
+      }));
+      const newUrl = `${vercelBase}/#/sala/${session.room_token || 'copart-live-m729k1'}?cliente=${res.buyerAccessToken}`;
+      copyToClipboard(newUrl, 'buyer');
+      showFeedback('✓ ¡NUEVO ENLACE DE 1 SOLO USO GENERADO Y COPIADO! El cliente anterior ha quedado bloqueado para siempre.');
+      await syncSessionData();
+    }
+  };
 
   const currentPrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
   const currentLeader = (bids && bids.length > 0 && bids[0].paddleNumber && bids[0].paddleNumber !== 'N/A')
@@ -2242,10 +2267,28 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             <button
               onClick={() => copyToClipboard(buyerUrl, 'buyer')}
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
-              title="Copiar enlace de Transmisión Oficial Copart VB3 para el Cliente (Monitor de Telemetría sin botones de puja)"
+              title="Copiar enlace oficial de Vercel para el Cliente con su token único"
             >
               {copiedKey === 'buyer' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Copiar Enlace Monitor Cliente (VB3)</span>
+              <span>Copiar Enlace Cliente (Vercel)</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRotateBuyerToken}
+              className="bg-cyan-700 hover:bg-cyan-600 text-white font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer ring-1 ring-cyan-400/40"
+              title="Generar un nuevo enlace único de 1 solo uso para el siguiente cliente e invalidar al cliente anterior"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>🔄 Nuevo Enlace (1 Solo Uso)</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRevokeClientAccess}
+              className="bg-rose-800 hover:bg-rose-700 text-white font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer ring-1 ring-rose-400/40"
+              title="Bloquear inmediatamente el acceso al cliente actual. Mostrará la pantalla de sala cerrada en su teléfono"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>🔒 Bloquear Acceso Cliente</span>
             </button>
             <button
               onClick={() => setIsWhatsAppModalOpen(true)}

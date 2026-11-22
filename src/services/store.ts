@@ -1261,6 +1261,17 @@ class RealAuctionStore {
     }
   }
 
+  public async rotateBuyerToken(sessionId: string): Promise<{ success: boolean; buyerAccessToken?: string; buyerLink?: string }> {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/rotate-buyer-token`, {
+        method: 'POST',
+      });
+      return await res.json();
+    } catch {
+      return { success: false };
+    }
+  }
+
   public async updateStartingPrice(sessionId: string, price: number) {
     const target = sessionId || 'ses-live-001';
     this.localSessionState.currentPrice = price;
