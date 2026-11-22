@@ -656,16 +656,11 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             ? (session as any).currentWinnerPaddle
             : 'Esperando apertura'));
 
-  // PUJA RÁPIDA DEDICADA DEL BROKER #101
+  // PUJA RÁPIDA DEDICADA DEL BROKER #101 (LIBERTAD TOTAL - CERO BLOQUEOS)
   const handleQuickBrokerBid = async (customIncrement = 250) => {
     const targetId = session.id || 'ses-live-001';
     const currPrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
     const amount = currPrice + customIncrement;
-
-    if (amount > lotClientBudget) {
-      showFeedback(`⚠️ La oferta de $${amount.toLocaleString()} USD supera el presupuesto del cliente ($${lotClientBudget.toLocaleString()} USD)`, 'error');
-      return false;
-    }
 
     setSession((prev) => ({
       ...prev,

@@ -799,20 +799,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
   };
 
-  // ENVÍO DE OFERTA EXCLUSIVA DEL BROKER
+  // ENVÍO DE OFERTA EXCLUSIVA DEL BROKER (SIN BLOQUEOS NI LÍMITES)
   const handlePlaceBrokerBid = async (customAmount?: number) => {
     setServerError(null);
     const minRequired = session.current_price + (session.bid_increment || 250);
     const amountToBid = customAmount || minRequired;
-
-    // Validación preventiva de presupuesto con margen de flexibilidad para llamada de WhatsApp ($1,500 USD)
-    const isAuthorized = authorizedBidAmount && authorizedBidAmount === amountToBid;
-    const maxOperationalBudget = clientBudget + 1500;
-    if (amountToBid > maxOperationalBudget && !isAuthorized) {
-      setServerError(`La oferta de $${amountToBid.toLocaleString()} supera el presupuesto autorizado por el cliente ($${clientBudget.toLocaleString()} USD + margen de $1,500 USD). Solicita autorización extraordinaria.`);
-      setTimeout(() => setServerError(null), 5000);
-      return;
-    }
 
     const tokenToUse = activeParticipant?.token || userToken || 'bdr_broker_m729k1';
 
@@ -2038,78 +2029,47 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   </div>
                 )}
 
-                {/* BOTÓN PRINCIPAL DE OFERTA O SOLICITAR AUTORIZACIÓN */}
-                {isNextBidOverBudget && !authorizedBidAmount ? (
-                  <button
-                    onClick={() => {
-                      setRequestedAmountInput(String(nextBidAmount));
-                      setShowRequestBudgetModal(true);
-                    }}
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3.5 px-4 rounded-lg shadow-xl text-sm sm:text-base flex items-center justify-center gap-2 transition active:scale-95 border-b-4 border-amber-800"
-                  >
-                    <ShieldCheck className="w-5 h-5 text-slate-950" />
-                    <span>
-                      {lang === 'en'
-                        ? `REQUEST BUYER AUTHORIZATION ($${nextBidAmount.toLocaleString()} USD)`
-                        : `SOLICITAR AUTORIZACIÓN AL COMPRADOR ($${nextBidAmount.toLocaleString()} USD)`}
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handlePlaceBrokerBid(authorizedBidAmount || undefined)}
-                    disabled={
-                      isSubmittingBid ||
-                      !['open', 'bidding', 'last_call'].includes(session.status) ||
-                      !activeParticipant ||
-                      (isNextBidOverBudget && !authorizedBidAmount)
-                    }
-                    className={`w-full font-black py-3.5 px-4 rounded-lg shadow-xl text-base sm:text-lg flex items-center justify-center gap-2 transition active:scale-95 border-b-4 ${authorizedBidAmount
-                        ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 border-emerald-700 animate-pulse'
-                        : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-800'
-                      }`}
-                  >
-                    <Flame className="w-5 h-5" />
-                    <span>
-                      {isSubmittingBid
-                        ? t('submittingBid')
-                        : authorizedBidAmount
-                          ? (lang === 'en' ? `BID $${authorizedBidAmount.toLocaleString()} USD (AUTHORIZED)` : `PUJAR $${authorizedBidAmount.toLocaleString()} USD (OFERTA AUTORIZADA)`)
-                          : (lang === 'en' ? `BID $${nextBidAmount.toLocaleString()} USD` : `PUJAR $${nextBidAmount.toLocaleString()} USD (OFERTA BROKER)`)}
-                    </span>
-                  </button>
-                )}
+                {/* BOTÓN PRINCIPAL DE OFERTA OFICIAL (LIBERTAD TOTAL DE PUJA) */}
+                <button
+                  onClick={() => handlePlaceBrokerBid(authorizedBidAmount || undefined)}
+                  disabled={
+                    isSubmittingBid ||
+                    !['open', 'bidding', 'last_call'].includes(session.status) ||
+                    !activeParticipant
+                  }
+                  className={`w-full font-black py-3.5 px-4 rounded-lg shadow-xl text-base sm:text-lg flex items-center justify-center gap-2 transition active:scale-95 border-b-4 ${
+                    isSubmittingBid
+                      ? 'bg-slate-700 text-slate-400 border-slate-900 cursor-not-allowed'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-800'
+                  }`}
+                >
+                  <Flame className="w-5 h-5" />
+                  <span>
+                    {isSubmittingBid
+                      ? t('submittingBid')
+                      : (lang === 'en' ? `BID $${nextBidAmount.toLocaleString()} USD` : `PUJAR $${nextBidAmount.toLocaleString()} USD (PALETA #101)`)}
+                  </span>
+                </button>
 
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 px-1">
-                  <span>{t('maxBudgetLabel')} <strong className="text-white font-mono">${clientBudget.toLocaleString()} USD</strong></span>
-                  <button
-                    onClick={() => {
-                      setRequestedAmountInput(String(nextBidAmount));
-                      setShowRequestBudgetModal(true);
-                    }}
-                    className="text-amber-400 hover:text-amber-300 font-bold hover:underline flex items-center gap-1"
-                  >
-                    <span>{lang === 'en' ? '+ Request Extraordinary Increase' : '+ Solicitar Aumento Extraordinario'}</span>
-                  </button>
-                </div>
-
+                {/* INCREMENTOS RÁPIDOS OFICIALES (SIN LÍMITES) */}
                 <div className="grid grid-cols-3 gap-1.5 pt-1">
                   <button
                     onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 250))}
-                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + (session.bid_increment || 250) > clientBudget + 1500 && authorizedBidAmount !== session.current_price + (session.bid_increment || 250))}
+                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant}
                     className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-slate-200 py-2 rounded border border-slate-700 transition"
                   >
                     +${session.bid_increment || 250}
                   </button>
                   <button
                     onClick={() => handlePlaceBrokerBid(session.current_price + 500)}
-                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + 500 > clientBudget + 1500 && authorizedBidAmount !== session.current_price + 500)}
+                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant}
                     className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-bold text-slate-200 py-2 rounded border border-slate-700 transition"
                   >
                     +$500 USD
                   </button>
                   <button
                     onClick={() => handlePlaceBrokerBid(session.current_price + 1000)}
-                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant || (session.current_price + 1000 > clientBudget + 1500 && authorizedBidAmount !== session.current_price + 1000)}
+                    disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status) || !activeParticipant}
                     className="bg-[#050912] hover:bg-slate-800 disabled:opacity-40 text-xs font-black text-amber-400 py-2 rounded border border-slate-700 transition"
                   >
                     +$1,000 USD
@@ -2922,190 +2882,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg transition"
               >
                 Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DEL BROKER: SOLICITAR AUTORIZACIÓN EXTRAORDINARIA AL COMPRADOR */}
-      {showRequestBudgetModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0e1828] border-2 border-amber-500/80 rounded-xl max-w-md w-full p-5 shadow-2xl animate-fadeIn text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-white text-sm">
-                  {t('modalRequestTitle')}
-                </h3>
-              </div>
-              <button onClick={() => setShowRequestBudgetModal(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3.5">
-              <p className="text-slate-300 text-[11px] leading-relaxed">
-                {t('modalRequestDesc')}
-              </p>
-
-              <div className="bg-[#050912] p-3 rounded-lg border border-slate-800 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-slate-400">
-                  <span>{lang === 'en' ? 'Vehicle:' : 'Vehículo:'}</span>
-                  <span className="font-bold text-white truncate max-w-[200px]">{vehicle?.year} {vehicle?.brand} {vehicle?.model}</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-400">
-                  <span>{t('modalOriginalBudget')}:</span>
-                  <span className="font-mono font-bold text-white">${(Number(clientBudget) || 7500).toLocaleString()} USD</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-400">
-                  <span>{t('modalCurrentPrice')}:</span>
-                  <span className="font-mono font-bold text-emerald-400">${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-slate-400 block mb-1 font-bold uppercase">
-                  {t('inputBidAmount')}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-amber-400 font-bold text-sm">$</span>
-                  <input
-                    type="number"
-                    value={requestedAmountInput}
-                    onChange={(e) => setRequestedAmountInput(e.target.value)}
-                    placeholder="Ej. 7800"
-                    className="w-full bg-[#050912] border-2 border-amber-500/60 focus:border-amber-400 text-white font-mono font-black text-base pl-7 pr-3 py-1.5 rounded-lg focus:outline-none"
-                  />
-                </div>
-                {Number(requestedAmountInput) > (Number(clientBudget) || 7500) && (
-                  <div className="mt-1 flex justify-between text-[11px] font-mono">
-                    <span className="text-slate-400">{t('modalDifference')}:</span>
-                    <span className="text-amber-400 font-bold">+${(Number(requestedAmountInput) - (Number(clientBudget) || 7500)).toLocaleString()} USD</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-amber-950/40 border border-amber-700/50 p-2.5 rounded text-[10.5px] text-amber-300">
-                ⚠️ <strong>{lang === 'en' ? 'Strict Policy:' : 'Regla Estricta:'}</strong> {lang === 'en' ? 'This extraordinary authorization is valid for a single bid of this exact amount.' : 'Esta autorización es válida únicamente para realizar una sola puja por este importe exacto.'}
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setShowRequestBudgetModal(false)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition"
-                >
-                  {t('btnCancel')}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateBudgetRequest}
-                  disabled={isSubmittingBudgetRequest || !requestedAmountInput || Number(requestedAmountInput) <= clientBudget}
-                  className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-black px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow transition"
-                >
-                  {isSubmittingBudgetRequest ? (
-                    <span>{t('requestingAuth')}</span>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>{t('btnSubmitRequest')}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DEL COMPRADOR: CONFIRMACIÓN EXPRESA DE AUTORIZACIÓN EXTRAORDINARIA */}
-      {pendingBuyerRequest && role === 'buyer' && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0e1828] border-2 border-amber-400 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-fadeIn text-xs">
-            <div className="text-center pb-3 border-b border-slate-800">
-              <div className="w-12 h-12 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center mx-auto mb-2 text-amber-400">
-                <ShieldAlert className="w-7 h-7" />
-              </div>
-              <h2 className="text-lg font-black text-white tracking-wide">
-                {t('modalAuthTitle')}
-              </h2>
-              <p className="text-xs text-amber-300 mt-1">
-                {t('modalAuthDesc')}
-              </p>
-            </div>
-
-            <div className="my-4 space-y-3">
-              {/* FICHA RESUMEN DEL VEHÍCULO Y LOTE */}
-              <div className="bg-[#050912] p-3 rounded-xl border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">{lang === 'en' ? 'Vehicle & Lot #' : 'Vehículo & Lote'}</span>
-                  <span className="text-sm font-black text-white block">
-                    {vehicle?.year} {vehicle?.brand} {vehicle?.model}
-                  </span>
-                  <span className="text-[11px] font-mono text-amber-400">
-                    {t('lotPrefix')} #{vehicle?.lot_number || '48291032'}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">{t('modalCurrentPrice')}</span>
-                  <span className="text-sm font-black font-mono text-emerald-400">
-                    ${(Number(session?.current_price ?? (session as any)?.currentPrice ?? 5000)).toLocaleString()} USD
-                  </span>
-                </div>
-              </div>
-
-              {/* COMPARATIVA DE PRESUPUESTO Y NUEVA OFERTA */}
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="bg-[#050912] p-3 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">{t('modalOriginalBudget')}</span>
-                  <span className="text-base font-black font-mono text-slate-200 mt-0.5 block">
-                    ${Number(pendingBuyerRequest.initialBudget || clientBudget).toLocaleString()} USD
-                  </span>
-                </div>
-
-                <div className="bg-amber-950/40 p-3 rounded-xl border border-amber-500/80">
-                  <span className="text-[10px] text-amber-400 block font-bold uppercase">{t('modalRequestedBid')}</span>
-                  <span className="text-lg font-black font-mono text-amber-300 mt-0.5 block">
-                    ${Number(pendingBuyerRequest.requestedAmount).toLocaleString()} USD
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-[#050912] p-2.5 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400">{t('modalDifference')}:</span>
-                <span className="font-mono font-black text-rose-400 text-sm">
-                  +${(Number(pendingBuyerRequest.requestedAmount) - Number(pendingBuyerRequest.initialBudget || clientBudget)).toLocaleString()} USD
-                </span>
-              </div>
-
-              <div className="bg-blue-950/40 border border-blue-800/60 p-2.5 rounded-lg text-[11px] text-blue-200 leading-relaxed">
-                ℹ️ {lang === 'en'
-                  ? `This authorization allows a single bid for the exact amount of $${Number(pendingBuyerRequest.requestedAmount).toLocaleString()} USD. If topped by another bidder, a new authorization will be requested.`
-                  : `Esta autorización autoriza únicamente una oferta por el valor exacto de $${Number(pendingBuyerRequest.requestedAmount).toLocaleString()} USD. Si la puja es superada por otro postor, se requerirá una nueva autorización.`}
-              </div>
-            </div>
-
-            {/* BOTONES DE DECISIÓN DEL COMPRADOR */}
-            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => handleRespondBudgetRequest(pendingBuyerRequest.id, 'reject')}
-                disabled={isRespondingBudgetRequest}
-                className="bg-slate-800 hover:bg-rose-950 hover:text-rose-200 hover:border-rose-700 text-slate-300 font-bold py-3 px-4 rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5"
-              >
-                <X className="w-4 h-4 text-rose-400" />
-                <span>{t('btnRejectAuth')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleRespondBudgetRequest(pendingBuyerRequest.id, 'approve')}
-                disabled={isRespondingBudgetRequest}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl border-b-4 border-emerald-800 shadow-xl transition flex items-center justify-center gap-1.5 active:scale-95"
-              >
-                <Check className="w-4 h-4" />
-                <span>{t('btnApproveAuth')} (${Number(pendingBuyerRequest.requestedAmount).toLocaleString()} USD)</span>
               </button>
             </div>
           </div>
