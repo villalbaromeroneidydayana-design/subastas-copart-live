@@ -1220,6 +1220,92 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       </div>
 
+      {/* CINTILLO CONTINUO DE PATROCINADORES Y SEGUROS OFICIALES DE EE. UU. (LIVE SPONSORS TICKER) */}
+      <div className="bg-[#020610] border-b border-[#1b2b44] py-1.5 px-2 overflow-hidden relative flex items-center shadow-inner select-none">
+        {/* Etiqueta fija en el borde izquierdo */}
+        <div className="z-20 bg-gradient-to-r from-[#020610] via-[#020610] to-transparent pr-4 pl-1 flex items-center shrink-0">
+          <div className="flex items-center gap-1.5 bg-red-600 text-white font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            <span>OFFICIAL SPONSORS</span>
+          </div>
+        </div>
+
+        {/* Marquesina desplazándose de derecha a izquierda */}
+        <div className="overflow-hidden w-full relative flex items-center">
+          <div className="animate-marquee flex items-center gap-8 text-[11px] font-medium tracking-wide">
+            {[1, 2].map((loopIdx) => (
+              <React.Fragment key={loopIdx}>
+                {/* STATE FARM */}
+                <div className="flex items-center gap-2 text-slate-300 shrink-0">
+                  <span className="bg-[#d3122a] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
+                    State Farm®
+                  </span>
+                  <span className="text-white font-bold">Auto Claims & Liquidation Partner</span>
+                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "Like a good neighbor, State Farm is there®"</span>
+                </div>
+
+                <span className="text-slate-600 font-bold">•</span>
+
+                {/* GEICO */}
+                <div className="flex items-center gap-2 text-slate-300 shrink-0">
+                  <span className="bg-[#005088] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-wider border border-blue-400/40 shadow">
+                    GEICO®
+                  </span>
+                  <span className="text-white font-bold">Commercial Fleet & Cargo Insurance</span>
+                  <span className="text-slate-400 text-[10px] hidden sm:inline">• 15 minutes could save you 15% or more on transit protection</span>
+                </div>
+
+                <span className="text-slate-600 font-bold">•</span>
+
+                {/* PROGRESSIVE */}
+                <div className="flex items-center gap-2 text-slate-300 shrink-0">
+                  <span className="bg-[#0077c8] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
+                    PROGRESSIVE®
+                  </span>
+                  <span className="text-white font-bold">Official Lane A Salvage & Recovery Sponsor</span>
+                  <span className="text-slate-400 text-[10px] hidden sm:inline">• Commercial Auto & Total Loss Coverage</span>
+                </div>
+
+                <span className="text-slate-600 font-bold">•</span>
+
+                {/* FARMERS INSURANCE */}
+                <div className="flex items-center gap-2 text-slate-300 shrink-0">
+                  <span className="bg-[#002f6c] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow border-l-2 border-red-500">
+                    FARMERS®
+                  </span>
+                  <span className="text-white font-bold">Verified Title & Insurance Inspection</span>
+                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "We are insurance."</span>
+                </div>
+
+                <span className="text-slate-600 font-bold">•</span>
+
+                {/* ALLSTATE */}
+                <div className="flex items-center gap-2 text-slate-300 shrink-0">
+                  <span className="bg-[#003366] text-cyan-300 font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
+                    Allstate®
+                  </span>
+                  <span className="text-white font-bold">Total Loss Vehicle Settlement</span>
+                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "You're in good hands®"</span>
+                </div>
+
+                <span className="text-slate-600 font-bold">•</span>
+
+                {/* LIBERTY MUTUAL */}
+                <div className="flex items-center gap-2 text-slate-300 shrink-0">
+                  <span className="bg-[#ffbf00] text-slate-950 font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
+                    LIBERTY MUTUAL®
+                  </span>
+                  <span className="text-white font-bold">Official Heavy Duty Transport Underwriter</span>
+                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "Only pay for what you need™"</span>
+                </div>
+
+                <span className="text-slate-600 font-bold">•</span>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* CINTILLO OFICIAL DE AVISOS EN VIVO COPART VB3 */}
       {liveAnnouncement && (
         <div className="bg-gradient-to-r from-[#001428] via-[#002855] to-[#001428] border-b-2 border-amber-400 px-3 sm:px-6 py-2 shadow-xl animate-fadeIn">
@@ -2191,6 +2277,57 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   CONEXIÓN CIFRADA
                 </span>
+              </div>
+            </div>
+
+            {/* ANUNCIO COMERCIAL OFICIAL EN SALA: SEGUROS Y PATROCINIO ESTADOUNIDENSE */}
+            <div className="bg-gradient-to-r from-[#061224] via-[#091b36] to-[#061224] border border-blue-500/40 rounded-xl p-3 shadow-xl mb-3 space-y-2 text-xs">
+              <div className="flex items-center justify-between border-b border-blue-500/20 pb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] bg-red-600 text-white font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow">
+                    OFFICIAL SPONSOR
+                  </span>
+                  <span className="text-[11px] font-black text-slate-100 uppercase tracking-wider">
+                    UNITED STATES CLAIMS & CARGO PROTECTION
+                  </span>
+                </div>
+                <span className="text-[9.5px] text-blue-300 font-mono font-bold">
+                  LANE A • VB3
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-0.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#d3122a] flex flex-col items-center justify-center text-white font-black text-[10px] leading-tight shadow-md border border-red-400/40 shrink-0">
+                    <span>State</span>
+                    <span>Farm</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-white font-black text-xs block truncate">
+                      State Farm® Total Loss & Auto Insurance
+                    </span>
+                    <span className="text-[10.5px] text-slate-300 block truncate">
+                      Authorized Claims Liquidation • Instant Transit Coverage
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-950/90 border border-emerald-700/60 px-2 py-0.5 rounded uppercase block">
+                    ✓ NAIC VERIFIED
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono mt-0.5 block">
+                    US-DOT #389142
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+                <span className="flex items-center gap-1.5 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                  <span>Coverage Active During Live Auction & Transport</span>
+                </span>
+                <span className="font-mono text-slate-500 shrink-0">LANE A PARTNER</span>
               </div>
             </div>
 
