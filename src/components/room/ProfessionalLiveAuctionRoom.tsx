@@ -99,6 +99,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   // Audio y estados en vivo
   const [isAudioMuted, setIsAudioMuted] = useState(sounds.isMuted);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  useEffect(() => {
+    const onInteract = () => setHasInteracted(true);
+    window.addEventListener('click', onInteract, { once: true });
+    window.addEventListener('touchstart', onInteract, { once: true });
+    return () => {
+      window.removeEventListener('click', onInteract);
+      window.removeEventListener('touchstart', onInteract);
+    };
+  }, []);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmittingBid, setIsSubmittingBid] = useState(false);
   const [isTriggeringCompetitor, setIsTriggeringCompetitor] = useState(false);
@@ -988,6 +999,24 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 flex flex-col font-sans select-none antialiased">
+
+      {/* BANNER FLOTANTE PARA ACTIVAR AUDIO EN CELULARES */}
+      {!hasInteracted && (
+        <div
+          onClick={() => {
+            setHasInteracted(true);
+            try {
+              sounds.setMuted(false);
+              setIsAudioMuted(false);
+              sounds.playBidPing();
+            } catch { }
+          }}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white text-center py-2.5 px-4 text-xs sm:text-sm font-black cursor-pointer shadow-2xl flex items-center justify-center gap-2 border-b-2 border-emerald-300 z-50 sticky top-0 transition animate-pulse"
+        >
+          <Volume2 className="w-4 h-4 animate-bounce" />
+          <span>🔊 TOCA AQUÍ PARA ACTIVAR EL AUDIO EN VIVO DE LA SUBASTA (LANE A)</span>
+        </div>
+      )}
 
       {/* 1. BARRA SUPERIOR AUTÉNTICA COPART VB3 LIVE */}
       <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-2 sm:px-4 lg:px-6 py-2 shadow-xl sticky top-0 z-40 overflow-x-hidden">

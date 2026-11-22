@@ -14,6 +14,11 @@ class SoundManager {
           if (c && c.state === 'suspended') {
             c.resume();
           }
+          if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            const u = new SpeechSynthesisUtterance(' ');
+            u.volume = 0.01;
+            window.speechSynthesis.speak(u);
+          }
         } catch { }
       };
       window.addEventListener('click', unlock, { passive: true });
