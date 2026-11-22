@@ -69,7 +69,11 @@ export function initDatabase(dbPath: string = path.join(DB_DIR, 'auction.db')) {
   } catch {}
 
   try {
-    db.exec(`ALTER TABLE auction_sessions ADD COLUMN broker_name TEXT DEFAULT 'Broker Representante';`);
+    db.exec(`ALTER TABLE auction_sessions ADD COLUMN broker_name TEXT DEFAULT 'Carlos Mendoza';`);
+  } catch {}
+
+  try {
+    db.exec(`ALTER TABLE auction_sessions ADD COLUMN broker_location TEXT DEFAULT 'Miami, FL';`);
   } catch {}
 
   try {

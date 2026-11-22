@@ -667,6 +667,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             bid_count: 0,
           }));
           fetchStateFromServer();
+        } else if (msg.type === 'PARTICIPANTS_UPDATED') {
+          if (msg.brokerName) {
+            setSession((prev) => ({
+              ...prev,
+              broker_name: msg.brokerName,
+              brokerName: msg.brokerName,
+              broker_location: msg.brokerLocation || (prev as any).broker_location,
+              brokerLocation: msg.brokerLocation || (prev as any).broker_location,
+            }));
+          }
+          fetchStateFromServer();
         } else if (msg.type === 'STATUS_CHANGE' || msg.type === 'AUCTION_STARTED' || msg.type === 'AUCTION_RESUMED') {
           setIsRoomAccessExpired(false);
           const nextStatus = msg.status || (msg.type === 'AUCTION_STARTED' ? 'open' : undefined);
@@ -676,6 +687,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : prev.time_remaining_seconds,
             current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
             current_winner_paddle: msg.currentWinnerPaddle !== undefined ? msg.currentWinnerPaddle : (prev as any).current_winner_paddle,
+            broker_name: msg.brokerName || prev.broker_name,
+            brokerName: msg.brokerName || (prev as any).brokerName,
+            broker_location: msg.brokerLocation || (prev as any).broker_location,
+            brokerLocation: msg.brokerLocation || (prev as any).broker_location,
           }));
 
           if (msg.status === 'sold' && !hasCelebratedSoldRef.current) {
@@ -1924,7 +1939,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               {/* DEFINICIÓN OFICIAL DE TODAS LAS PALETAS (TODAS IGUALES) */}
               {(() => {
                 const ALL_PADDLES = [
-                  { number: 'Paleta #101', defaultName: session.broker_name || 'Carlos Mendoza', defaultLoc: 'Miami, FL' },
+                  { 
+                    number: 'Paleta #101', 
+                    defaultName: (session as any).broker_name || (session as any).brokerName || 'Carlos Mendoza', 
+                    defaultLoc: (session as any).broker_location || (session as any).brokerLocation || 'Miami, FL' 
+                  },
                   { number: 'Paleta #108', defaultName: 'AutoExport Dallas LLC', defaultLoc: 'Dallas, TX' },
                   { number: 'Paleta #214', defaultName: 'Pacific Salvage Auctions', defaultLoc: 'Los Angeles, CA' },
                   { number: 'Paleta #305', defaultName: 'Global Fleet Buyers', defaultLoc: 'Atlanta, GA' },

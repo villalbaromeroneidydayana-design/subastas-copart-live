@@ -949,7 +949,13 @@ class RealAuctionStore {
     }
   }
 
-  public async submitManualBid(sessionId: string, paddleNumber: string, amount: number): Promise<{ success: boolean; bid?: any; session?: any; error?: string }> {
+  public async submitManualBid(
+    sessionId: string,
+    paddleNumber: string,
+    amount: number,
+    customName?: string,
+    location?: string
+  ): Promise<{ success: boolean; bid?: any; session?: any; error?: string }> {
     const target = sessionId || 'ses-live-001';
     this.localSessionState.currentPrice = amount;
     this.localSessionState.currentWinnerPaddle = paddleNumber;
@@ -961,6 +967,8 @@ class RealAuctionStore {
       sessionId: target,
       paddleNumber,
       amount,
+      bidderName: customName || paddleNumber,
+      location: location || 'USA Online',
       timestamp: new Date().toISOString(),
       isWinning: true,
     };
@@ -971,7 +979,7 @@ class RealAuctionStore {
       bid: bidObj,
       currentPrice: amount,
       currentWinnerPaddle: paddleNumber,
-      currentWinnerName: paddleNumber,
+      currentWinnerName: customName || paddleNumber,
       timeRemaining: 15,
       serverTimestamp: new Date().toISOString(),
     };
@@ -983,7 +991,7 @@ class RealAuctionStore {
       const res = await fetch(`${SERVER_URL}/api/sessions/${target}/manual-bid`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paddleNumber, amount })
+        body: JSON.stringify({ paddleNumber, amount, customName, location })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -1273,6 +1281,7 @@ class RealAuctionStore {
     clientMaxBudget?: number;
     currentPrice?: number;
     brokerName?: string;
+    brokerLocation?: string;
     buyerName?: string;
     referenceUrl?: string;
     lotNumber?: string;
@@ -1296,6 +1305,7 @@ class RealAuctionStore {
       reservePrice: params.reservePrice,
       clientMaxBudget: params.clientMaxBudget,
       brokerName: params.brokerName,
+      brokerLocation: params.brokerLocation,
       buyerName: params.buyerName,
       referenceUrl: params.referenceUrl,
       lotNumber: params.lotNumber,
@@ -1310,6 +1320,35 @@ class RealAuctionStore {
       return await res.json();
     } catch {
       return { success: true, params };
+    }
+  }
+
+  public async updatePaddle101(sessionId: string, name: string, location: string): Promise<{ success: boolean; error?: string }> {
+    const target = sessionId || 'ses-live-001';
+    this.dispatchSyncEvent({
+      type: 'PARTICIPANTS_UPDATED',
+      sessionId: target,
+      brokerName: name,
+      brokerLocation: location,
+      paddle101: { name, location },
+    }, true);
+
+    this.dispatchSyncEvent({
+      type: 'STATUS_CHANGE',
+      sessionId: target,
+      brokerName: name,
+      brokerLocation: location,
+    }, true);
+
+    try {
+      const res = await fetch(`${SERVER_URL}/api/sessions/${target}/update-paddle-101`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, location }),
+      });
+      return await res.json();
+    } catch {
+      return { success: true };
     }
   }
 

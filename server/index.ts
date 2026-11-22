@@ -146,7 +146,7 @@ function seedDatabase() {
     `).run(
       'part-101',
       'ses-live-001',
-      'Carlos Mendoza (Broker Rep. #101)',
+      'Carlos Mendoza',
       'Paleta #101',
       'Miami, FL',
       hashToken(defaultBrokerToken),
@@ -743,9 +743,9 @@ app.post('/api/sessions', (req, res) => {
   `).run(
     'part-' + sessionId + '-broker',
     sessionId,
-    `${finalBuyerName} (${finalBrokerName} Rep. #101)`,
+    finalBrokerName || 'Carlos Mendoza',
     'Paleta #101',
-    'Online (Representante)',
+    'Miami, FL',
     hashToken(brokerToken),
     now
   );
@@ -885,8 +885,10 @@ app.get('/api/sessions/:id', (req, res) => {
       broker_access_token: r.broker_access_token,
       buyerAccessToken: r.buyer_access_token,
       buyer_access_token: r.buyer_access_token,
-      brokerName: r.broker_name,
-      broker_name: r.broker_name,
+      brokerName: r.broker_name || 'Carlos Mendoza',
+      broker_name: r.broker_name || 'Carlos Mendoza',
+      brokerLocation: r.broker_location || 'Miami, FL',
+      broker_location: r.broker_location || 'Miami, FL',
       buyerName: r.buyer_name,
       buyer_name: r.buyer_name,
       vehicle: JSON.parse(r.vehicle_json),
@@ -1414,7 +1416,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
 
   // Nombres y ubicaciones oficiales de las 7 paletas
   const officialPaddles: Record<string, { name: string; loc: string }> = {
-    'Paleta #101': { name: session.broker_name || 'Broker Autorizado (Representante)', loc: 'Miami, FL' },
+    'Paleta #101': { name: session.broker_name || 'Carlos Mendoza', loc: (session as any).broker_location || 'Miami, FL' },
     'Paleta #108': { name: 'AutoExport Dallas LLC', loc: 'Dallas, TX' },
     'Paleta #214': { name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA' },
     'Paleta #305': { name: 'Global Fleet Buyers', loc: 'Atlanta, GA' },
@@ -1439,6 +1441,12 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
       INSERT INTO auction_participants (id, session_id, name, paddle_number, location, token_hash, authorization_status, created_at)
       VALUES (?, ?, ?, ?, ?, ?, 'approved', ?)
     `).run(participantId, session.id, bidderName, paddle, bidderLoc, hashToken(paddle + session.id), now);
+  } else if (paddle === 'Paleta #101') {
+    db.prepare(`
+      UPDATE auction_participants 
+      SET name = ?, location = ? 
+      WHERE id = ?
+    `).run(bidderName, bidderLoc, existingPart.id);
   }
 
   // Número de secuencia consecutivo
@@ -1675,15 +1683,16 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
   const session = findSession(req.params.id);
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice, brokerName, buyerName, referenceUrl, lotNumber } = req.body;
+  const { startingPrice, minIncrement, reservePrice, clientMaxBudget, currentPrice, brokerName, brokerLocation, buyerName, referenceUrl, lotNumber } = req.body;
 
   const newStartingPrice = startingPrice !== undefined && !isNaN(Number(startingPrice)) ? Number(startingPrice) : session.starting_price;
   const newIncrement = minIncrement !== undefined && !isNaN(Number(minIncrement)) ? Number(minIncrement) : session.min_increment;
   const newReserve = reservePrice !== undefined && !isNaN(Number(reservePrice)) ? Number(reservePrice) : session.reserve_price;
   const newBudget = clientMaxBudget !== undefined && !isNaN(Number(clientMaxBudget)) ? Number(clientMaxBudget) : session.client_max_budget;
   const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : (session.status === 'prepared' || session.bid_count === 0 ? newStartingPrice : session.current_price);
-  const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'Broker Autorizado (Representante)';
-  const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Carlos Mendoza (Comprador)';
+  const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'Carlos Mendoza';
+  const newBrokerLocation = brokerLocation && String(brokerLocation).trim() ? String(brokerLocation).trim() : ((session as any).broker_location || 'Miami, FL');
+  const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Carlos Mendoza';
   const newLotNumber = lotNumber && String(lotNumber).trim() ? String(lotNumber).trim() : session.lot_number;
   const newReferenceUrl = referenceUrl && String(referenceUrl).trim() ? String(referenceUrl).trim() : (session.reference_url || '');
 
@@ -1695,42 +1704,77 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
     updatedVehicleJson = JSON.stringify(vObj);
   } catch { }
 
-  db.prepare(`
-    UPDATE auction_sessions
-    SET 
-      starting_price = ?,
-      min_increment = ?,
-      reserve_price = ?,
-      client_max_budget = ?,
-      current_price = ?,
-      broker_name = ?,
-      buyer_name = ?,
-      lot_number = ?,
-      reference_url = ?,
-      vehicle_json = ?,
-      is_token_revoked = 0,
-      updated_at = ?
-    WHERE id = ?
-  `).run(
-    newStartingPrice,
-    newIncrement,
-    newReserve,
-    newBudget,
-    newCurrentPrice,
-    newBrokerName,
-    newBuyerName,
-    newLotNumber,
-    newReferenceUrl,
-    updatedVehicleJson,
-    new Date().toISOString(),
-    session.id
-  );
+  try {
+    db.prepare(`
+      UPDATE auction_sessions
+      SET 
+        starting_price = ?,
+        min_increment = ?,
+        reserve_price = ?,
+        client_max_budget = ?,
+        current_price = ?,
+        broker_name = ?,
+        broker_location = ?,
+        buyer_name = ?,
+        lot_number = ?,
+        reference_url = ?,
+        vehicle_json = ?,
+        is_token_revoked = 0,
+        updated_at = ?
+      WHERE id = ?
+    `).run(
+      newStartingPrice,
+      newIncrement,
+      newReserve,
+      newBudget,
+      newCurrentPrice,
+      newBrokerName,
+      newBrokerLocation,
+      newBuyerName,
+      newLotNumber,
+      newReferenceUrl,
+      updatedVehicleJson,
+      new Date().toISOString(),
+      session.id
+    );
+  } catch {
+    db.prepare(`
+      UPDATE auction_sessions
+      SET 
+        starting_price = ?,
+        min_increment = ?,
+        reserve_price = ?,
+        client_max_budget = ?,
+        current_price = ?,
+        broker_name = ?,
+        buyer_name = ?,
+        lot_number = ?,
+        reference_url = ?,
+        vehicle_json = ?,
+        is_token_revoked = 0,
+        updated_at = ?
+      WHERE id = ?
+    `).run(
+      newStartingPrice,
+      newIncrement,
+      newReserve,
+      newBudget,
+      newCurrentPrice,
+      newBrokerName,
+      newBuyerName,
+      newLotNumber,
+      newReferenceUrl,
+      updatedVehicleJson,
+      new Date().toISOString(),
+      session.id
+    );
+  }
 
   db.prepare(`
     UPDATE auction_participants 
-    SET name = ? 
+    SET name = ?, location = ? 
     WHERE session_id = ? AND paddle_number = 'Paleta #101'
-  `).run(`${newBuyerName} (${newBrokerName} Rep. #101)`, session.id);
+  `).run(newBrokerName, newBrokerLocation, session.id);
 
   broadcast({
     type: 'STATUS_CHANGE',
@@ -1741,9 +1785,17 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
     clientMaxBudget: newBudget,
     currentPrice: newCurrentPrice,
     brokerName: newBrokerName,
+    brokerLocation: newBrokerLocation,
     buyerName: newBuyerName,
     lotNumber: newLotNumber,
     referenceUrl: newReferenceUrl,
+  });
+
+  broadcast({
+    type: 'PARTICIPANTS_UPDATED',
+    sessionId: session.id,
+    brokerName: newBrokerName,
+    brokerLocation: newBrokerLocation,
   });
 
   return res.json({
@@ -1755,9 +1807,61 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
       clientMaxBudget: newBudget,
       currentPrice: newCurrentPrice,
       brokerName: newBrokerName,
+      brokerLocation: newBrokerLocation,
       buyerName: newBuyerName
     }
   });
+});
+
+// 8a.4 ACTUALIZACIÓN DIRECTA DE LA PALETA #101 (NOMBRE Y UBICACIÓN DEL CLIENTE)
+app.post('/api/sessions/:id/update-paddle-101', (req, res) => {
+  const session = findSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
+
+  const { name, location } = req.body;
+  const newName = name && String(name).trim() ? String(name).trim() : (session.broker_name || 'Carlos Mendoza');
+  const newLoc = location && String(location).trim() ? String(location).trim() : ((session as any).broker_location || 'Miami, FL');
+
+  try {
+    db.prepare(`UPDATE auction_sessions SET broker_name = ?, broker_location = ? WHERE id = ?`).run(newName, newLoc, session.id);
+  } catch {
+    try {
+      db.prepare(`UPDATE auction_sessions SET broker_name = ? WHERE id = ?`).run(newName, session.id);
+    } catch {}
+  }
+
+  const existingPart = db.prepare('SELECT id FROM auction_participants WHERE session_id = ? AND paddle_number = ?').get(session.id, 'Paleta #101') as any;
+  if (existingPart) {
+    db.prepare(`UPDATE auction_participants SET name = ?, location = ? WHERE id = ?`).run(newName, newLoc, existingPart.id);
+  } else {
+    db.prepare(`
+      INSERT INTO auction_participants (id, session_id, name, paddle_number, location, token_hash, authorization_status, created_at)
+      VALUES (?, ?, ?, 'Paleta #101', ?, ?, 'approved', ?)
+    `).run('part-' + session.id + '-101', session.id, newName, newLoc, hashToken('Paleta #101' + session.id), new Date().toISOString());
+  }
+
+  // Si actualmente Paleta #101 va liderando, actualizar su nombre
+  if (session.current_winner_paddle === 'Paleta #101' || (session.current_winner_paddle && session.current_winner_paddle.includes('101'))) {
+    db.prepare(`UPDATE auction_sessions SET current_winner_name = ? WHERE id = ?`).run(newName, session.id);
+  }
+
+  broadcast({
+    type: 'PARTICIPANTS_UPDATED',
+    sessionId: session.id,
+    brokerName: newName,
+    brokerLocation: newLoc,
+    paddle101: { name: newName, location: newLoc },
+  });
+
+  broadcast({
+    type: 'STATUS_CHANGE',
+    sessionId: session.id,
+    brokerName: newName,
+    brokerLocation: newLoc,
+    currentWinnerName: session.current_winner_paddle === 'Paleta #101' ? newName : undefined,
+  });
+
+  return res.json({ success: true, name: newName, location: newLoc });
 });
 
 // 8b. CARGAR SIGUIENTE LOTE Y NUEVO CLIENTE EN LA MISMA SALA

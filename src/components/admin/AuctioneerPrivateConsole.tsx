@@ -60,7 +60,7 @@ interface PaddleInfo {
 }
 
 const OFFICIAL_PADDLES: PaddleInfo[] = [
-  { number: 'Paleta #101', name: 'Broker Autorizado (Representante)', location: 'Miami, FL', isBroker: true },
+  { number: 'Paleta #101', name: 'Carlos Mendoza', location: 'Miami, FL', isBroker: true },
   { number: 'Paleta #108', name: 'AutoExport Dallas LLC', location: 'Dallas, TX' },
   { number: 'Paleta #214', name: 'Pacific Salvage Auctions', location: 'Los Angeles, CA' },
   { number: 'Paleta #305', name: 'Global Fleet Buyers', location: 'Atlanta, GA' },
@@ -89,8 +89,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [lotMinIncrement, setLotMinIncrement] = useState<number>(250);
   const [lotReservePrice, setLotReservePrice] = useState<number>(12000);
   const [lotClientBudget, setLotClientBudget] = useState<number>(7500);
-  const [lotBrokerName, setLotBrokerName] = useState<string>('Broker Autorizado (Representante)');
-  const [lotBuyerName, setLotBuyerName] = useState<string>('Carlos Mendoza (Comprador)');
+  const [lotBrokerName, setLotBrokerName] = useState<string>('Carlos Mendoza');
+  const [lotBrokerLocation, setLotBrokerLocation] = useState<string>('Miami, FL');
+  const [lotBuyerName, setLotBuyerName] = useState<string>('Carlos Mendoza');
   const [lotReferenceUrl, setLotReferenceUrl] = useState<string>('');
   const [lotNumberInput, setLotNumberInput] = useState<string>('');
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -193,6 +194,16 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500));
         if (data.session.broker_name || data.session.brokerName) {
           setLotBrokerName(data.session.broker_name || data.session.brokerName);
+        }
+        if (data.session.broker_location || data.session.brokerLocation) {
+          setLotBrokerLocation(data.session.broker_location || data.session.brokerLocation);
+        }
+        if (data.participants && Array.isArray(data.participants)) {
+          const p101 = data.participants.find((p: any) => p.paddleNumber === 'Paleta #101' || p.paddle_number === 'Paleta #101');
+          if (p101) {
+            if (p101.name) setLotBrokerName(p101.name);
+            if (p101.location) setLotBrokerLocation(p101.location);
+          }
         }
         if (data.session.buyer_name || data.session.buyerName) {
           setLotBuyerName(data.session.buyer_name || data.session.buyerName);
@@ -463,6 +474,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       reservePrice: Number(lotReservePrice),
       clientMaxBudget: Number(lotClientBudget),
       brokerName: lotBrokerName,
+      brokerLocation: lotBrokerLocation,
       buyerName: lotBuyerName,
       referenceUrl: lotReferenceUrl.trim(),
       lotNumber: lotNumberInput.trim(),
@@ -499,6 +511,24 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  // ACTUALIZAR DATOS DE PALETA #101 (NOMBRE Y UBICACIÓN DEL CLIENTE)
+  const handleSavePaddle101 = async () => {
+    const targetId = session.id || 'ses-live-001';
+    const nameToSave = lotBrokerName.trim() || 'Carlos Mendoza';
+    const locToSave = lotBrokerLocation.trim() || 'Miami, FL';
+    try {
+      const res = await store.updatePaddle101(targetId, nameToSave, locToSave);
+      if (res.success) {
+        showFeedback(`✓ Paleta #101 configurada: ${nameToSave} (${locToSave})`);
+        await syncSessionData();
+      } else {
+        showFeedback(res.error || 'Error al actualizar Paleta #101', 'error');
+      }
+    } catch {
+      showFeedback('Error al actualizar Paleta #101', 'error');
+    }
+  };
+
   // 1. EJECUTAR OFERTA MANUAL CON LA PALETA SELECCIONADA
   const handleSendManualBid = async () => {
     const amount = Number(bidAmountInput);
@@ -528,7 +558,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     if (session.status !== 'open') {
       await store.serverStartAuction(targetId);
     }
-    const res = await store.submitManualBid(targetId, selectedPaddle, amount);
+    const res = await store.submitManualBid(
+      targetId,
+      selectedPaddle,
+      amount,
+      selectedPaddle === 'Paleta #101' ? (lotBrokerName || 'Carlos Mendoza') : undefined,
+      selectedPaddle === 'Paleta #101' ? (lotBrokerLocation || 'Miami, FL') : undefined
+    );
     setIsSubmittingBid(false);
 
     if (res.success) {
@@ -1050,7 +1086,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             <div className="space-y-2">
               {OFFICIAL_PADDLES.map((p) => {
                 const isSelected = selectedPaddle === p.number;
-                const isLeading = (session as any).currentWinnerPaddle === p.number;
+                const isLeading = (session as any).currentWinnerPaddle === p.number || (session as any).current_winner_paddle === p.number;
+                const displayName = p.isBroker ? (lotBrokerName || session.broker_name || p.name) : p.name;
+                const displayLoc = p.isBroker ? (lotBrokerLocation || (session as any).broker_location || p.location) : p.location;
 
                 return (
                   <button
@@ -1079,18 +1117,18 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                           </span>
                           {p.isBroker && (
                             <span className="bg-blue-600/40 text-blue-300 border border-blue-400/50 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wide">
-                              BROKER REAL
+                              CLIENTE / BROKER
                             </span>
                           )}
                         </div>
                         <p className="text-xs sm:text-sm text-slate-300 font-medium truncate mt-0.5">
-                          {p.isBroker ? (lotBrokerName || session.broker_name || p.name) : p.name}
+                          {displayName}
                         </p>
                       </div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
-                      <span className="text-xs text-slate-400 font-mono block">{p.location}</span>
+                      <span className="text-xs text-slate-400 font-mono block">{displayLoc}</span>
                       {isLeading && (
                         <span className="text-[10px] bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-black px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-0.5">
                           ★ LÍDER
@@ -1103,10 +1141,53 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </div>
           </div>
 
+          {/* EDITAR PALETA #101 DIRECTAMENTE EN SALA DE OPERADOR */}
+          <div className="mt-3 bg-[#050e20] p-3 rounded-xl border border-blue-500/40 shadow-lg space-y-2">
+            <div className="flex items-center justify-between border-b border-blue-500/20 pb-1.5">
+              <span className="text-[11px] font-black uppercase tracking-wider text-blue-300 flex items-center gap-1.5">
+                <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                CONFIGURAR PALETA #101 (DATOS DEL CLIENTE)
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Única editable</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold block mb-0.5">NOMBRE DEL CLIENTE:</label>
+                <input
+                  type="text"
+                  value={lotBrokerName}
+                  onChange={(e) => setLotBrokerName(e.target.value)}
+                  onBlur={handleSavePaddle101}
+                  placeholder="Ej. Carlos Mendoza"
+                  className="w-full bg-[#030712] border border-slate-700 focus:border-blue-400 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold block mb-0.5">DE DÓNDE ES (UBICACIÓN):</label>
+                <input
+                  type="text"
+                  value={lotBrokerLocation}
+                  onChange={(e) => setLotBrokerLocation(e.target.value)}
+                  onBlur={handleSavePaddle101}
+                  placeholder="Ej. Miami, FL / Houston, TX"
+                  className="w-full bg-[#030712] border border-slate-700 focus:border-blue-400 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg focus:outline-none"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSavePaddle101}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition active:scale-95 shadow"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>GUARDAR DATOS PALETA #101</span>
+            </button>
+          </div>
+
           {/* Resumen del postor seleccionado */}
-          <div className="mt-3.5 bg-[#050a16] p-3 rounded-xl border border-amber-500/40 text-sm flex items-center justify-between shadow">
-            <span className="text-slate-300 font-medium">Postor activo para la próxima oferta:</span>
-            <span className="font-mono font-black text-amber-300 text-base">{selectedPaddle}</span>
+          <div className="mt-3 bg-[#050a16] p-2.5 rounded-xl border border-amber-500/40 text-sm flex items-center justify-between shadow">
+            <span className="text-slate-300 font-medium text-xs">Postor activo para la próxima oferta:</span>
+            <span className="font-mono font-black text-amber-300 text-sm">{selectedPaddle}</span>
           </div>
         </div>
 
@@ -2280,12 +2361,23 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               </div>
 
               <div className="pt-2 border-t border-slate-800">
-                <label className="text-amber-300 font-bold block mb-1">Nombre Real del Broker / Representante (Paleta #101):</label>
+                <label className="text-amber-300 font-bold block mb-1">Nombre del Cliente / Postor (Paleta #101):</label>
                 <input
                   type="text"
                   value={lotBrokerName}
                   onChange={(e) => setLotBrokerName(e.target.value)}
-                  placeholder="Ej. Broker Juan Pérez o AutoBroker Miami"
+                  placeholder="Ej. Carlos Mendoza, Edwin Rivas"
+                  className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-sans text-white font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-blue-300 font-bold block mb-1">De dónde es / Ubicación (Paleta #101):</label>
+                <input
+                  type="text"
+                  value={lotBrokerLocation}
+                  onChange={(e) => setLotBrokerLocation(e.target.value)}
+                  placeholder="Ej. Miami, FL / Houston, TX"
                   className="w-full bg-[#050a16] border border-slate-700 focus:border-amber-400 rounded-lg p-2 font-sans text-white font-bold"
                 />
               </div>
