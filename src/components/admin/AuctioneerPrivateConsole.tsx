@@ -74,7 +74,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 }) => {
   const [session, setSession] = useState<AuctionSession>(initialSession);
   const [bids, setBids] = useState<any[]>([]);
-  const [selectedPaddle, setSelectedPaddle] = useState<string>('Paleta #108');
+  const [selectedPaddle, setSelectedPaddle] = useState<string>('Paleta #101');
   const [bidAmountInput, setBidAmountInput] = useState<string>('5250');
   const [isSubmittingBid, setIsSubmittingBid] = useState<boolean>(false);
   const [activeCall, setActiveCall] = useState<string | null>(null);
@@ -537,12 +537,6 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     if (res.success) {
       showFeedback(`✓ Oferta de $${amount.toLocaleString()} enviada exitosamente con ${selectedPaddle}`);
       await syncSessionData();
-      // Alternar paleta seleccionada para facilitar el siguiente movimiento
-      if (selectedPaddle === 'Paleta #101') {
-        setSelectedPaddle('Paleta #108');
-      } else {
-        setSelectedPaddle('Paleta #101');
-      }
     } else {
       showFeedback(res.error || 'Error al procesar la oferta', 'error');
     }

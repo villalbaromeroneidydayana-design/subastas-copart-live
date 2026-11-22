@@ -431,22 +431,47 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     });
   }, [initialSession.room_token, initialSession.id, role, userToken]);
 
+  // Cronómetro local 1 Hz continuo cuando la subasta está activa (open / bidding / last_call)
+  useEffect(() => {
+    if (session.status !== 'open' && session.status !== 'bidding' && session.status !== 'last_call') {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setSession((prev) => {
+        if (prev.status !== 'open' && prev.status !== 'bidding' && prev.status !== 'last_call') {
+          return prev;
+        }
+        if (prev.time_remaining_seconds <= 0) {
+          return prev;
+        }
+        const nextTime = Math.max(0, prev.time_remaining_seconds - 1);
+        const nextStatus = nextTime <= 4 ? 'last_call' : prev.status;
+        return {
+          ...prev,
+          time_remaining_seconds: nextTime,
+          status: nextStatus,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [session.status]);
+
   // Escuchar en vivo movimientos de espectadores, presencia y autorizaciones por WebSocket
   useEffect(() => {
     const unsubscribeWs = store.onWsMessage((msg: any) => {
       try {
         if (!msg) return;
         if (msg.type === 'CLOCK_TICK') {
-          if (!msg.sessionId || msg.sessionId === session.id || msg.sessionId === (session as any).sessionId) {
-            setSession((prev) => ({
-              ...prev,
-              time_remaining_seconds: msg.timeRemaining,
-              current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
-              status: msg.status || prev.status,
-            }));
-            if (msg.viewersCount !== undefined) {
-              setViewersCount(msg.viewersCount);
-            }
+          setSession((prev) => ({
+            ...prev,
+            time_remaining_seconds: msg.timeRemaining !== undefined ? Number(msg.timeRemaining) : prev.time_remaining_seconds,
+            current_price: msg.currentPrice !== undefined ? Number(msg.currentPrice) : prev.current_price,
+            status: msg.status || prev.status,
+          }));
+          if (msg.viewersCount !== undefined) {
+            setViewersCount(msg.viewersCount);
           }
         } else if (msg.type === 'AUCTION_STARTED') {
           setIsRoomAccessExpired(false);
