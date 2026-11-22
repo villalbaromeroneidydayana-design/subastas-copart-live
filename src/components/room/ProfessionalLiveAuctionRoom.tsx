@@ -1383,29 +1383,29 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* LETRERO GRANDE OFICIAL: VEHÍCULO VENDIDO (SOLD) */}
             {session.status === 'sold' && (
-              <div className="w-full bg-gradient-to-r from-red-700 via-rose-600 to-red-700 text-white py-3 px-4 flex items-center justify-between border-b-4 border-red-400 shadow-2xl animate-fadeIn relative z-40">
-                <div className="flex items-center gap-3">
-                  <span className="w-3.5 h-3.5 rounded-full bg-white animate-ping shrink-0" />
-                  <div className="flex items-center gap-2">
-                    <Gavel className="w-6 h-6 text-amber-300 fill-amber-300 shrink-0" />
-                    <span className="font-black text-base sm:text-xl tracking-widest uppercase drop-shadow">
+              <div className="w-full bg-gradient-to-r from-red-700 via-rose-600 to-red-700 text-white py-2.5 sm:py-3 px-3 sm:px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-4 border-b-4 border-red-400 shadow-2xl animate-fadeIn relative z-40 text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                  <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full bg-white animate-ping shrink-0" />
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <Gavel className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 fill-amber-300 shrink-0" />
+                    <span className="font-black text-sm sm:text-lg tracking-wider sm:tracking-widest uppercase drop-shadow whitespace-nowrap">
                       VEHÍCULO VENDIDO • SOLD
                     </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="font-mono font-black text-amber-300 text-sm sm:text-base block drop-shadow">
+                <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-0.5 text-center sm:text-right">
+                  <span className="font-mono font-black text-amber-300 text-sm sm:text-base drop-shadow bg-red-950/60 sm:bg-transparent px-2.5 py-0.5 rounded border border-amber-400/30 sm:border-0">
                     ADJUDICADO: {(session as any).current_winner_paddle || (session as any).currentWinnerPaddle || 'Paleta #101'}
                   </span>
-                  <span className="text-[11px] text-white/95 font-bold block truncate max-w-[240px]">
-                    {(session as any).current_winner_name || (session as any).currentWinnerName || (session as any).broker_name || 'Carlos Mendoza'} • ${(Number(session.current_price || 5000)).toLocaleString()} USD
+                  <span className="text-xs sm:text-sm text-white font-bold drop-shadow">
+                    {(session as any).current_winner_name || (session as any).currentWinnerName || (session as any).broker_name || 'Richard'} • ${(Number(session.current_price || 5000)).toLocaleString()} USD
                   </span>
                 </div>
               </div>
             )}
 
             {/* Badges Superiores sobre la Fotografía */}
-            <div className={`absolute ${session.status === 'sold' ? 'top-16' : 'top-2.5'} left-2.5 z-20 flex flex-wrap gap-1.5 transition-all`}>
+            <div className={`absolute ${session.status === 'sold' ? 'top-24 sm:top-16' : 'top-2.5'} left-2.5 z-20 flex flex-wrap gap-1.5 transition-all`}>
               <span
                 className="bg-[#002855]/95 text-white font-black text-xs px-2.5 py-1 rounded border border-blue-400/40 shadow backdrop-blur flex items-center gap-1.5"
                 title="Lote oficial verificado"
@@ -1550,14 +1550,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               onClick={() => setIsGalleryOpen(true)}
             >
               {session.status === 'sold' && (
-                <div className="absolute inset-0 z-30 bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none animate-fadeIn">
-                  <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-black text-3xl sm:text-5xl px-8 sm:px-12 py-4 sm:py-5 rounded-2xl shadow-[0_0_50px_rgba(220,38,38,0.95)] border-4 border-white tracking-widest uppercase transform -rotate-6 animate-pulse flex flex-col items-center">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Gavel className="w-8 h-8 sm:w-11 sm:h-11 text-amber-300 fill-amber-300" />
-                      <span>¡VENDIDO!</span>
+                <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-3 sm:p-4 pointer-events-none animate-fadeIn">
+                  <div className="w-[94%] sm:w-auto max-w-md bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-black px-4 sm:px-10 py-3 sm:py-5 rounded-2xl shadow-[0_0_50px_rgba(220,38,38,0.95)] border-3 sm:border-4 border-white tracking-widest uppercase transform -rotate-3 sm:-rotate-6 animate-pulse flex flex-col items-center text-center">
+                    <div className="flex items-center gap-2 sm:gap-3 text-2xl sm:text-4xl">
+                      <Gavel className="w-7 h-7 sm:w-10 sm:h-10 text-amber-300 fill-amber-300 shrink-0" />
+                      <span>¡VENDIDO! / SOLD</span>
                     </div>
-                    <span className="text-xs sm:text-base tracking-widest text-amber-200 uppercase font-mono mt-1">
-                      SOLD • {(session as any).current_winner_paddle || (session as any).currentWinnerPaddle || 'Paleta #101'}
+                    <span className="text-sm sm:text-lg tracking-widest text-amber-200 uppercase font-mono mt-1 font-bold">
+                      {(session as any).current_winner_paddle || (session as any).currentWinnerPaddle || 'Paleta #101'}
+                    </span>
+                    <span className="text-xs sm:text-sm font-mono text-white/95 mt-0.5">
+                      ${(Number(session.current_price || 5000)).toLocaleString()} USD
                     </span>
                   </div>
                 </div>
