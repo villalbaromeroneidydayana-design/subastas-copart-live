@@ -106,8 +106,6 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
-  const [isAutoBrokerEnabled, setIsAutoBrokerEnabled] = useState<boolean>(false);
-  const autoBrokerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Dock inferior de gestión y selección de vehículos Copart
   const [dockTab, setDockTab] = useState<'lista' | 'cola' | 'carril' | 'comparar' | 'patio'>('lista');
@@ -692,41 +690,6 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       return false;
     }
   };
-
-  // AUTO-PUJA INTELIGENTE DEL BROKER #101
-  useEffect(() => {
-    if (!isAutoBrokerEnabled) {
-      if (autoBrokerTimeoutRef.current) clearTimeout(autoBrokerTimeoutRef.current);
-      return;
-    }
-
-    const isSessionActive = ['open', 'bidding', 'last_call'].includes(session.status);
-    if (!isSessionActive) return;
-
-    const currentLeaderIsBroker = currentLeader.includes('101');
-    if (currentLeaderIsBroker || currentLeader === 'Esperando apertura' || currentLeader === 'N/A') {
-      return;
-    }
-
-    const currPrice = Number(session.current_price ?? (session as any).currentPrice ?? 5000);
-    const nextAmount = currPrice + Number(session.bid_increment || 250);
-
-    if (nextAmount > lotClientBudget) {
-      showFeedback(`⚠️ Auto-Broker detenido: $${nextAmount.toLocaleString()} USD supera el tope de capital ($${lotClientBudget.toLocaleString()} USD)`);
-      return;
-    }
-
-    const randomDelay = Math.floor(1200 + Math.random() * 800);
-    if (autoBrokerTimeoutRef.current) clearTimeout(autoBrokerTimeoutRef.current);
-
-    autoBrokerTimeoutRef.current = setTimeout(() => {
-      handleQuickBrokerBid(Number(session.bid_increment || 250));
-    }, randomDelay);
-
-    return () => {
-      if (autoBrokerTimeoutRef.current) clearTimeout(autoBrokerTimeoutRef.current);
-    };
-  }, [session.current_price, currentLeader, session.status, isAutoBrokerEnabled, lotClientBudget]);
 
   return (
     <div className="min-h-screen bg-[#050914] text-slate-100 flex flex-col font-sans select-none">
@@ -1412,25 +1375,11 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 </span>
               </div>
 
-              {/* Switch Auto-Puja Inteligente */}
-              <button
-                type="button"
-                onClick={() => {
-                  const next = !isAutoBrokerEnabled;
-                  setIsAutoBrokerEnabled(next);
-                  showFeedback(next ? '🤖 Auto-Puja Inteligente del Broker #101 ACTIVADA' : 'Auto-Puja Broker #101 DESACTIVADA');
-                }}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 border cursor-pointer ${
-                  isAutoBrokerEnabled
-                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)] animate-pulse'
-                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
-                }`}
-                title="Al activar, el Broker #101 responde automáticamente superando ofertas competidoras hasta el límite del cliente"
-              >
-                <Bot className="w-3.5 h-3.5" />
-                <span>Auto-Puja:</span>
-                <span>{isAutoBrokerEnabled ? 'ON (ACTIVO)' : 'OFF (MANUAL)'}</span>
-              </button>
+              {/* Indicador de Control Manual */}
+              <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-950/70 border border-emerald-700/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                PUJAS 100% MANUALES
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
