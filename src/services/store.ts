@@ -235,8 +235,8 @@ class RealAuctionStore {
       }
 
       this.localTimeRemaining = Math.max(0, this.localTimeRemaining - 1);
-      const newStatus = this.localTimeRemaining === 0 
-        ? 'last_call' 
+      const newStatus = this.localTimeRemaining === 0
+        ? 'last_call'
         : (this.localTimeRemaining <= 4 ? 'last_call' : 'open');
       this.localSessionState.status = newStatus;
 
@@ -665,7 +665,46 @@ class RealAuctionStore {
       localStorage.setItem('copart_sessions_v1', JSON.stringify(INITIAL_SESSIONS));
       return INITIAL_SESSIONS;
     }
-    try { return JSON.parse(raw); } catch { return INITIAL_SESSIONS; }
+    try {
+      const parsed: AuctionSession[] = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        let modified = false;
+        // Actualizar sesiones existentes con datos frescos de INITIAL_SESSIONS (como fotos y badges)
+        const updated = parsed.map((s) => {
+          const fresh = INITIAL_SESSIONS.find((is) => is.id === s.id || is.room_token === s.room_token);
+          if (fresh && fresh.vehicle_snapshot?.images?.length) {
+            modified = true;
+            return {
+              ...s,
+              vehicle_snapshot: {
+                ...s.vehicle_snapshot,
+                ...fresh.vehicle_snapshot,
+                images: fresh.vehicle_snapshot.images,
+                custom_badges: fresh.vehicle_snapshot.custom_badges || s.vehicle_snapshot?.custom_badges,
+              }
+            };
+          }
+          return s;
+        });
+
+        // Asegurar que sesiones nuevas como ses-live-camry-johan existan
+        INITIAL_SESSIONS.forEach((initSes) => {
+          const exists = updated.some((s) => s.id === initSes.id || s.room_token === initSes.room_token);
+          if (!exists) {
+            updated.unshift(initSes);
+            modified = true;
+          }
+        });
+
+        if (modified) {
+          localStorage.setItem('copart_sessions_v1', JSON.stringify(updated));
+        }
+        return updated;
+      }
+      return INITIAL_SESSIONS;
+    } catch {
+      return INITIAL_SESSIONS;
+    }
   }
 
   public getSessionById(id: string): AuctionSession | undefined {
@@ -673,7 +712,7 @@ class RealAuctionStore {
   }
 
   public getSessionByToken(token: string): AuctionSession | undefined {
-    return this.getSessions().find((s) => s.room_token === token);
+    return this.getSessions().find((s) => s.room_token === token) || INITIAL_SESSIONS.find((s) => s.room_token === token);
   }
 
   public createSession(params: {

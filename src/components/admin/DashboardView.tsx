@@ -71,9 +71,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const vehicle = mainSession?.vehicle_snapshot || {} as any;
-  const buyerName = mainSession?.buyer_name || (mainSession as any)?.buyerName || mainSession?.client_snapshot?.full_name || 'Carlos Mendoza';
-  const brokerName = mainSession?.broker_name || (mainSession as any)?.brokerName || 'Broker Autorizado';
-  const budget = Number(mainSession?.client_max_budget ?? (mainSession as any)?.clientMaxBudget ?? 7500);
+  const buyerName = mainSession?.buyer_name || (mainSession as any)?.buyerName || mainSession?.client_snapshot?.full_name || 'Gustavo Adolfo Medal López';
+  const brokerName = mainSession?.broker_name || (mainSession as any)?.brokerName || 'David Rodríguez';
+  const budget = Number(mainSession?.client_max_budget ?? (mainSession as any)?.clientMaxBudget ?? 2500);
 
   const auctioneerLink = mainSession 
     ? getFullUrl(mainSession.links?.auctioneerLink || `#/sala/${mainSession.room_token}?auctioneer=true`)

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { store } from '../../services/store';
 import { AuctionSession, CustomVehicleBadges } from '../../types';
 import { sounds } from '../../lib/soundEffects';
-import confetti from 'canvas-confetti';
 import {
   Gavel,
   Play,
@@ -61,7 +60,7 @@ interface PaddleInfo {
 }
 
 const OFFICIAL_PADDLES: PaddleInfo[] = [
-  { number: 'Paleta #101', name: 'Carlos Mendoza', location: 'Miami, FL', isBroker: true },
+  { number: 'Paleta #101', name: 'David Rodríguez', location: 'Wylie, TX', isBroker: true },
   { number: 'Paleta #108', name: 'AutoExport Dallas LLC', location: 'Dallas, TX' },
   { number: 'Paleta #214', name: 'Pacific Salvage Auctions', location: 'Los Angeles, CA' },
   { number: 'Paleta #305', name: 'Global Fleet Buyers', location: 'Atlanta, GA' },
@@ -76,7 +75,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [session, setSession] = useState<AuctionSession>(initialSession);
   const [bids, setBids] = useState<any[]>([]);
   const [selectedPaddle, setSelectedPaddle] = useState<string>('Paleta #101');
-  const [bidAmountInput, setBidAmountInput] = useState<string>('5250');
+  const [bidAmountInput, setBidAmountInput] = useState<string>('750');
   const [isSubmittingBid, setIsSubmittingBid] = useState<boolean>(false);
   const [activeCall, setActiveCall] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -89,10 +88,10 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [lotStartingPrice, setLotStartingPrice] = useState<number>(5000);
   const [lotMinIncrement, setLotMinIncrement] = useState<number>(250);
   const [lotReservePrice, setLotReservePrice] = useState<number>(12000);
-  const [lotClientBudget, setLotClientBudget] = useState<number>(7500);
-  const [lotBrokerName, setLotBrokerName] = useState<string>('Carlos Mendoza');
-  const [lotBrokerLocation, setLotBrokerLocation] = useState<string>('Miami, FL');
-  const [lotBuyerName, setLotBuyerName] = useState<string>('Carlos Mendoza');
+  const [lotClientBudget, setLotClientBudget] = useState<number>(2500);
+  const [lotBrokerName, setLotBrokerName] = useState<string>('David Rodríguez');
+  const [lotBrokerLocation, setLotBrokerLocation] = useState<string>('Wylie, TX');
+  const [lotBuyerName, setLotBuyerName] = useState<string>('Gustavo Adolfo Medal López');
   const [lotReferenceUrl, setLotReferenceUrl] = useState<string>('');
   const [lotNumberInput, setLotNumberInput] = useState<string>('');
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -185,14 +184,14 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         setSession((prev) => ({
           ...prev,
           ...data.session,
-          current_price: Number(data.session.current_price ?? data.session.currentPrice ?? 5000),
-          starting_price: Number(data.session.starting_price ?? data.session.startingPrice ?? 5000),
-          client_max_budget: Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500),
+          current_price: Number(data.session.current_price ?? data.session.currentPrice ?? 700),
+          starting_price: Number(data.session.starting_price ?? data.session.startingPrice ?? 700),
+          client_max_budget: Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 2500),
         }));
-        setLotStartingPrice(Number(data.session.starting_price ?? data.session.startingPrice ?? 5000));
+        setLotStartingPrice(Number(data.session.starting_price ?? data.session.startingPrice ?? 700));
         setLotMinIncrement(Number(data.session.min_increment ?? data.session.minIncrement ?? 250));
-        setLotReservePrice(Number(data.session.reserve_price ?? data.session.reservePrice ?? 12000));
-        setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 7500));
+        setLotReservePrice(Number(data.session.reserve_price ?? data.session.reservePrice ?? 1800));
+        setLotClientBudget(Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 2500));
         if (data.session.broker_name || data.session.brokerName) {
           const rawBroker = data.session.broker_name || data.session.brokerName;
           if (rawBroker && !rawBroker.includes('Representante') && !rawBroker.includes('Broker Autorizado')) {
@@ -520,8 +519,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   // ACTUALIZAR DATOS DE PALETA #101 (NOMBRE Y UBICACIÓN DEL CLIENTE)
   const handleSavePaddle101 = async () => {
     const targetId = session.id || 'ses-live-001';
-    const nameToSave = lotBrokerName.trim() || 'Carlos Mendoza';
-    const locToSave = lotBrokerLocation.trim() || 'Miami, FL';
+    const nameToSave = lotBrokerName.trim() || 'David Rodríguez';
+    const locToSave = lotBrokerLocation.trim() || 'Wylie, TX';
     try {
       const res = await store.updatePaddle101(targetId, nameToSave, locToSave);
       if (res.success) {
@@ -568,8 +567,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       targetId,
       selectedPaddle,
       amount,
-      selectedPaddle === 'Paleta #101' ? (lotBrokerName || 'Carlos Mendoza') : undefined,
-      selectedPaddle === 'Paleta #101' ? (lotBrokerLocation || 'Miami, FL') : undefined
+      selectedPaddle === 'Paleta #101' ? (lotBrokerName || 'David Rodríguez') : undefined,
+      selectedPaddle === 'Paleta #101' ? (lotBrokerLocation || 'Wylie, TX') : undefined
     );
     setIsSubmittingBid(false);
 
@@ -639,7 +638,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const handleAdjudicate = async (decision: 'sold' | 'unsold') => {
     const winner = (session as any).currentWinnerPaddle || (session as any).current_winner_paddle || session.current_bidder_name || (bids.length > 0 ? bids[0].paddleNumber : 'Paleta #101');
     const winnerName = (winner === 'Paleta #101' || winner.includes('101'))
-      ? (lotBrokerName || 'Carlos Mendoza')
+      ? (lotBrokerName || 'David Rodríguez')
       : ((session as any).currentWinnerName || (session as any).current_winner_name || 'Postor en Sala');
     const price = Number(session.current_price || 5000);
 
@@ -656,12 +655,6 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     if (decision === 'sold') {
       try {
         sounds.playSoldFanfare(price, winner, winnerName);
-        confetti({
-          particleCount: 160,
-          spread: 90,
-          origin: { y: 0.6 },
-          colors: ['#22c55e', '#eab308', '#3b82f6', '#ec4899', '#ffffff']
-        });
       } catch {}
 
       try {
@@ -692,7 +685,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const currentBuyerToken = (session as any).buyer_access_token || (session as any).buyerAccessToken || 'bdr_buyer_m729k1';
   const publicRoomUrl = `${origin}${basePath}/#/sala/${session.room_token || 'copart-live-m729k1'}`;
   const brokerUrl = `${origin}${basePath}/#/sala/${session.room_token || 'copart-live-m729k1'}?broker=${session.broker_access_token || 'bdr_broker_m729k1'}`;
-  const buyerUrl = `${vercelBase}/#/sala/${session.room_token || 'copart-live-m729k1'}?cliente=${currentBuyerToken}`;
+  const buyerUrl = publicRoomUrl;
 
   const handleRevokeClientAccess = async () => {
     await store.revokeParticipantAccess(session.id, 'buyer');
@@ -2257,43 +2250,28 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           {/* Enlaces de Copia Rápida */}
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => copyToClipboard(brokerUrl, 'broker')}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
-              title="Copiar enlace oficial de la Sala Copart para el Broker Autorizado (Paleta #101 con botones de puja)"
-            >
-              {copiedKey === 'broker' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Copiar Enlace Broker (Paleta #101)</span>
-            </button>
-            <button
-              onClick={() => copyToClipboard(buyerUrl, 'buyer')}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
-              title="Copiar enlace oficial de Vercel para el Cliente con su token único"
+              type="button"
+              onClick={() => copyToClipboard(publicRoomUrl, 'buyer')}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3.5 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer ring-1 ring-emerald-300/40"
+              title="Copiar enlace oficial de la sala en vivo para el cliente (100% probado y garantizado)"
             >
               {copiedKey === 'buyer' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>Copiar Enlace Cliente (Vercel)</span>
+              <span>📱 Copiar Enlace Oficial Cliente</span>
             </button>
             <button
               type="button"
-              onClick={handleRotateBuyerToken}
-              className="bg-cyan-700 hover:bg-cyan-600 text-white font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer ring-1 ring-cyan-400/40"
-              title="Generar un nuevo enlace único de 1 solo uso para el siguiente cliente e invalidar al cliente anterior"
+              onClick={() => copyToClipboard(brokerUrl, 'broker')}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3.5 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer"
+              title="Copiar enlace de la terminal para el Broker Autorizado (Paleta #101 con botones de puja)"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>🔄 Nuevo Enlace (1 Solo Uso)</span>
+              {copiedKey === 'broker' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>👨‍💼 Copiar Enlace Broker (#101)</span>
             </button>
             <button
               type="button"
-              onClick={handleRevokeClientAccess}
-              className="bg-rose-800 hover:bg-rose-700 text-white font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer ring-1 ring-rose-400/40"
-              title="Bloquear inmediatamente el acceso al cliente actual. Mostrará la pantalla de sala cerrada en su teléfono"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>🔒 Bloquear Acceso Cliente</span>
-            </button>
-            <button
               onClick={() => setIsWhatsAppModalOpen(true)}
-              className="bg-[#25D366] hover:bg-[#1EBE5D] text-slate-950 font-black px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow"
-              title="Abrir ventana para enviar la invitación por WhatsApp al cliente con 1 clic"
+              className="bg-[#25D366] hover:bg-[#1EBE5D] text-slate-950 font-black px-3.5 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer"
+              title="Abrir ventana para enviar la invitación con el enlace verificado por WhatsApp al cliente con 1 clic"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>Enviar por WhatsApp 📲</span>

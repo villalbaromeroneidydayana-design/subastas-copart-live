@@ -132,8 +132,8 @@ function seedDatabase() {
       JSON.stringify(seedVehicle),
       defaultBrokerToken,
       defaultBuyerToken,
-      'Broker Autorizado (Representante)',
-      'Carlos Mendoza (Comprador)',
+      'David Rodríguez',
+      'Gustavo Adolfo Medal López',
       new Date().toISOString(),
       new Date().toISOString()
     );
@@ -146,7 +146,7 @@ function seedDatabase() {
     `).run(
       'part-101',
       'ses-live-001',
-      'Carlos Mendoza',
+      'David Rodríguez',
       'Paleta #101',
       'Miami, FL',
       hashToken(defaultBrokerToken),
@@ -183,10 +183,10 @@ function seedDatabase() {
       UPDATE auction_sessions
       SET broker_access_token = ?,
           buyer_access_token = ?,
-          broker_name = 'Broker Autorizado (Representante)',
-          buyer_name = 'Carlos Mendoza (Comprador)',
-          client_max_budget = 7500,
-          status = 'open',
+          broker_name = 'David Rodríguez',
+          buyer_name = 'Gustavo Adolfo Medal López',
+          client_max_budget = 2500,
+          status = 'prepared',
           is_token_revoked = 0,
           broker_token_revoked = 0,
           buyer_token_revoked = 0,
@@ -466,7 +466,7 @@ function finalizeAuction(sessionId: string, forcedStatus?: 'sold' | 'unsold', pa
     winnerPaddle = 'Paleta #101';
     winnerName = (paramWinnerName && !paramWinnerName.includes('Representante'))
       ? paramWinnerName
-      : (session.broker_name && !session.broker_name.includes('Representante') ? session.broker_name : 'Carlos Mendoza');
+      : (session.broker_name && !session.broker_name.includes('Representante') ? session.broker_name : 'David Rodríguez');
   }
 
   // 1. REGISTRO OFICIAL DEL RESULTADO Y ACTUALIZACIÓN DE ESTADO
@@ -610,8 +610,8 @@ app.get('/api/sessions', (req, res) => {
       room_token: r.room_token,
       isTokenRevoked: Boolean(r.is_token_revoked),
       is_token_revoked: Boolean(r.is_token_revoked),
-      brokerName: r.broker_name || 'Broker Autorizado',
-      broker_name: r.broker_name || 'Broker Autorizado',
+      brokerName: r.broker_name || 'David Rodríguez',
+      broker_name: r.broker_name || 'David Rodríguez',
       buyerName: r.buyer_name || 'Comprador Autorizado',
       buyer_name: r.buyer_name || 'Comprador Autorizado',
       brokerAccessToken: r.broker_access_token,
@@ -745,7 +745,7 @@ app.post('/api/sessions', (req, res) => {
   `).run(
     'part-' + sessionId + '-broker',
     sessionId,
-    finalBrokerName || 'Carlos Mendoza',
+    finalBrokerName || 'David Rodríguez',
     'Paleta #101',
     'Miami, FL',
     hashToken(brokerToken),
@@ -887,8 +887,8 @@ app.get('/api/sessions/:id', (req, res) => {
       broker_access_token: r.broker_access_token,
       buyerAccessToken: r.buyer_access_token,
       buyer_access_token: r.buyer_access_token,
-      brokerName: r.broker_name || 'Carlos Mendoza',
-      broker_name: r.broker_name || 'Carlos Mendoza',
+      brokerName: r.broker_name || 'David Rodríguez',
+      broker_name: r.broker_name || 'David Rodríguez',
       brokerLocation: r.broker_location || 'Miami, FL',
       broker_location: r.broker_location || 'Miami, FL',
       buyerName: r.buyer_name,
@@ -965,26 +965,14 @@ app.get('/api/room/:token', (req, res) => {
       });
     }
     role = 'buyer';
-  } else if (buyerToken && buyerToken !== r.buyer_access_token) {
-    // El cliente intenta ingresar con un token de un lote anterior que ya fue finalizado
-    return res.status(403).json({
-      error: 'LOT_ACCESS_EXPIRED',
-      isExpired: true,
-      title: 'SUBASTA FINALIZADA',
-      message: 'Esta sala ha cerrado oficialmente y el acceso de visualización para su lote ha expirado. Si necesita consultar la documentación de su operación, comuníquese con su broker autorizado.'
-    });
-  } else if (brokerToken && brokerToken !== r.broker_access_token) {
-    // El broker intenta ingresar con un token de un lote anterior que ya fue finalizado
-    return res.status(403).json({
-      error: 'BROKER_TOKEN_EXPIRED',
-      isExpired: true,
-      title: 'ACCESO DE BROKER EXPIRADO',
-      message: 'El enlace de broker para el lote anterior ha caducado. Ingrese con el nuevo enlace generado para el lote actual.'
-    });
+  } else if (buyerToken) {
+    role = 'buyer';
+  } else if (brokerToken) {
+    role = 'broker';
   }
 
-  // EXPIRACIÓN Y REVOCACIÓN ESTRICTA EN BACKEND (Sólo cuando el token fue revocado explícitamente o la sala cerrada por completo)
-  if ((Boolean(r.is_token_revoked) || r.status === 'closed') && role !== 'auctioneer') {
+  // Si la sala está en estado cerrado explícito
+  if (r.status === 'closed' && role !== 'auctioneer') {
     return res.status(403).json({
       error: 'ROOM_ACCESS_EXPIRED',
       isExpired: true,
@@ -1037,8 +1025,8 @@ app.get('/api/room/:token', (req, res) => {
       buyerConnected,
       brokerRevoked: Boolean(r.broker_token_revoked),
       buyerRevoked: Boolean(r.buyer_token_revoked),
-      brokerName: r.broker_name || 'Broker Autorizado (Representante)',
-      buyerName: r.buyer_name || 'Carlos Mendoza (Comprador)',
+      brokerName: r.broker_name || 'David Rodríguez',
+      buyerName: r.buyer_name || 'Gustavo Adolfo Medal López',
     },
     budgetRequests: budgetRequests.map((b) => ({
       ...b,
@@ -1080,10 +1068,10 @@ app.get('/api/room/:token', (req, res) => {
       room_token: r.room_token,
       isTokenRevoked: Boolean(r.is_token_revoked),
       is_token_revoked: Boolean(r.is_token_revoked),
-      brokerName: r.broker_name || 'Broker Autorizado',
-      broker_name: r.broker_name || 'Broker Autorizado',
-      buyerName: r.buyer_name || 'Carlos Mendoza (Comprador)',
-      buyer_name: r.buyer_name || 'Carlos Mendoza (Comprador)',
+      brokerName: r.broker_name || 'David Rodríguez',
+      broker_name: r.broker_name || 'David Rodríguez',
+      buyerName: r.buyer_name || 'Gustavo Adolfo Medal López',
+      buyer_name: r.buyer_name || 'Gustavo Adolfo Medal López',
       vehicle: JSON.parse(r.vehicle_json),
       vehicle_snapshot: JSON.parse(r.vehicle_json),
       brokerAccessToken: role === 'auctioneer' ? r.broker_access_token : undefined,
@@ -1330,7 +1318,7 @@ app.post('/api/sessions/:id/start', (req, res) => {
 
   db.prepare(`
     UPDATE auction_sessions 
-    SET status = 'open', is_token_revoked = 0, time_remaining_seconds = ?, updated_at = ? 
+    SET status = 'prepared', is_token_revoked = 0, time_remaining_seconds = ?, updated_at = ? 
     WHERE id = ?
   `).run(duration, new Date().toISOString(), session.id);
 
@@ -1442,7 +1430,7 @@ app.post('/api/sessions/:id/manual-bid', (req, res) => {
 
   // Nombres y ubicaciones oficiales de las 7 paletas
   const officialPaddles: Record<string, { name: string; loc: string }> = {
-    'Paleta #101': { name: session.broker_name || 'Carlos Mendoza', loc: (session as any).broker_location || 'Miami, FL' },
+    'Paleta #101': { name: session.broker_name || 'David Rodríguez', loc: (session as any).broker_location || 'Miami, FL' },
     'Paleta #108': { name: 'AutoExport Dallas LLC', loc: 'Dallas, TX' },
     'Paleta #214': { name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA' },
     'Paleta #305': { name: 'Global Fleet Buyers', loc: 'Atlanta, GA' },
@@ -1633,14 +1621,14 @@ app.post('/api/sessions/:id/reset', (req, res) => {
       starting_price = 5000,
       current_price = 5000,
       min_increment = 250,
-      client_max_budget = 7500,
+      client_max_budget = 2500,
       is_token_revoked = 0,
       broker_token_revoked = 0,
       buyer_token_revoked = 0,
       broker_access_token = 'bdr_broker_m729k1',
       buyer_access_token = 'bdr_buyer_m729k1',
-      buyer_name = 'Carlos Mendoza (Comprador)',
-      broker_name = 'Broker Autorizado (Representante)',
+      buyer_name = 'Gustavo Adolfo Medal López',
+      broker_name = 'David Rodríguez',
       current_winner_paddle = NULL,
       current_winner_name = NULL,
       current_winner_id = NULL,
@@ -1652,7 +1640,7 @@ app.post('/api/sessions/:id/reset', (req, res) => {
 
   db.prepare(`
     UPDATE auction_participants 
-    SET token_hash = ?, name = 'Carlos Mendoza (Broker Rep. #101)', authorization_status = 'approved'
+    SET token_hash = ?, name = 'David Rodríguez (Broker Rep. #101)', authorization_status = 'approved'
     WHERE session_id = ? AND paddle_number = 'Paleta #101'
   `).run(hashToken('bdr_broker_m729k1'), session.id);
 
@@ -1716,9 +1704,9 @@ app.post('/api/sessions/:id/update-params', (req, res) => {
   const newReserve = reservePrice !== undefined && !isNaN(Number(reservePrice)) ? Number(reservePrice) : session.reserve_price;
   const newBudget = clientMaxBudget !== undefined && !isNaN(Number(clientMaxBudget)) ? Number(clientMaxBudget) : session.client_max_budget;
   const newCurrentPrice = currentPrice !== undefined && !isNaN(Number(currentPrice)) ? Number(currentPrice) : (session.status === 'prepared' || session.bid_count === 0 ? newStartingPrice : session.current_price);
-  const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'Carlos Mendoza';
+  const newBrokerName = brokerName && String(brokerName).trim() ? String(brokerName).trim() : session.broker_name || 'David Rodríguez';
   const newBrokerLocation = brokerLocation && String(brokerLocation).trim() ? String(brokerLocation).trim() : ((session as any).broker_location || 'Miami, FL');
-  const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Carlos Mendoza';
+  const newBuyerName = buyerName && String(buyerName).trim() ? String(buyerName).trim() : session.buyer_name || 'Gustavo Adolfo Medal López';
   const newLotNumber = lotNumber && String(lotNumber).trim() ? String(lotNumber).trim() : session.lot_number;
   const newReferenceUrl = referenceUrl && String(referenceUrl).trim() ? String(referenceUrl).trim() : (session.reference_url || '');
 
@@ -1845,7 +1833,7 @@ app.post('/api/sessions/:id/update-paddle-101', (req, res) => {
   if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
   const { name, location } = req.body;
-  const newName = name && String(name).trim() ? String(name).trim() : (session.broker_name || 'Carlos Mendoza');
+  const newName = name && String(name).trim() ? String(name).trim() : (session.broker_name || 'David Rodríguez');
   const newLoc = location && String(location).trim() ? String(location).trim() : ((session as any).broker_location || 'Miami, FL');
 
   try {
@@ -2253,7 +2241,7 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
 
   if (!['open', 'bidding', 'last_call'].includes(session.status)) {
     // Si la subasta estaba en preparación, abrirla automáticamente
-    db.prepare(`UPDATE auction_sessions SET status = 'open', time_remaining_seconds = total_duration_seconds WHERE id = ?`).run(session.id);
+    db.prepare(`UPDATE auction_sessions SET status = 'prepared', time_remaining_seconds = total_duration_seconds WHERE id = ?`).run(session.id);
     startServerClock(session.id);
   activeAuctioneerCalls.delete(session.id);
   }

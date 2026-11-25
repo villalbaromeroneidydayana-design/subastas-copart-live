@@ -43,7 +43,7 @@ export const NextLotModal: React.FC<NextLotModalProps> = ({
 
   // Broker Real
   const [brokerName, setBrokerName] = useState<string>('Broker Miguel Santos');
-  const [brokerEmail, setBrokerEmail] = useState<string>('miguel.santos@subastas.com');
+  const [brokerEmail, setBrokerEmail] = useState<string>('copartadjudications@gmail.com');
   const [brokerPhone, setBrokerPhone] = useState<string>('+1 (305) 555-0999');
 
   // Vehículo
@@ -364,7 +364,7 @@ export const NextLotModal: React.FC<NextLotModalProps> = ({
                     type="email"
                     value={brokerEmail}
                     onChange={(e) => setBrokerEmail(e.target.value)}
-                    placeholder="broker@subastas.com"
+                    placeholder="copartadjudications@gmail.com"
                     className="w-full bg-[#0a1424] border border-slate-700 rounded p-1.5 text-white"
                   />
                 </div>

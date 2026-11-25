@@ -6,7 +6,6 @@ import { CopartLogo } from '../common/CopartLogo';
 import { CircularCountdown } from './CircularCountdown';
 import { ImageGalleryModal } from '../common/ImageGalleryModal';
 import { RoomAccessExpiredView } from './RoomAccessExpiredView';
-import confetti from 'canvas-confetti';
 import { NextLotModal } from './NextLotModal';
 import { CopartVerificationModal } from './CopartVerificationModal';
 import { BuyerGuideModal } from './BuyerGuideModal';
@@ -230,7 +229,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     prevSessionStatusRef.current = session?.status || 'prepared';
   }, [session?.status, scrollToClockTerminal]);
 
-  const triggerSoldConfettiCelebration = useCallback((winnerPaddleParam?: string, winnerNameParam?: string) => {
+  const triggerSoldCelebration = useCallback((winnerPaddleParam?: string, winnerNameParam?: string) => {
     try {
       // 1. AUTO-SCROLL INMEDIATO Y SUAVE HACIA ARRIBA PARA MOSTRAR EL VEHÍCULO VENDIDO
       if (typeof window !== 'undefined') {
@@ -246,41 +245,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       }
       sounds.unlockAudio();
       sounds.playSoldFanfare(price, winnerPaddle, winnerName);
-      // Cañón central con colores vibrantes
-      confetti({
-        particleCount: 160,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#22c55e', '#eab308', '#3b82f6', '#ec4899', '#ffffff']
-      });
-
-      // Ráfagas laterales estilo estadio Copart
-      setTimeout(() => {
-        confetti({
-          particleCount: 90,
-          angle: 60,
-          spread: 75,
-          origin: { x: 0.05, y: 0.7 },
-          colors: ['#22c55e', '#eab308', '#ffffff']
-        });
-        confetti({
-          particleCount: 90,
-          angle: 120,
-          spread: 75,
-          origin: { x: 0.95, y: 0.7 },
-          colors: ['#22c55e', '#eab308', '#ffffff']
-        });
-      }, 250);
-
-      // Segunda lluvia dorada
-      setTimeout(() => {
-        confetti({
-          particleCount: 110,
-          spread: 120,
-          origin: { y: 0.4 },
-          colors: ['#fbbf24', '#f59e0b', '#d97706', '#ffffff']
-        });
-      }, 550);
     } catch { /* ignore */ }
   }, []);
 
@@ -428,7 +392,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         hasCelebratedSoldRef.current = false;
       }
     }
-  }, [initialSession.id, initialSession.room_token, initialBidderToken, activeParticipant, lastBidId, isBroker, role, userToken, triggerSoldConfettiCelebration]);
+  }, [initialSession.id, initialSession.room_token, initialBidderToken, activeParticipant, lastBidId, isBroker, role, userToken, triggerSoldCelebration]);
 
   useEffect(() => {
     fetchStateFromServer();
@@ -685,7 +649,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             time_remaining_seconds: 0,
           }));
           if (finalDecision === 'sold') {
-            triggerSoldConfettiCelebration(msg.winnerPaddle, msg.winnerName);
+            triggerSoldCelebration(msg.winnerPaddle, msg.winnerName);
           }
           fetchStateFromServer();
         } else if (msg.type === 'AUCTION_RESET') {
@@ -735,7 +699,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           }));
 
           if (msg.status === 'sold') {
-            triggerSoldConfettiCelebration(msg.winnerPaddle, msg.winnerName);
+            triggerSoldCelebration(msg.winnerPaddle, msg.winnerName);
           } else if (msg.status !== 'sold') {
             hasCelebratedSoldRef.current = false;
             if (msg.status === 'paused') {
@@ -778,7 +742,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     return () => {
       unsubscribeWs();
     };
-  }, [isBroker, role, fetchStateFromServer, triggerSoldConfettiCelebration, scrollToClockTerminal]);
+  }, [isBroker, role, fetchStateFromServer, triggerSoldCelebration, scrollToClockTerminal]);
 
   // Actualización en tiempo real del horario oficial de Estados Unidos (Eastern Time / EST)
   useEffect(() => {
@@ -1024,7 +988,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 flex flex-col font-sans select-none antialiased">
 
-      {/* BANNER FLOTANTE PARA ACTIVAR AUDIO EN CELULARES */}
+      {/* BANNER PARA ACTIVAR AUDIO EN CELULARES (FLUJO NORMAL PARA NO TAPAR EL HEADER) */}
       {!hasInteracted && (
         <div
           onClick={() => {
@@ -1037,7 +1001,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               sounds.speak('Audio connected', 1.1, 'en-US');
             } catch { }
           }}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white text-center py-3 px-4 text-xs sm:text-sm font-black cursor-pointer shadow-2xl flex items-center justify-center gap-2 border-b-2 border-emerald-300 z-50 sticky top-0 transition animate-pulse"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white text-center py-2.5 px-4 text-xs sm:text-sm font-black cursor-pointer shadow-md flex items-center justify-center gap-2 border-b-2 border-emerald-300 relative z-30 transition animate-pulse"
         >
           <Volume2 className="w-5 h-5 animate-bounce" />
           <span>🔊 TOCA AQUÍ PARA ACTIVAR EL AUDIO EN VIVO DE LA SUBASTA (LANE A)</span>
@@ -1045,19 +1009,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       )}
 
       {/* 1. BARRA SUPERIOR AUTÉNTICA COPART VB3 LIVE */}
-      <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-2 sm:px-4 lg:px-6 py-2 shadow-xl sticky top-0 z-40 overflow-x-hidden">
+      <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-2 sm:px-4 lg:px-6 py-2 shadow-xl sticky top-0 z-40">
         <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-2">
 
-          <div className="flex items-center gap-2 lg:gap-4 shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3 shrink-0">
             <div className="sm:hidden">
               <CopartLogo size="sm" showSubtitle={false} className="py-0.5 filter drop-shadow-md" />
             </div>
             <div className="hidden sm:block">
-              <CopartLogo size="lg" showSubtitle={true} className="py-0.5 filter drop-shadow-md" />
+              <CopartLogo size="md" showSubtitle={true} className="py-0.5 filter drop-shadow-md" />
             </div>
 
             {/* Pista e Identificación de Lote */}
-            <div className="hidden xl:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap">
+            <div className="hidden 2xl:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-black text-white tracking-wide">{t('laneTitle')}</span>
               <span className="text-slate-400">•</span>
@@ -1079,7 +1043,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 className="px-2 sm:px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 font-bold text-xs flex items-center gap-1.5 border-l border-slate-700/80 transition whitespace-nowrap"
                 title="Consultar expediente técnico del lote en patio Copart"
               >
-                <span>{lang === 'en' ? 'COPART LOT DETAILS' : 'FICHA OFICIAL DE LOTE'}</span>
+                <span className="hidden md:inline">{lang === 'en' ? 'COPART LOT' : 'FICHA'}</span>
+                <span className="hidden xl:inline">{lang === 'en' ? ' DETAILS' : ' DE LOTE'}</span>
                 <ExternalLink className="w-3 h-3 text-amber-400 shrink-0" />
               </a>
             </div>
@@ -1092,7 +1057,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               title="Verificar las 6 comprobaciones de seguridad Copart: Vehículo, Subasta, Broker, Oferta, Resultado y Pago"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="hidden md:inline">Auditoría Copart:</span>
+              <span className="hidden xl:inline">Auditoría:</span>
               <span className="text-emerald-400 font-mono font-black">6/6 ✓</span>
             </button>
 
@@ -1108,21 +1073,20 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* BOTÓN GUÍA DE INDUCCIÓN AL COMPRADOR */}
             <button
               type="button"
               onClick={() => setIsBuyerGuideOpen(true)}
-              className="flex items-center gap-1.5 bg-[#081528] hover:bg-[#0c2242] border border-blue-500/60 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-200 hover:text-white transition shadow cursor-pointer whitespace-nowrap"
+              className="hidden 2xl:flex items-center gap-1.5 bg-[#081528] hover:bg-[#0c2242] border border-blue-500/60 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-200 hover:text-white transition shadow cursor-pointer whitespace-nowrap"
               title="¿Cómo funciona tu sala en vivo? Guía rápida de inducción para el comprador"
             >
               <HelpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="hidden xl:inline">¿Cómo funciona mi sala?</span>
-              <span className="xl:hidden">Guía ℹ️</span>
+              <span>¿Cómo funciona mi sala?</span>
             </button>
 
             {/* HORARIO REAL DE ESTADOS UNIDOS (USA / EST) */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-[#07111e] border border-blue-900/60 px-2.5 py-1.5 rounded-lg text-xs font-mono font-black text-amber-300 shadow-inner whitespace-nowrap">
+            <div className="hidden md:flex items-center gap-1.5 bg-[#07111e] border border-blue-900/60 px-2 py-1.5 rounded-lg text-xs font-mono font-black text-amber-300 shadow-inner whitespace-nowrap">
               <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>{usTime || '12:00:00 PM EST'}</span>
             </div>
@@ -1132,7 +1096,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <button
                 type="button"
                 onClick={() => setLang('en')}
-                className={`px-2.5 py-1 rounded text-xs font-black transition ${lang === 'en'
+                className={`px-2 py-1 rounded text-xs font-black transition ${lang === 'en'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                   }`}
@@ -1143,7 +1107,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <button
                 type="button"
                 onClick={() => setLang('es')}
-                className={`px-2.5 py-1 rounded text-xs font-black transition ${lang === 'es'
+                className={`px-2 py-1 rounded text-xs font-black transition ${lang === 'es'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                   }`}
@@ -1155,9 +1119,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
             {/* Si es Broker: selector de su paleta */}
             {isBroker ? (
-              <div className="flex items-center gap-2 bg-[#080d18] border border-emerald-500/70 px-3 py-1.5 rounded-lg text-xs sm:text-sm">
-                <UserCheck className="w-4 h-4 text-emerald-400" />
-                <span className="text-emerald-300 font-bold hidden md:inline text-xs">{t('brokerRole')}</span>
+              <div className="flex items-center gap-1.5 bg-[#080d18] border border-emerald-500/70 px-2.5 py-1.5 rounded-lg text-xs">
+                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-300 font-bold hidden lg:inline text-xs">{t('brokerRole')}</span>
                 <select
                   value={activeParticipant?.token || ''}
                   onChange={(e) => {
@@ -1174,26 +1138,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </select>
               </div>
             ) : (
-              /* Si es Cliente: Monitor Oficial Copart VB3 */
-              <div className="flex items-center gap-2 bg-[#091222] border border-blue-600/60 px-3 py-1.5 rounded-lg text-xs shadow-sm">
+              /* Si es Cliente: Monitor Oficial Copart VB3 Compacto */
+              <div className="hidden lg:flex items-center gap-1.5 bg-[#091222] border border-blue-600/60 px-2.5 py-1.5 rounded-lg text-xs shadow-sm whitespace-nowrap">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-white font-bold tracking-wide text-xs">MONITOR EN VIVO VB3</span>
+                <span className="text-white font-bold text-xs">VB3</span>
                 <span className="text-slate-600">|</span>
-                <span className="text-amber-400 font-mono font-bold text-[11px]">PALETA OFICIAL #101</span>
+                <span className="text-amber-400 font-mono font-bold text-xs">#101</span>
               </div>
             )}
 
             {/* Botón de Audio Visible y Claro */}
             <button
               onClick={handleToggleAudio}
-              className={`px-2.5 py-1.5 rounded text-xs font-black border flex items-center gap-1.5 transition shadow ${isAudioMuted
+              className={`px-2 py-1.5 rounded text-xs font-black border flex items-center gap-1 transition shadow whitespace-nowrap ${isAudioMuted
                   ? 'bg-rose-950/80 border-rose-600 text-rose-300 hover:bg-rose-900'
                   : 'bg-emerald-950/80 border-emerald-500 text-emerald-300 hover:bg-emerald-900'
                 }`}
               title={isAudioMuted ? 'Activar sonido de la subasta' : 'Silenciar sonido'}
             >
               {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
-              <span className="font-bold">{isAudioMuted ? '🔇 Audio OFF' : '🔊 Audio ON'}</span>
+              <span className="font-bold">{isAudioMuted ? '🔇 Audio' : '🔊 Audio'}</span>
             </button>
 
             {/* Enlace para Compartir con el Cliente (Espectador) */}
@@ -1799,7 +1763,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               </span>
             </div>
             <div className="flex items-center gap-3 text-xs sm:text-sm font-mono">
-              <span>YARD: <strong className="text-slate-100 font-bold">Yard 12 (Atlanta East)</strong></span>
+              <span>YARD: <strong className="text-slate-100 font-bold">{vehicle?.location || 'Yard 12 (Atlanta East)'}</strong></span>
               <span>GRID: <strong className="text-slate-100 font-bold">Row 14 • B-08</strong></span>
               <span>SALE TYPE: <strong className="text-amber-400 font-bold">Pure Sale</strong></span>
             </div>
@@ -1808,6 +1772,29 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
         {/* COLUMNA DERECHA (5 COLUMNAS): TERMINAL DE OFERTAS EN DIRECTO */}
         <div id="auction-live-terminal" className="lg:col-span-5 flex flex-col gap-3">
+
+          {/* BADGE INSTITUCIONAL COPART VB3: PALETA OFICIAL #101 DEL CLIENTE */}
+          {!isBroker && (
+            <div className="bg-gradient-to-r from-[#001c3d] via-[#002855] to-[#001428] border border-blue-500/50 rounded-xl p-3 shadow-lg flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <div>
+                  <div className="text-white font-black text-xs tracking-wider uppercase">
+                    {lang === 'en' ? 'OFFICIAL MONITOR • VB3' : 'MONITOR OFICIAL COPART VB3'}
+                  </div>
+                  <div className="text-slate-300 text-[11px]">
+                    {lang === 'en' ? 'Authorized Broker in live bidding: ' : 'Broker Autorizado en puja en vivo: '}
+                    <strong className="text-amber-300 font-bold">{(session as any)?.broker_name || (session as any)?.brokerName || 'David Rodríguez'}</strong>
+                    {' • '}
+                    <span className="text-amber-400 font-mono font-bold">Paleta #101</span>
+                  </div>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded bg-blue-950 text-amber-300 border border-amber-400/50 font-mono font-black text-xs shadow-sm whitespace-nowrap">
+                PALETA #101
+              </span>
+            </div>
+          )}
 
           <div className={`bg-[#09101c] border-2 rounded-lg p-4 sm:p-5 shadow-2xl transition-all duration-300 ${bidFlash ? 'border-emerald-400 bg-emerald-950/20' : 'border-[#1b2b44]'
             }`}>
@@ -1970,7 +1957,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
             {isBroker && (
               <div className="space-y-2 mb-3">
                 <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center">
-                  <span>{lang === 'en' ? 'Your Broker Paddle:' : 'Tu Paleta de Broker:'} <strong className="text-amber-400">{activeParticipant?.paddleNumber || 'Paleta #101'}</strong></span>
+                  <span>{lang === 'en' ? 'Broker:' : 'Broker Autorizado:'} <strong className="text-amber-300 font-bold">{(session as any)?.broker_name || 'David Rodríguez'}</strong> • <strong className="text-amber-400">Paleta #101</strong></span>
                   <span className="text-emerald-400 font-mono">+${session.bid_increment || 250} USD {lang === 'en' ? 'Increment' : 'Incremento'}</span>
                 </div>
 
@@ -2043,7 +2030,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 const ALL_PADDLES = [
                   { 
                     number: 'Paleta #101', 
-                    defaultName: (session as any).broker_name || (session as any).brokerName || 'Carlos Mendoza', 
+                    defaultName: (session as any).broker_name || (session as any).brokerName || 'David Rodríguez', 
                     defaultLoc: (session as any).broker_location || (session as any).brokerLocation || 'Miami, FL' 
                   },
                   { number: 'Paleta #108', defaultName: 'AutoExport Dallas LLC', defaultLoc: 'Dallas, TX' },
@@ -2781,7 +2768,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 <div>
                   <span className="text-slate-500 block">Adjudicatario Ganador:</span>
                   <span className="font-bold text-emerald-400 text-sm">
-                    {(session as any).currentWinnerPaddle || 'Paleta #101'} - {(session as any).currentWinnerName || session.current_bidder_name || 'Carlos Mendoza'}
+                    {(session as any).currentWinnerPaddle || 'Paleta #101'} - {(session as any).currentWinnerName || session.current_bidder_name || 'David Rodríguez'}
                   </span>
                 </div>
                 <div>
