@@ -37,10 +37,6 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
   const strokeDashoffset = circumference - progress * circumference;
 
   let strokeColor = theme === 'light' ? '#1d70b8' : '#00a84d'; // Copart VB3 Blue in light theme
-  const isWinningClient = Boolean(highBidderPaddle && (highBidderPaddle.includes('101') || highBidderPaddle.includes('Paleta #101')));
-  if (theme === 'light' && isWinningClient) {
-    strokeColor = '#00a84d'; // Verde Copart de liderazgo
-  }
   let glowColor = theme === 'light' ? 'rgba(29, 112, 184, 0.25)' : 'rgba(0, 168, 77, 0.4)';
   let label = lang === 'es' ? 'OFERTAS' : 'BIDDING';
 
@@ -126,16 +122,16 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
             <div className="flex flex-col items-center justify-center">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">{highBidderState.toLowerCase().includes('mexico') ? '🇲🇽' : '🇺🇸'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 truncate max-w-[85px]">
+                <span className="text-[11px] font-bold text-slate-700 truncate max-w-[85px]">
                   {highBidderState}
                 </span>
               </div>
-              <span className={`text-xl sm:text-2xl font-black font-mono leading-tight ${isWinningClient ? 'text-emerald-600' : 'text-[#1d70b8]'}`}>
+              <span className="text-xl sm:text-2xl font-black font-mono leading-tight text-[#1d70b8]">
                 ${(currentPrice || 6150).toLocaleString()}
               </span>
               <div className="flex items-center gap-1 mt-0.5">
-                <span className={`text-[9.5px] font-black uppercase tracking-wider ${isWinningClient ? 'text-emerald-700 font-bold' : 'text-[#1d70b8]'}`}>
-                  {isWinningClient ? 'HIGH BIDDER ✓' : (highBidderPaddle ? `${highBidderPaddle} Bid!` : 'Bid!')}
+                <span className="text-[10px] font-black text-[#1d70b8] uppercase tracking-wider">
+                  Bid!
                 </span>
                 <span className={`text-[9px] font-mono font-bold px-1 rounded ${displaySeconds <= 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
                   {displaySeconds}s

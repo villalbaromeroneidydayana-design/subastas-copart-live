@@ -1032,7 +1032,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       return {
         flag: '🇺🇸',
         state: 'California',
-        paddle: 'Paleta #101',
+        paddle: 'California',
         isClient: true
       };
     }
@@ -1857,12 +1857,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     {/* Sub-columna 2: Dial VB3, Red label, Stepper, Bid Button, Previous Bids */}
                     <div className="sm:col-span-5 flex flex-col items-center">
                       
-                      <div className="w-full flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1 text-[10px] text-slate-600 font-bold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Paleta: <strong className="text-[#1d70b8] font-mono">#101</strong> (California)</span>
-                        </div>
-                        <span className="font-mono font-black text-slate-400 text-[10.5px]">VB3</span>
+                      <div className="w-full flex items-center justify-end mb-1">
+                        <span className="font-mono font-black text-slate-400 text-[11px] tracking-wider">VB3</span>
                       </div>
 
                       {/* Dial Circular Copart */}
@@ -1875,7 +1871,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         theme="light"
                         highBidderState={currentLeaderInfo.state}
                         currentPrice={session.current_price}
-                        highBidderPaddle={currentLeaderInfo.isClient ? 'Paleta #101' : currentLeaderInfo.state}
+                        highBidderPaddle="Bid!"
                       />
 
                       {/* Red label */}
@@ -1930,18 +1926,15 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                           {bids.length > 0 ? (
                             bids.slice(0, 4).map((b) => {
                               const info = getBidDisplayInfo(b);
-                              const isClient = (b as any).paddle_number === 'Paleta #101' || (b as any).paddleNumber === 'Paleta #101';
                               return (
-                                <div key={b.id} className={`flex items-center justify-between text-[10px] py-0.5 px-1 rounded border ${
-                                  isClient ? 'bg-emerald-50 border-emerald-300 font-bold' : 'bg-slate-50 border-slate-100'
-                                }`}>
-                                  <div className="flex items-center gap-1 min-w-0">
+                                <div key={b.id} className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
+                                  <div className="flex items-center gap-1.5 min-w-0">
                                     <span className="text-xs">{info.flag}</span>
-                                    <span className={`truncate max-w-[80px] ${isClient ? 'text-emerald-800 font-black' : 'text-slate-700 font-medium'}`}>
-                                      {isClient ? 'Paleta #101' : info.state}
+                                    <span className="truncate max-w-[95px] text-slate-700 font-medium">
+                                      {info.state}
                                     </span>
                                   </div>
-                                  <span className={`font-mono font-bold ${isClient ? 'text-emerald-700 font-black' : 'text-slate-900'}`}>
+                                  <span className="font-mono font-bold text-slate-900">
                                     ${b.amount.toLocaleString()}
                                   </span>
                                 </div>
@@ -1949,8 +1942,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                             })
                           ) : (
                             <>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50 border border-slate-100">
-                                <div className="flex items-center gap-1">
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
+                                <div className="flex items-center gap-1.5">
                                   <span className="text-xs">🇺🇸</span>
                                   <span className="text-slate-700 font-medium">Texas</span>
                                 </div>
@@ -1958,8 +1951,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                                   ${(session.current_price - 100).toLocaleString()}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50 border border-slate-100">
-                                <div className="flex items-center gap-1">
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
+                                <div className="flex items-center gap-1.5">
                                   <span className="text-xs">🇺🇸</span>
                                   <span className="text-slate-700 font-medium">California</span>
                                 </div>
@@ -1997,9 +1990,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               type="button"
                               onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 100))}
                               className="py-1 px-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
-                              title="Enviar puja a nombre de Paleta #101"
+                              title="Enviar puja a nombre de California (Nosotros)"
                             >
-                              <span>🟢 +$100 Paleta #101</span>
+                              <span>🟢 +$100 California</span>
                             </button>
                           </div>
 
@@ -2030,8 +2023,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               type="button"
                               onClick={handleFastSellToClient}
                               className="py-0.5 rounded bg-red-600 hover:bg-red-500 text-white font-black text-[9px] text-center shadow cursor-pointer"
+                              title="Cerrar martillo y adjudicar el lote"
                             >
-                              🔨 VENDER #101
+                              🔨 VENDER
                             </button>
                           </div>
                         </div>
