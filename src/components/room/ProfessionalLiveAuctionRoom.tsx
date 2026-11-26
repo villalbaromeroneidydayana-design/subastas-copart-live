@@ -16,7 +16,7 @@ import {
   Car, Clock, Key, Award, Flame, UserCheck, Users,
   PlusCircle, ShieldCheck, ShieldAlert, Wifi, ExternalLink, Copy, Check,
   FastForward, User, Lock, ChevronLeft, ChevronRight,
-  Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send,
+  Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send, Camera,
   ArrowRightCircle, CheckCircle, Sparkles, ChevronDown, ChevronUp, Zap, Calculator,
   ExternalLink as LinkIcon, Tag, HelpCircle, Megaphone
 } from 'lucide-react';
@@ -182,6 +182,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
     return 'Texas';
   });
+
+  // Reproductor de video oficial del motor en la galería de fotos
+  const [isPlayingEngineVideo, setIsPlayingEngineVideo] = useState<boolean>(false);
 
   const getStateInfo = (stateName: string) => {
     const s = (stateName || '').toLowerCase();
@@ -794,14 +797,16 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const copartLotUrl = vehicle?.reference_url?.trim()
     ? vehicle.reference_url.trim()
     : `https://www.copart.com/${lang === 'es' ? 'es/' : ''}lot/${cleanLotNumber}`;
-  // EXCLUSIVAMENTE FOTOGRAFÍAS REALES (Excluir videos o miniaturas con reproducción, máx 1-2 fotos auténticas)
+  // Video oficial del motor (si el vehículo cuenta con video)
+  const vehicleVideoUrl = vehicle?.engine_video_url || vehicle?.video_url || (vehicle as any)?.custom_badges?.engine_video_url || null;
+
+  // TODAS LAS FOTOGRAFÍAS REALES DEL VEHÍCULO (10, 12, 13 fotos completas de Copart)
   const allImages: VehicleImage[] = (vehicle?.images || [])
     .filter((img: any) => {
       const u = String(img?.url || '').toLowerCase();
       const cap = String(img?.caption || '').toLowerCase();
       return !u.includes('video') && !u.includes('play') && !cap.includes('video');
-    })
-    .slice(0, 2);
+    });
 
   const filteredCategoryImages = selectedCategory === 'todas'
     ? allImages
@@ -821,12 +826,20 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
   const handlePrevPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isPlayingEngineVideo) {
+      setIsPlayingEngineVideo(false);
+      return;
+    }
     if (displayedImages.length <= 1) return;
     setSelectedImageIdx((prev) => (prev > 0 ? prev - 1 : displayedImages.length - 1));
   };
 
   const handleNextPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isPlayingEngineVideo) {
+      setIsPlayingEngineVideo(false);
+      return;
+    }
     if (displayedImages.length <= 1) return;
     setSelectedImageIdx((prev) => (prev < displayedImages.length - 1 ? prev + 1 : 0));
   };
@@ -1675,9 +1688,28 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               <div className="lg:col-span-5 flex flex-col gap-2">
                 <div className="bg-white border border-[#d5dce5] rounded shadow-sm overflow-hidden">
                   
-                  {/* Foto Principal */}
+                  {/* Foto Principal o Video del Motor */}
                   <div className="relative aspect-[16/10] bg-slate-900 flex items-center justify-center overflow-hidden group">
-                    {activeImage ? (
+                    {isPlayingEngineVideo && vehicleVideoUrl ? (
+                      <div className="relative w-full h-full bg-black flex items-center justify-center">
+                        <video
+                          src={vehicleVideoUrl}
+                          controls
+                          autoPlay
+                          playsInline
+                          className="w-full h-full object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setIsPlayingEngineVideo(false)}
+                          className="absolute top-2 right-12 z-30 bg-black/80 hover:bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded border border-slate-600 transition flex items-center gap-1 cursor-pointer"
+                          title="Volver a las fotografías"
+                        >
+                          <Camera className="w-3.5 h-3.5 text-blue-400" />
+                          <span>Fotos</span>
+                        </button>
+                      </div>
+                    ) : activeImage ? (
                       <img
                         src={activeImage.url}
                         alt={vehicle?.model || 'Vehículo'}
@@ -1691,7 +1723,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     )}
 
                     {/* Flechas directas de navegación < y > */}
-                    {displayedImages.length > 1 && (
+                    {displayedImages.length > 1 && !isPlayingEngineVideo && (
                       <>
                         <button
                           type="button"
@@ -1710,6 +1742,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                           <ChevronRight className="w-5 h-5" />
                         </button>
                       </>
+                    )}
+
+                    {/* Botón flotante Video del Motor (si el vehículo tiene video) */}
+                    {vehicleVideoUrl && !isPlayingEngineVideo && (
+                      <button
+                        type="button"
+                        onClick={() => setIsPlayingEngineVideo(true)}
+                        className="absolute top-2 right-12 z-20 bg-rose-600/95 hover:bg-rose-700 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur transition cursor-pointer"
+                        title="Ver video oficial del motor"
+                      >
+                        <Play className="w-3 h-3 fill-white text-white" />
+                        <span>Video Motor</span>
+                      </button>
                     )}
 
                     {/* Botón flotante HD Gallery */}
@@ -1732,15 +1777,19 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                   {/* Tira Horizontal de Miniaturas (Idéntica al Screenshot de Copart) */}
                   <div className="p-1.5 bg-[#f8fafc] border-t border-[#d5dce5] flex items-center gap-1.5 overflow-x-auto">
                     {displayedImages.map((img: any, idx: number) => {
-                      const isSelected = idx === selectedImageIdx;
+                      const isSelected = !isPlayingEngineVideo && idx === selectedImageIdx;
                       return (
                         <button
                           key={img.id || idx}
                           type="button"
-                          onClick={() => setSelectedImageIdx(idx)}
+                          onClick={() => {
+                            setIsPlayingEngineVideo(false);
+                            setSelectedImageIdx(idx);
+                          }}
                           className={`relative shrink-0 w-20 h-14 rounded overflow-hidden transition cursor-pointer border-2 ${
                             isSelected ? 'border-[#1d70b8] ring-2 ring-blue-300 shadow scale-105' : 'border-slate-300 opacity-70 hover:opacity-100'
                           }`}
+                          title={`Foto ${idx + 1}`}
                         >
                           <img
                             src={img.url}
@@ -1753,6 +1802,25 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </button>
                       );
                     })}
+
+                    {/* Miniatura de Video del Motor si tiene video */}
+                    {vehicleVideoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setIsPlayingEngineVideo(true)}
+                        className={`relative shrink-0 w-20 h-14 rounded overflow-hidden transition cursor-pointer border-2 bg-slate-900 flex flex-col items-center justify-center group ${
+                          isPlayingEngineVideo ? 'border-[#1d70b8] ring-2 ring-blue-300 shadow scale-105' : 'border-slate-400 opacity-80 hover:opacity-100'
+                        }`}
+                        title="Ver video oficial del motor"
+                      >
+                        <div className="w-5 h-5 rounded-full bg-rose-600 group-hover:bg-rose-500 text-white flex items-center justify-center shadow">
+                          <Play className="w-3 h-3 fill-white text-white ml-0.5" />
+                        </div>
+                        <span className="text-[8px] font-black text-white mt-1 tracking-wider uppercase">
+                          Motor Video
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
