@@ -4,7 +4,6 @@ import { AuctionSession } from './types';
 import { CopartLiveRoom } from './components/room/CopartLiveRoom';
 import { RoomAccessExpiredView } from './components/room/RoomAccessExpiredView';
 import { DocumentView } from './components/documents/DocumentView';
-import { ClientCatalogView } from './components/catalog/ClientCatalogView';
 import { AuctioneerPrivateConsole } from './components/admin/AuctioneerPrivateConsole';
 import { CopartLogo } from './components/common/CopartLogo';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
@@ -20,9 +19,6 @@ export function App() {
   const [isRoomExpired, setIsRoomExpired] = useState<boolean>(false);
   const [expiredLotNumber, setExpiredLotNumber] = useState<string>('48291032');
   const [activeDocumentToken, setActiveDocumentToken] = useState<string | null>(null);
-  const [isCatalogMode, setIsCatalogMode] = useState<boolean>(() => {
-    return typeof window !== 'undefined' && window.location.hash.startsWith('#/catalogo');
-  });
 
   // Cargar sesión inicial para la consola privada del subastador
   useEffect(() => {
@@ -43,21 +39,15 @@ export function App() {
     loadDefaultSession();
   }, []);
 
-  // Router basado en hash para: #/sala/:token, #/documento/:doc_token, #/catalogo
+  // Router basado en hash para: #/sala/:token, #/documento/:doc_token
   useEffect(() => {
     const handleHashChange = async () => {
       const hash = window.location.hash;
 
-      // 0. RUTA INDEPENDIENTE DEL CATÁLOGO PARA CLIENTES: #/catalogo
-      if (hash.startsWith('#/catalogo')) {
-        setIsCatalogMode(true);
-        setActiveDocumentToken(null);
-        setActiveSession(null);
-        setIsRoomExpired(false);
-        setRoomError(null);
+      // Si no hay hash o es raíz, abrir directamente la Sala Oficial de Subasta Copart VB3
+      if (!hash || hash === '#' || hash === '#/' || hash.startsWith('#/catalogo')) {
+        window.location.hash = '#/sala/copart-live-johan101';
         return;
-      } else {
-        setIsCatalogMode(false);
       }
 
       // 1. RUTA INDEPENDIENTE DE DOCUMENTACIÓN: #/documento/:doc_token
@@ -181,11 +171,6 @@ export function App() {
     setActiveDocumentToken(null);
     window.location.hash = '';
   };
-
-  // 0. Vista independiente y aislada del Catálogo para Clientes (#/catalogo)
-  if (isCatalogMode) {
-    return <ClientCatalogView />;
-  }
 
   // 1. Vista independiente de entrega de documentación (#/documento/:doc_token)
   if (activeDocumentToken) {
