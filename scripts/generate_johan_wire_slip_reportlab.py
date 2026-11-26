@@ -136,7 +136,7 @@ def generate_wire_slip():
         ],
         [
             Paragraph("NOMBRE DEL TITULAR / BENEFICIARIO:<br/><i>(Account Holder / Beneficiary Name)</i>", bank_lbl),
-            Paragraph("<b>Diego Junior Guzman Gonzalez</b><br/><font size='6.8' color='#475569'>Copart Cartera, Settlements & Direct Liquidation Services</font>", bank_val)
+            Paragraph("<b>Diego Junior Guzman Gonzalez</b><br/><font size='6.8' color='#166534'>✓ Titular Oficial Verificado de la Cuenta</font>", bank_val)
         ],
         [
             Paragraph("TELÉFONO DEL BENEFICIARIO:<br/><i>(Beneficiary Phone Number)</i>", bank_lbl),
@@ -144,15 +144,15 @@ def generate_wire_slip():
         ],
         [
             Paragraph("TIPO DE CUENTA:<br/><i>(Account Type)</i>", bank_lbl),
-            Paragraph("<b>Checking Account (Cuenta Corriente Empresarial)</b>", bank_val)
+            Paragraph("<b>Checking (Cuenta Corriente)</b>", bank_val)
         ],
         [
-            Paragraph("NÚMERO DE RUTA BANCARIA:<br/><i>(Routing Number / ABA / Wire Routing)</i>", bank_lbl),
-            Paragraph("<font size='12' color='#0B2E59'><b>026073008</b></font><br/><font size='6.5' color='#166534'>✓ Válido para Wire Transfer, Direct Deposit y ACH nacional</font>", bank_val_highlight)
+            Paragraph("NÚMERO DE RUTA BANCARIA:<br/><i>(Routing Number / ABA / ACH / Wire)</i>", bank_lbl),
+            Paragraph("<font size='13' color='#0B2E59'><b>026073150</b></font><br/><font size='6.5' color='#166534'>✓ Routing Oficial Verificado (Community Federal Savings Bank)</font>", bank_val_highlight)
         ],
         [
             Paragraph("NÚMERO DE CUENTA:<br/><i>(Account Number)</i>", bank_lbl),
-            Paragraph("<font size='12' color='#0B2E59'><b>8333912452</b></font><br/><font size='6.5' color='#166534'>✓ Cuenta oficial habilitada para liquidación de remate</font>", bank_val_highlight)
+            Paragraph("<font size='13' color='#0B2E59'><b>8333912452</b></font><br/><font size='6.5' color='#166534'>✓ Cuenta oficial habilitada para liquidación de remate</font>", bank_val_highlight)
         ],
         [
             Paragraph("NOMBRE DEL BANCO RECEPTOR:<br/><i>(Receiving Bank Name)</i>", bank_lbl),
@@ -160,7 +160,7 @@ def generate_wire_slip():
         ],
         [
             Paragraph("DIRECCIÓN DEL BANCO:<br/><i>(Bank Physical Address)</i>", bank_lbl),
-            Paragraph("5 Penn Plaza, 14th Floor, New York, NY 10001, United States", bank_val)
+            Paragraph("5 Penn Plaza, 14th Floor, New York, NY 10001, US", bank_val)
         ],
         [
             Paragraph("MONTO EXACTO A TRANSFERIR:<br/><i>(Total Wire Amount USD)</i>", bank_lbl),
@@ -212,10 +212,10 @@ def generate_wire_slip():
     mobile_text = Paragraph(
         "<b>GUÍA RÁPIDA PARA TRANSFERIR DESDE EL TELÉFONO O VENTANILLA:</b><br/>"
         "<b>1. En su Aplicación Móvil (Chase, BofA, Wells Fargo, etc.):</b><br/>"
-        "   • Ingrese a la sección <b>'Transfer & Pay'</b> o <b>'Wire Transfer'</b>.<br/>"
+        "   • Ingrese a la sección <b>'Transfer & Pay'</b> o <b>'Transfer to Account / ACH'</b>.<br/>"
         "   • Seleccione <i>'Add New Recipient' (Cuenta a nombre de persona)</i>.<br/>"
         "   • Nombre: <b>Diego Junior Guzman Gonzalez</b> | Teléfono: <b>+1 (786) 429-4105</b>.<br/>"
-        "   • Pegue el Routing <b>026073008</b> y el Número de Cuenta <b>8333912452</b>.<br/>"
+        "   • Pegue el Routing <b>026073150</b> y el Número de Cuenta <b>8333912452</b>.<br/>"
         "   • En el campo <b>Memo / Message</b> coloque: <b>LOTE 76061096 - JOHAN RAJO</b>.<br/>"
         "<b>2. En Ventanilla Bancaria:</b> Muestre esta hoja directamente en su teléfono al cajero.<br/>"
         "<b>3. Activación de Gate Pass:</b> Envíe la captura del comprobante por WhatsApp o al correo <b>copartadjudications@gmail.com</b>. De inmediato el sistema libera la unidad y programa la grúa.",
