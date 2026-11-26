@@ -769,6 +769,15 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             <span>PANTALLA 2 • CONSOLA PRIVADA</span>
           </div>
 
+          <button
+            type="button"
+            onClick={() => { window.location.hash = '#/admin'; }}
+            className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white border border-blue-500 px-2.5 py-1 rounded-lg text-xs font-black transition shadow cursor-pointer"
+            title="Ir al Dashboard General de Administración (Clientes, Vehículos, Historial)"
+          >
+            <span>📋 Dashboard Original</span>
+          </button>
+
           <div className="hidden lg:flex items-center gap-2 text-xs">
             <a
               href={(session as any).reference_url || session.vehicle_snapshot?.reference_url || `https://www.copart.com/lot/${(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}`}

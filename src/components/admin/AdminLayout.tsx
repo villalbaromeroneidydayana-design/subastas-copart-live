@@ -10,7 +10,7 @@ import { AuctionSession } from '../../types';
 import { 
   Home, Users, Car, PlayCircle, History, 
   Settings, Menu, X, ExternalLink, ShieldCheck, 
-  ChevronRight, Volume2
+  ChevronRight, Volume2, Gavel
 } from 'lucide-react';
 import { useTranslation } from '../../lib/i18n';
 
@@ -78,6 +78,32 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onOpenLiveRoom }) => {
                 </button>
               );
             })}
+
+            {/* Accesos Directos a Consola y Sala en Vivo */}
+            <div className="pt-3 border-t border-[#192b45] mt-3 space-y-2">
+              <button
+                type="button"
+                onClick={() => { window.location.hash = '#/consola'; }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-black transition bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <Gavel className="w-4 h-4 text-slate-950" />
+                  <span>Consola de Rivales en Vivo</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-75" />
+              </button>
+
+              <a
+                href="#/sala/copart-live-johan101"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-bold transition bg-[#002855] hover:bg-[#003875] text-amber-300 border border-amber-500/40 shadow cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <ExternalLink className="w-4 h-4 text-amber-400" />
+                  <span>Ver Sala Copart en Vivo</span>
+                </div>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </a>
+            </div>
           </nav>
         </div>
 
@@ -116,6 +142,29 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onOpenLiveRoom }) => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Botón Acceso Rápido a Consola de Subasta */}
+            <button
+              type="button"
+              onClick={() => { window.location.hash = '#/consola'; }}
+              className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs transition shadow active:scale-95 cursor-pointer ring-2 ring-amber-300"
+              title="Abrir la Consola de Subasta en Vivo con control de los 7 rivales y martillo"
+            >
+              <Gavel className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Consola de Rivales en Vivo</span>
+              <span className="sm:hidden">Rivales</span>
+            </button>
+
+            {/* Botón Ver Sala Copart en Vivo */}
+            <a
+              href="#/sala/copart-live-johan101"
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow cursor-pointer"
+              title="Abrir la Sala Copart VB3 en Vivo"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Ver Sala Copart</span>
+              <span className="md:hidden">Sala</span>
+            </a>
+
             {/* Selector EN / ES */}
             <div className="flex items-center bg-[#07111e] border border-slate-700/80 rounded-md p-0.5 text-xs font-bold shadow-inner">
               <button

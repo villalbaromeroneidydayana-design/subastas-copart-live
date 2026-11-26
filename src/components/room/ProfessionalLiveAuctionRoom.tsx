@@ -18,9 +18,19 @@ import {
   FastForward, User, Lock, ChevronLeft, ChevronRight,
   Printer, FileText, Edit, Trash2, Upload, Plus, X, Gauge, Send, Camera,
   ArrowRightCircle, CheckCircle, Sparkles, ChevronDown, ChevronUp, Zap, Calculator,
-  ExternalLink as LinkIcon, Tag, HelpCircle, Megaphone
+  ExternalLink as LinkIcon, Tag, HelpCircle, Megaphone, Home
 } from 'lucide-react';
 import { INITIAL_VEHICLES } from '../../services/seedData';
+
+export const OPERATOR_PADDLES = [
+  { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX', state: 'Texas', flag: '🇺🇸' },
+  { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA', state: 'California', flag: '🇺🇸' },
+  { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA', state: 'Georgia', flag: '🇺🇸' },
+  { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH', state: 'Ohio', flag: '🇺🇸' },
+  { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX', state: 'Texas', flag: '🇺🇸' },
+  { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL', state: 'Illinois', flag: '🇺🇸' },
+  { paddle: 'Paleta #101', name: 'Broker / Cliente', loc: 'Wylie, TX', state: 'Texas', flag: '🇺🇸', isClient: true },
+];
 
 interface ProfessionalLiveAuctionRoomProps {
   session: AuctionSession;
@@ -121,6 +131,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [clientBudget, setClientBudget] = useState<number>((session as any).clientMaxBudget || 7500);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [tempBudget, setTempBudget] = useState('');
+  const [operatorSelectedPaddle, setOperatorSelectedPaddle] = useState<string>('Paleta #108');
+  const [operatorCustomAmount, setOperatorCustomAmount] = useState<string>('');
 
   // Modales
   const [bottomDockTab, setBottomDockTab] = useState<'lista' | 'cola' | 'carril' | 'comparar' | 'patio'>('lista');
@@ -1157,13 +1169,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   };
 
   const handleTriggerFastCompetitor = async (increment = 100) => {
-    const rivalPaddles = [
-      { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX', state: 'Texas' },
-      { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA', state: 'California' },
-      { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA', state: 'Georgia' },
-      { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX', state: 'Texas' },
-      { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH', state: 'Ohio' },
-    ];
+    const rivalPaddles = OPERATOR_PADDLES.filter(p => p.paddle !== 'Paleta #101');
     const randomRival = rivalPaddles[Math.floor(Math.random() * rivalPaddles.length)];
     const nextAmount = (session.current_price || 5000) + increment;
 
@@ -1177,6 +1183,36 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       );
       try { sounds.playBidVoice(nextAmount, randomRival.paddle, false); } catch { }
     } catch { }
+  };
+
+  const handleOperatorBidWithSelected = async (customAmt?: number) => {
+    const rival = OPERATOR_PADDLES.find((p) => p.paddle === operatorSelectedPaddle) || OPERATOR_PADDLES[0];
+    const isClient = rival.paddle === 'Paleta #101';
+    const currentP = Number(session.current_price || (session as any).currentPrice || 5000);
+    const amount = customAmt !== undefined ? customAmt : (currentP + (session.bid_increment || 100));
+    const name = isClient ? ((session as any).broker_name || 'David Rodríguez') : rival.name;
+    const loc = isClient ? clientState : rival.loc;
+
+    try {
+      await store.submitManualBid(session.id, rival.paddle, amount, name, loc);
+      try { sounds.playBidVoice(amount, rival.paddle, isClient); } catch { }
+      setServerError(null);
+    } catch (err: any) {
+      console.error('Error operator bid:', err);
+    }
+  };
+
+  const handleOperatorStart = async () => {
+    try { await store.serverStartAuction(session.id); } catch { }
+  };
+  const handleOperatorPause = async () => {
+    try { await store.serverPauseAuction(session.id); } catch { }
+  };
+  const handleOperatorResume = async () => {
+    try { await store.serverResumeAuction(session.id); } catch { }
+  };
+  const handleOperatorReset = async () => {
+    try { await store.serverResetAuction(session.id); } catch { }
   };
 
   const handleFastSellToClient = async () => {
@@ -2071,101 +2107,261 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </div>
                       </div>
 
-                      {/* PANEL DE MANDO RÁPIDO PARA EL BROKER / SUBASTADOR (SOLO VISIBLE PARA TI) */}
+                      {/* PANEL MAESTRO DE CONTROL DE SUBASTA Y RIVALES (SOLO VISIBLE PARA TI COMO OPERADOR) */}
                       {isBroker && (
-                        <div className="w-full mt-3 p-2.5 bg-slate-900 text-white rounded border border-amber-400/80 shadow-md space-y-2">
-                          <div className="flex items-center justify-between text-[10px]">
-                            <span className="text-amber-400 font-bold flex items-center gap-1">
-                              <Zap className="w-3 h-3 text-amber-400" />
-                              Control de Sala y Posturas
+                        <div className="w-full mt-3 p-3 bg-gradient-to-b from-[#0a1322] to-[#070d18] text-white rounded-lg border-2 border-amber-400/90 shadow-2xl space-y-2.5">
+                          {/* Cabecera del Panel */}
+                          <div className="flex items-center justify-between border-b border-amber-400/30 pb-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <Zap className="w-4 h-4 text-amber-400" />
+                              <span className="text-amber-400 font-black text-xs uppercase tracking-wider">
+                                Control de Rivales y Sala
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
+                              LANE A • EN VIVO
                             </span>
-                            <span className="text-emerald-400 font-mono font-bold">LANE A</span>
                           </div>
 
-                          {/* SELECTOR EN VIVO DEL ESTADO/PAÍS DE NUESTRA POSTURA */}
-                          <div className="flex items-center justify-between gap-1 p-1 bg-slate-800/90 rounded border border-slate-700">
-                            <span className="text-[10px] text-amber-300 font-bold whitespace-nowrap">
-                              📍 Nuestra Postura:
-                            </span>
-                            <select
-                              value={clientState}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setClientState(val);
-                                if (typeof window !== 'undefined') {
-                                  localStorage.setItem('copart_client_state', val);
-                                }
-                              }}
-                              className="bg-slate-950 text-amber-300 font-bold text-[10.5px] py-0.5 px-1.5 rounded border border-amber-400/60 focus:outline-none cursor-pointer w-full max-w-[155px]"
+                          {/* Enlaces de retorno a Dashboard Original y Consola Privada */}
+                          <div className="grid grid-cols-2 gap-1.5 pb-1 border-b border-slate-800">
+                            <button
+                              type="button"
+                              onClick={() => { window.location.hash = '#/consola'; }}
+                              className="py-1 px-2 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center gap-1 shadow cursor-pointer transition active:scale-95"
+                              title="Abrir la consola privada de 3 columnas completa"
                             >
-                              <option value="New Jersey">🇺🇸 New Jersey</option>
-                              <option value="New York">🇺🇸 New York</option>
-                              <option value="Florida">🇺🇸 Florida</option>
-                              <option value="Texas">🇺🇸 Texas</option>
-                              <option value="California">🇺🇸 California</option>
-                              <option value="Illinois">🇺🇸 Illinois</option>
-                              <option value="Georgia">🇺🇸 Georgia</option>
-                              <option value="North Carolina">🇺🇸 North Carolina</option>
-                              <option value="Virginia">🇺🇸 Virginia</option>
-                              <option value="Pennsylvania">🇺🇸 Pennsylvania</option>
-                              <option value="Arizona">🇺🇸 Arizona</option>
-                              <option value="Nevada">🇺🇸 Nevada</option>
-                              <option value="Washington">🇺🇸 Washington</option>
-                              <option value="Colorado">🇺🇸 Colorado</option>
-                              <option value="Mexico">🇲🇽 Mexico</option>
+                              <Gavel className="w-3 h-3 text-slate-950" />
+                              <span>🎛️ Consola Completa</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { window.location.hash = '#/admin'; }}
+                              className="py-1 px-2 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] flex items-center justify-center gap-1 shadow cursor-pointer transition active:scale-95"
+                              title="Abrir el dashboard administrativo con todas las pestañas"
+                            >
+                              <Home className="w-3 h-3 text-white" />
+                              <span>📋 Dashboard Admin</span>
+                            </button>
+                          </div>
+
+                          {/* 1. SELECCIONAR CUALQUIERA DE LAS 7 PALETAS */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-amber-300 font-bold flex items-center gap-1">
+                                <Users className="w-3 h-3 text-amber-400" />
+                                1. Paleta a Operar ({OPERATOR_PADDLES.length}):
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400">
+                                Clic para cambiar
+                              </span>
+                            </div>
+
+                            <select
+                              value={operatorSelectedPaddle}
+                              onChange={(e) => setOperatorSelectedPaddle(e.target.value)}
+                              className="w-full bg-slate-950 text-amber-300 font-bold text-xs py-1.5 px-2 rounded border border-amber-400/70 focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer"
+                            >
+                              {OPERATOR_PADDLES.map((p) => {
+                                const isWinner = (session as any).currentWinnerPaddle === p.paddle || (session as any).current_winner_paddle === p.paddle;
+                                const label = p.paddle === 'Paleta #101' 
+                                  ? `${p.paddle} • ${session.broker_name || 'David Rodríguez'} (Cliente - ${clientState})`
+                                  : `${p.paddle} • ${p.name} (${p.state})`;
+                                return (
+                                  <option key={p.paddle} value={p.paddle}>
+                                    {isWinner ? `★ LÍDER: ${label}` : label}
+                                  </option>
+                                );
+                              })}
                             </select>
                           </div>
-                          
-                          <div className="grid grid-cols-2 gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleTriggerFastCompetitor(100)}
-                              className="py-1 px-1.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
-                              title="Simular que un rival de otro estado hace una contraoferta"
-                            >
-                              <span>⚡ +$100 Rival</span>
-                            </button>
-                            
-                            <button
-                              type="button"
-                              onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 100))}
-                              className="py-1 px-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
-                              title={`Enviar puja a nombre de ${clientState}`}
-                            >
-                              <span>🟢 +$100 {clientState}</span>
-                            </button>
+
+                          {/* 2. ENVIAR OFERTA CON LA PALETA SELECCIONADA */}
+                          <div className="space-y-1 bg-slate-950/80 p-2 rounded border border-slate-800">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-slate-300 font-bold">
+                                Pujar con <strong className="text-amber-400 font-mono">{operatorSelectedPaddle}</strong>:
+                              </span>
+                              <span className="font-mono text-emerald-400 font-bold text-[10px]">
+                                Actual: ${(session.current_price || 5000).toLocaleString()} USD
+                              </span>
+                            </div>
+
+                            {/* Botones de incremento rápido */}
+                            <div className="grid grid-cols-4 gap-1">
+                              {[100, 250, 500, 1000].map((inc) => (
+                                <button
+                                  key={inc}
+                                  type="button"
+                                  onClick={() => handleOperatorBidWithSelected((session.current_price || 5000) + inc)}
+                                  className="py-1 px-1 rounded bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-amber-300 font-black text-[10px] text-center border border-slate-700 hover:border-amber-400 transition cursor-pointer"
+                                  title={`Pujar +$${inc} con ${operatorSelectedPaddle}`}
+                                >
+                                  +${inc}
+                                </button>
+                              ))}
+                            </div>
+
+                            {/* Input de importe libre */}
+                            <div className="flex items-center gap-1 pt-1">
+                              <div className="relative flex-1">
+                                <span className="absolute left-2 top-1 text-slate-400 font-mono text-xs">$</span>
+                                <input
+                                  type="number"
+                                  placeholder="Monto exacto..."
+                                  value={operatorCustomAmount}
+                                  onChange={(e) => setOperatorCustomAmount(e.target.value)}
+                                  className="w-full bg-[#040812] border border-slate-700 text-white font-mono text-xs py-1 pl-5 pr-2 rounded focus:outline-none focus:border-amber-400"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const amt = parseInt(operatorCustomAmount.replace(/[^0-9]/g, ''));
+                                  if (amt && amt > (session.current_price || 0)) {
+                                    handleOperatorBidWithSelected(amt);
+                                    setOperatorCustomAmount('');
+                                  } else {
+                                    handleOperatorBidWithSelected();
+                                  }
+                                }}
+                                className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10.5px] whitespace-nowrap transition shadow cursor-pointer active:scale-95"
+                              >
+                                ⚡ Enviar Puja
+                              </button>
+                            </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-1 pt-1 border-t border-slate-800">
+                          {/* 3. POSTURA PROPIA DEL CLIENTE / BROKER */}
+                          <div className="space-y-1 bg-slate-950/80 p-2 rounded border border-emerald-500/40">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-emerald-300 font-bold flex items-center gap-1">
+                                📍 Estado de la Postura Cliente:
+                              </span>
+                              <select
+                                value={clientState}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setClientState(val);
+                                  if (typeof window !== 'undefined') {
+                                    localStorage.setItem('copart_client_state', val);
+                                  }
+                                }}
+                                className="bg-slate-900 text-amber-300 font-bold text-[10px] py-0.5 px-1 rounded border border-amber-400/60 focus:outline-none cursor-pointer"
+                              >
+                                <option value="New Jersey">🇺🇸 New Jersey</option>
+                                <option value="New York">🇺🇸 New York</option>
+                                <option value="Florida">🇺🇸 Florida</option>
+                                <option value="Texas">🇺🇸 Texas</option>
+                                <option value="California">🇺🇸 California</option>
+                                <option value="Illinois">🇺🇸 Illinois</option>
+                                <option value="Georgia">🇺🇸 Georgia</option>
+                                <option value="North Carolina">🇺🇸 North Carolina</option>
+                                <option value="Virginia">🇺🇸 Virginia</option>
+                                <option value="Pennsylvania">🇺🇸 Pennsylvania</option>
+                                <option value="Arizona">🇺🇸 Arizona</option>
+                                <option value="Nevada">🇺🇸 Nevada</option>
+                                <option value="Washington">🇺🇸 Washington</option>
+                                <option value="Colorado">🇺🇸 Colorado</option>
+                                <option value="Mexico">🇲🇽 Mexico</option>
+                              </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                              <button
+                                type="button"
+                                onClick={() => handleTriggerFastCompetitor(100)}
+                                className="py-1 px-1.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
+                                title="Simular que un rival de otro estado hace una contraoferta"
+                              >
+                                <span>⚡ +$100 Rival Auto</span>
+                              </button>
+                              
+                              <button
+                                type="button"
+                                onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 100))}
+                                className="py-1 px-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
+                                title={`Enviar puja a nombre de ${clientState}`}
+                              >
+                                <span>🟢 +$100 {clientState}</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 4. MARTILLO DEL SUBASTADOR & CIERRE */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
+                              <span>Llamadas del Subastador:</span>
+                              <span className="text-amber-400 font-mono">Voces Copart</span>
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLiveAuctioneerCall('going_once');
+                                  try { sounds.speak('Going once', 1.0, 'en-US'); } catch { }
+                                  setTimeout(() => setLiveAuctioneerCall(null), 3500);
+                                }}
+                                className="py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-[9.5px] text-center border border-slate-700 transition cursor-pointer"
+                              >
+                                📢 A la 1
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLiveAuctioneerCall('going_twice');
+                                  try { sounds.speak('Going twice', 1.0, 'en-US'); } catch { }
+                                  setTimeout(() => setLiveAuctioneerCall(null), 3500);
+                                }}
+                                className="py-1 rounded bg-slate-800 hover:bg-slate-700 text-orange-300 font-bold text-[9.5px] text-center border border-slate-700 transition cursor-pointer"
+                              >
+                                🔥 A las 2
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLiveAuctioneerCall('fair_warning');
+                                  try { sounds.speak('Fair warning, last call', 1.0, 'en-US'); } catch { }
+                                  setTimeout(() => setLiveAuctioneerCall(null), 3500);
+                                }}
+                                className="py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-[9.5px] text-center border border-slate-700 transition cursor-pointer"
+                              >
+                                ⚠️ Aviso
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleFastSellToClient}
+                                className="py-1 rounded bg-red-600 hover:bg-red-500 text-white font-black text-[9.5px] text-center shadow-lg transition cursor-pointer active:scale-95"
+                                title="Cerrar martillo y adjudicar el lote"
+                              >
+                                🔨 VENDER
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 5. CONTROL DEL RELOJ */}
+                          <div className="grid grid-cols-3 gap-1 pt-1 border-t border-slate-800 text-[9.5px]">
                             <button
                               type="button"
-                              onClick={() => {
-                                setLiveAuctioneerCall('going_once');
-                                try { sounds.speak('Going once', 1.0, 'en-US'); } catch { }
-                                setTimeout(() => setLiveAuctioneerCall(null), 3500);
-                              }}
-                              className="py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-[9px] text-center cursor-pointer"
+                              onClick={handleOperatorStart}
+                              className="py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-center cursor-pointer transition"
                             >
-                              📢 A la 1
+                              ▶ Iniciar
                             </button>
                             <button
                               type="button"
-                              onClick={() => {
-                                setLiveAuctioneerCall('going_twice');
-                                try { sounds.speak('Going twice', 1.0, 'en-US'); } catch { }
-                                setTimeout(() => setLiveAuctioneerCall(null), 3500);
-                              }}
-                              className="py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-orange-300 font-bold text-[9px] text-center cursor-pointer"
+                              onClick={handleOperatorPause}
+                              className="py-1 rounded bg-amber-700 hover:bg-amber-600 text-white font-bold text-center cursor-pointer transition"
                             >
-                              🔥 A las 2
+                              ⏸ Pausar
                             </button>
                             <button
                               type="button"
-                              onClick={handleFastSellToClient}
-                              className="py-0.5 rounded bg-red-600 hover:bg-red-500 text-white font-black text-[9px] text-center shadow cursor-pointer"
-                              title="Cerrar martillo y adjudicar el lote"
+                              onClick={handleOperatorReset}
+                              className="py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-center cursor-pointer transition"
                             >
-                              🔨 VENDER
+                              🔄 15s Reset
                             </button>
                           </div>
                         </div>

@@ -5,6 +5,7 @@ import { CopartLiveRoom } from './components/room/CopartLiveRoom';
 import { RoomAccessExpiredView } from './components/room/RoomAccessExpiredView';
 import { DocumentView } from './components/documents/DocumentView';
 import { AuctioneerPrivateConsole } from './components/admin/AuctioneerPrivateConsole';
+import { AdminLayout } from './components/admin/AdminLayout';
 import { CopartLogo } from './components/common/CopartLogo';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
@@ -19,6 +20,7 @@ export function App() {
   const [isRoomExpired, setIsRoomExpired] = useState<boolean>(false);
   const [expiredLotNumber, setExpiredLotNumber] = useState<string>('48291032');
   const [activeDocumentToken, setActiveDocumentToken] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<'admin' | 'consola' | 'sala' | 'documento'>('admin');
 
   // Cargar sesión inicial para la consola privada del subastador
   useEffect(() => {
@@ -39,22 +41,17 @@ export function App() {
     loadDefaultSession();
   }, []);
 
-  // Router basado en hash para: #/sala/:token, #/documento/:doc_token
+  // Router basado en hash para: #/sala/:token, #/documento/:doc_token, #/admin, #/consola
   useEffect(() => {
     const handleHashChange = async () => {
       const hash = window.location.hash;
-
-      // Si no hay hash o es raíz, abrir directamente la Sala Oficial de Subasta Copart VB3
-      if (!hash || hash === '#' || hash === '#/' || hash.startsWith('#/catalogo')) {
-        window.location.hash = '#/sala/copart-live-johan101';
-        return;
-      }
 
       // 1. RUTA INDEPENDIENTE DE DOCUMENTACIÓN: #/documento/:doc_token
       const docMatch = hash.match(/#\/documento\/(.+)/);
       if (docMatch && docMatch[1]) {
         setActiveDocumentToken(docMatch[1]);
         setActiveSession(null);
+        setCurrentView('documento');
         setIsRoomExpired(false);
         setRoomError(null);
         return;
@@ -88,6 +85,7 @@ export function App() {
           setIsRoomExpired(true);
           setExpiredLotNumber(serverData.session?.lotNumber || '48291032');
           setActiveSession(null);
+          setCurrentView('sala');
           setRoomError(null);
           return;
         }
@@ -103,6 +101,7 @@ export function App() {
           setCurrentUserToken(serverData.userToken || brokerParam || buyerParam);
           setServerRoomData(serverData);
           setIsAdminMode(detectedRole === 'auctioneer' || detectedRole === 'broker');
+          setCurrentView('sala');
           setRoomError(null);
           return;
         }
@@ -114,24 +113,37 @@ export function App() {
             setIsRoomExpired(true);
             setExpiredLotNumber(found.vehicle_snapshot?.lot_number || '48291032');
             setActiveSession(null);
+            setCurrentView('sala');
           } else {
             setIsRoomExpired(false);
             setActiveSession(found);
             setCurrentRole(isAuctioneer ? 'auctioneer' : (brokerParam ? 'broker' : (buyerParam ? 'buyer' : 'spectator')));
             setCurrentUserToken(brokerParam || buyerParam);
             setIsAdminMode(Boolean(isAuctioneer || brokerParam));
+            setCurrentView('sala');
             setRoomError(null);
           }
         } else {
           setRoomError('La sala de subasta solicitada no existe o el enlace ha caducado.');
           setActiveSession(null);
+          setCurrentView('sala');
           setIsRoomExpired(false);
         }
         return;
       }
 
-      // Si no hay hash, pantalla administrativa
+      // 3. RUTA CONSOLA PRIVADA DE MANDO: #/consola o #/control
+      if (hash.startsWith('#/consola') || hash.startsWith('#/control')) {
+        setActiveSession(null);
+        setCurrentView('consola');
+        setIsRoomExpired(false);
+        setRoomError(null);
+        return;
+      }
+
+      // 4. RUTA DASHBOARD ORIGINAL / PANEL ADMINISTRATIVO: #/admin, #/dashboard o raíz
       setActiveSession(null);
+      setCurrentView('admin');
       setIsRoomExpired(false);
       setRoomError(null);
     };
@@ -163,13 +175,14 @@ export function App() {
     setActiveSession(session);
     setIsAdminMode(true);
     setIsRoomExpired(false);
+    window.location.hash = session.links?.auctioneerLink || `#/sala/${session.room_token}?auctioneer=true`;
   };
 
   const handleExitRoom = () => {
     setActiveSession(null);
     setIsRoomExpired(false);
     setActiveDocumentToken(null);
-    window.location.hash = '';
+    window.location.hash = '#/admin';
   };
 
   // 1. Vista independiente de entrega de documentación (#/documento/:doc_token)
@@ -200,25 +213,34 @@ export function App() {
           <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto mb-3" />
           <h2 className="text-lg font-bold text-white mb-2">Acceso a Sala Restringido</h2>
           <p className="text-xs text-slate-400 mb-6">{roomError}</p>
-          <a
-            href="https://www.copart.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full bg-[#002855] hover:bg-[#003875] text-amber-400 border border-amber-500/40 font-semibold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition"
-          >
-            <span>Ir al Portal Oficial Copart.com</span>
-          </a>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => { window.location.hash = '#/admin'; }}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Volver al Dashboard Original</span>
+            </button>
+            <a
+              href="https://www.copart.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-[#002855] hover:bg-[#003875] text-amber-400 border border-amber-500/40 font-semibold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition"
+            >
+              <span>Ir al Portal Oficial Copart.com</span>
+            </a>
+          </div>
         </div>
       </div>
     );
   }
 
   // 4. PANTALLA 1: SALA DE SUBASTA EN VIVO (Terminal Compartida para Broker y Comprador)
-  if (activeSession) {
+  if (activeSession && currentView === 'sala') {
     return (
       <CopartLiveRoom
         session={activeSession}
-        isAdmin={false} // Sala pública 100% limpia de controles administrativos
+        isAdmin={isAdminMode}
         role={currentRole}
         userToken={currentUserToken}
         initialRoomData={serverRoomData}
@@ -227,7 +249,6 @@ export function App() {
     );
   }
 
-  // 5. PANTALLA 2: CONSOLA PRIVADA DEL SUBASTADOR (Centro de Mando Exclusivo)
   const fallbackSession = consoleSession || store.getSessionById('ses-live-camry-johan') || store.getSessions()[0] || ({
     id: 'ses-live-camry-johan',
     title: 'Subasta Oficial en Vivo - 2022 Toyota Camry SE Sport Edition (ADJUDICADO)',
@@ -249,11 +270,21 @@ export function App() {
     buyer_access_token: 'bdr_buyer_johan101',
   } as unknown as AuctionSession);
 
+  // 5. PANTALLA 2: CONSOLA PRIVADA DE MANDO EN VIVO (Control de Rivales y Subastador)
+  if (currentView === 'consola') {
+    return (
+      <AuctioneerPrivateConsole
+        session={fallbackSession}
+        onOpenLiveRoom={handleOpenRoomAsAdmin}
+        onExit={() => { window.location.hash = '#/admin'; }}
+      />
+    );
+  }
+
+  // 6. PANTALLA PRINCIPAL: DASHBOARD ORIGINAL (AdminLayout: Inicio, Clientes, Vehículos, Subastas, Historial, Configuración)
   return (
-    <AuctioneerPrivateConsole
-      session={fallbackSession}
+    <AdminLayout
       onOpenLiveRoom={handleOpenRoomAsAdmin}
-      onExit={handleExitRoom}
     />
   );
 }
