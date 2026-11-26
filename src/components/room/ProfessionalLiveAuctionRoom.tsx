@@ -1012,6 +1012,118 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     return 'California';
   })();
 
+  // Obtener estado y bandera del postor líder actual (para el dial auténtico de Copart VB3)
+  const currentLeaderInfo = (() => {
+    const winnerPaddle = (session as any).currentWinnerPaddle || (session as any).current_winner_paddle;
+    const latestBid = bids.length > 0 ? bids[0] : null;
+
+    if (winnerPaddle === 'Paleta #101' || (latestBid as any)?.paddle_number === 'Paleta #101') {
+      return {
+        flag: '🇺🇸',
+        state: 'California',
+        paddle: 'Paleta #101',
+        isClient: true
+      };
+    }
+
+    if (latestBid) {
+      const loc = ((latestBid as any).location || latestBid.bidder_name || '').toLowerCase();
+      let state = 'California';
+      let flag = '🇺🇸';
+
+      if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
+        state = 'Texas';
+      } else if (loc.includes('ca') || loc.includes('angeles') || loc.includes('california')) {
+        state = 'California';
+      } else if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
+        state = 'Arizona';
+      } else if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
+        state = 'Georgia';
+      } else if (loc.includes('fl') || loc.includes('florida') || loc.includes('miami')) {
+        state = 'Florida';
+      } else if (loc.includes('il') || loc.includes('chicago') || loc.includes('illinois')) {
+        state = 'Illinois';
+      } else if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
+        state = 'Ohio';
+      } else if (loc.includes('mexico') || loc.includes('méxico')) {
+        state = 'Mexico';
+        flag = '🇲🇽';
+      }
+
+      return {
+        flag,
+        state,
+        paddle: (latestBid as any).paddle_number || latestBid.bidder_name || 'USA',
+        isClient: false
+      };
+    }
+
+    return {
+      flag: '🇺🇸',
+      state: highBidderStateName || 'California',
+      paddle: 'Paleta #101',
+      isClient: false
+    };
+  })();
+
+  const getBidDisplayInfo = (bid: any) => {
+    const loc = (bid.location || bid.bidder_name || '').toLowerCase();
+    let state = 'USA';
+    let flag = '🇺🇸';
+
+    if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
+      state = 'Texas';
+    } else if (loc.includes('ca') || loc.includes('california') || loc.includes('angeles')) {
+      state = 'California';
+    } else if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
+      state = 'Arizona';
+    } else if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
+      state = 'Georgia';
+    } else if (loc.includes('fl') || loc.includes('florida') || loc.includes('miami')) {
+      state = 'Florida';
+    } else if (loc.includes('il') || loc.includes('illinois') || loc.includes('chicago')) {
+      state = 'Illinois';
+    } else if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
+      state = 'Ohio';
+    } else if (loc.includes('mexico') || loc.includes('méxico')) {
+      state = 'Mexico';
+      flag = '🇲🇽';
+    } else if ((bid as any).paddle_number === 'Paleta #101' || (bid as any).paddleNumber === 'Paleta #101') {
+      state = 'California';
+    }
+    return { state, flag };
+  };
+
+  const handleTriggerFastCompetitor = async (increment = 100) => {
+    const rivalPaddles = [
+      { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX', state: 'Texas' },
+      { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA', state: 'California' },
+      { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA', state: 'Georgia' },
+      { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX', state: 'Texas' },
+      { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH', state: 'Ohio' },
+    ];
+    const randomRival = rivalPaddles[Math.floor(Math.random() * rivalPaddles.length)];
+    const nextAmount = (session.current_price || 5000) + increment;
+
+    try {
+      await store.submitManualBid(
+        session.id,
+        randomRival.paddle,
+        nextAmount,
+        randomRival.name,
+        randomRival.loc
+      );
+      try { sounds.playBidVoice(nextAmount, randomRival.paddle, false); } catch { }
+    } catch { }
+  };
+
+  const handleFastSellToClient = async () => {
+    try {
+      await store.serverSoldAuction(session.id);
+      triggerSoldCelebration();
+    } catch { }
+  };
+
   // PANTALLA OFICIAL DE ACCESO EXPIRADO Y REVOCADO CUANDO LA SALA FINALIZA
   if (isRoomAccessExpired && !isBroker) {
     return (
@@ -1746,9 +1858,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         size={140}
                         lang={lang}
                         theme="light"
-                        highBidderState={highBidderStateName}
+                        highBidderState={currentLeaderInfo.state}
                         currentPrice={session.current_price}
-                        highBidderPaddle={((session as any).currentWinnerPaddle || (session as any).current_winner_paddle || 'Paleta #101')}
+                        highBidderPaddle={currentLeaderInfo.isClient ? 'Paleta #101' : currentLeaderInfo.state}
                       />
 
                       {/* Red label */}
@@ -1801,43 +1913,114 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </span>
                         <div className="space-y-1 max-h-[115px] overflow-y-auto">
                           {bids.length > 0 ? (
-                            bids.slice(0, 3).map((b) => (
-                              <div key={b.id} className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50 border border-slate-100">
-                                <div className="flex items-center gap-1 min-w-0">
-                                  <span className="text-xs">🇺🇸</span>
-                                  <span className="text-slate-600 font-medium truncate max-w-[65px]">
-                                    {(b as any).paddle_number || b.bidder_name || 'USA'}
+                            bids.slice(0, 4).map((b) => {
+                              const info = getBidDisplayInfo(b);
+                              const isClient = (b as any).paddle_number === 'Paleta #101' || (b as any).paddleNumber === 'Paleta #101';
+                              return (
+                                <div key={b.id} className={`flex items-center justify-between text-[10px] py-0.5 px-1 rounded border ${
+                                  isClient ? 'bg-emerald-50 border-emerald-300 font-bold' : 'bg-slate-50 border-slate-100'
+                                }`}>
+                                  <div className="flex items-center gap-1 min-w-0">
+                                    <span className="text-xs">{info.flag}</span>
+                                    <span className={`truncate max-w-[80px] ${isClient ? 'text-emerald-800 font-black' : 'text-slate-700 font-medium'}`}>
+                                      {isClient ? 'Paleta #101' : info.state}
+                                    </span>
+                                  </div>
+                                  <span className={`font-mono font-bold ${isClient ? 'text-emerald-700 font-black' : 'text-slate-900'}`}>
+                                    ${b.amount.toLocaleString()}
                                   </span>
                                 </div>
-                                <span className="font-mono font-bold text-slate-900">
-                                  ${b.amount.toLocaleString()}
-                                </span>
-                              </div>
-                            ))
+                              );
+                            })
                           ) : (
                             <>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50">
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs">🇲🇽</span>
-                                  <span className="text-slate-600 font-medium">Mexico</span>
-                                </div>
-                                <span className="font-mono font-bold text-slate-900">
-                                  ${(session.current_price - 150).toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50">
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50 border border-slate-100">
                                 <div className="flex items-center gap-1">
                                   <span className="text-xs">🇺🇸</span>
-                                  <span className="text-slate-600 font-medium">{highBidderStateName}</span>
+                                  <span className="text-slate-700 font-medium">Texas</span>
                                 </div>
                                 <span className="font-mono font-bold text-slate-900">
-                                  ${(session.current_price - 300).toLocaleString()}
+                                  ${(session.current_price - 100).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50 border border-slate-100">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs">🇺🇸</span>
+                                  <span className="text-slate-700 font-medium">California</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900">
+                                  ${(session.current_price - 200).toLocaleString()}
                                 </span>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
+
+                      {/* PANEL DE MANDO RÁPIDO PARA EL BROKER / SUBASTADOR (SOLO VISIBLE PARA TI) */}
+                      {isBroker && (
+                        <div className="w-full mt-3 p-2 bg-slate-900 text-white rounded border border-amber-400/80 shadow-md space-y-1.5">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-amber-400 font-bold flex items-center gap-1">
+                              <Zap className="w-3 h-3 text-amber-400" />
+                              Control de Paletas y Rivales
+                            </span>
+                            <span className="text-emerald-400 font-mono font-bold">LANE A</span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleTriggerFastCompetitor(100)}
+                              className="py-1 px-1.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
+                              title="Simular que un rival de Texas/California/Georgia hace una contraoferta"
+                            >
+                              <span>⚡ +$100 Rival</span>
+                            </button>
+                            
+                            <button
+                              type="button"
+                              onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 100))}
+                              className="py-1 px-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
+                              title="Enviar puja a nombre de Paleta #101"
+                            >
+                              <span>🟢 +$100 Paleta #101</span>
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-1 pt-1 border-t border-slate-800">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLiveAuctioneerCall('going_once');
+                                try { sounds.speak('Going once', 1.0, 'en-US'); } catch { }
+                                setTimeout(() => setLiveAuctioneerCall(null), 3500);
+                              }}
+                              className="py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-[9px] text-center cursor-pointer"
+                            >
+                              📢 A la 1
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLiveAuctioneerCall('going_twice');
+                                try { sounds.speak('Going twice', 1.0, 'en-US'); } catch { }
+                                setTimeout(() => setLiveAuctioneerCall(null), 3500);
+                              }}
+                              className="py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-orange-300 font-bold text-[9px] text-center cursor-pointer"
+                            >
+                              🔥 A las 2
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleFastSellToClient}
+                              className="py-0.5 rounded bg-red-600 hover:bg-red-500 text-white font-black text-[9px] text-center shadow cursor-pointer"
+                            >
+                              🔨 VENDER #101
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                     </div>
                   </div>
