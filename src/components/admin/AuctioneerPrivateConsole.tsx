@@ -37,11 +37,15 @@ import {
   ArrowRight,
   Minus,
   Megaphone,
-  Lock
+  Lock,
+  Home
 } from 'lucide-react';
 import { NextLotModal } from '../room/NextLotModal';
 import { CopartLogo } from '../common/CopartLogo';
 import { VehiclesView } from './VehiclesView';
+import { ClientsView } from './ClientsView';
+import { HistoryView } from './HistoryView';
+import { SettingsView } from './SettingsView';
 import { VehicleBadgesModal } from './VehicleBadgesModal';
 import { CopartVerificationModal } from '../room/CopartVerificationModal';
 import { WhatsAppInviteModal } from './WhatsAppInviteModal';
@@ -60,13 +64,18 @@ interface PaddleInfo {
 }
 
 const OFFICIAL_PADDLES: PaddleInfo[] = [
-  { number: 'Paleta #101', name: 'David Rodríguez', location: 'Wylie, TX', isBroker: true },
+  { number: 'Paleta #101', name: 'David Rodríguez / Johan', location: 'Wylie, TX', isBroker: true },
   { number: 'Paleta #108', name: 'AutoExport Dallas LLC', location: 'Dallas, TX' },
   { number: 'Paleta #214', name: 'Pacific Salvage Auctions', location: 'Los Angeles, CA' },
   { number: 'Paleta #305', name: 'Global Fleet Buyers', location: 'Atlanta, GA' },
   { number: 'Paleta #412', name: 'Buckeye Motor Exchange', location: 'Columbus, OH' },
   { number: 'Paleta #519', name: 'Lone Star Salvage Group', location: 'Houston, TX' },
   { number: 'Paleta #623', name: 'Midwest Premier Liquidation', location: 'Chicago, IL' },
+  { number: 'Paleta #734', name: 'Sunstate Auto Wholesale', location: 'Orlando, FL' },
+  { number: 'Paleta #845', name: 'Tri-State Metro Salvage', location: 'Newark, NJ' },
+  { number: 'Paleta #912', name: 'Cascade Auto Remarketing', location: 'Seattle, WA' },
+  { number: 'Paleta #965', name: 'Carolina Fleet Dispersal', location: 'Charlotte, NC' },
+  { number: 'Paleta #988', name: 'Keystone Auto Liquidation', location: 'Philadelphia, PA' },
 ];
 
 export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> = ({
@@ -107,6 +116,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
+  const [activeMasterView, setActiveMasterView] = useState<'consola' | 'clientes' | 'vehiculos' | 'historial' | 'configuracion'>('consola');
 
   // Dock inferior de gestión y selección de vehículos Copart
   const [dockTab, setDockTab] = useState<'lista' | 'cola' | 'carril' | 'comparar' | 'patio'>('lista');
@@ -563,12 +573,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
     if (session.status !== 'open') {
       await store.serverStartAuction(targetId);
     }
+    const paddleObj = OFFICIAL_PADDLES.find((p) => p.number === selectedPaddle);
     const res = await store.submitManualBid(
       targetId,
       selectedPaddle,
       amount,
-      selectedPaddle === 'Paleta #101' ? (lotBrokerName || 'David Rodríguez') : undefined,
-      selectedPaddle === 'Paleta #101' ? (lotBrokerLocation || 'Wylie, TX') : undefined
+      selectedPaddle === 'Paleta #101' ? (lotBrokerName || 'David Rodríguez') : (paddleObj?.name || undefined),
+      selectedPaddle === 'Paleta #101' ? (lotBrokerLocation || 'Wylie, TX') : (paddleObj?.location || undefined)
     );
     setIsSubmittingBid(false);
 
@@ -578,6 +589,44 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       await syncSessionData();
     } else {
       showFeedback(res.error || 'Error al procesar la oferta', 'error');
+    }
+  };
+
+  // 1.1 OFERTA RÁPIDA DE 1 CLIC DESDE LA FILA DE LA PALETA
+  const handleQuickPaddleBid = async (paddleNumber: string, increment: number) => {
+    const paddleObj = OFFICIAL_PADDLES.find((p) => p.number === paddleNumber);
+    const currentP = Number(session.current_price || (session as any).currentPrice || 5000);
+    const nextAmount = currentP + increment;
+    const targetId = session.id || 'ses-live-001';
+
+    setSelectedPaddle(paddleNumber);
+    setBidAmountInput(String(nextAmount + 50));
+
+    setSession((prev) => ({
+      ...prev,
+      status: 'open',
+      current_price: nextAmount,
+      currentPrice: nextAmount,
+      current_winner_paddle: paddleNumber,
+      currentWinnerPaddle: paddleNumber,
+      time_remaining_seconds: 15,
+    }));
+
+    try {
+      sounds.playBidVoice(nextAmount, paddleNumber, paddleNumber.includes('101'));
+    } catch {}
+
+    const res = await store.submitManualBid(
+      targetId,
+      paddleNumber,
+      nextAmount,
+      paddleNumber === 'Paleta #101' ? (lotBrokerName || 'David Rodríguez') : (paddleObj?.name || undefined),
+      paddleNumber === 'Paleta #101' ? (lotBrokerLocation || 'Wylie, TX') : (paddleObj?.location || undefined)
+    );
+
+    if (res && res.success) {
+      showFeedback(`✓ Oferta de $${nextAmount.toLocaleString()} enviada con ${paddleNumber}`);
+      await syncSessionData();
     }
   };
 
@@ -766,19 +815,78 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
           <div className="flex items-center gap-2 bg-amber-500 text-slate-950 px-2.5 py-1 rounded font-black text-xs uppercase tracking-wider shadow">
             <Gavel className="w-4 h-4" />
-            <span>PANTALLA 2 • CONSOLA PRIVADA</span>
+            <span>CENTRO DE MANDO</span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => { window.location.hash = '#/admin'; }}
-            className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white border border-blue-500 px-2.5 py-1 rounded-lg text-xs font-black transition shadow cursor-pointer"
-            title="Ir al Dashboard General de Administración (Clientes, Vehículos, Historial)"
-          >
-            <span>📋 Dashboard Original</span>
-          </button>
+          {/* Selector de Vistas Maestras Unificadas */}
+          <div className="flex items-center gap-1 bg-[#050e1e] p-0.5 rounded-lg border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setActiveMasterView('consola')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-black transition cursor-pointer ${
+                activeMasterView === 'consola'
+                  ? 'bg-amber-500 text-slate-950 shadow ring-1 ring-amber-400'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Gavel className="w-3 h-3" />
+              <span>Subasta en Vivo</span>
+            </button>
 
-          <div className="hidden lg:flex items-center gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => setActiveMasterView('clientes')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeMasterView === 'clientes'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Users className="w-3 h-3" />
+              <span>Clientes</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveMasterView('vehiculos')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeMasterView === 'vehiculos'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Car className="w-3 h-3" />
+              <span>Vehículos</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveMasterView('historial')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeMasterView === 'historial'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <FileText className="w-3 h-3" />
+              <span>Historial</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveMasterView('configuracion')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeMasterView === 'configuracion'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Settings className="w-3 h-3" />
+              <span>Configuración</span>
+            </button>
+          </div>
+
+          <div className="hidden 2xl:flex items-center gap-2 text-xs">
             <a
               href={(session as any).reference_url || session.vehicle_snapshot?.reference_url || `https://www.copart.com/lot/${(session as any).lot_number || (session as any).lotNumber || session.vehicle_snapshot?.lot_number || '48291032'}`}
               target="_blank"
@@ -956,39 +1064,48 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
             </span>
           </div>
 
-          {/* Enlaces rápidos para ver Sala Broker y Transmisión Cliente */}
-          <a
-            href={brokerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1 transition shadow"
-            title="Abrir sala oficial como Broker Autorizado (Paleta #101 con botones de puja)"
-          >
-            <span>Sala Broker</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
-          <a
-            href={buyerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1.5 rounded text-xs flex items-center gap-1 transition shadow"
-            title="Abrir monitor de transmisión en vivo para el Cliente (Transmisión oficial Copart VB3)"
-          >
-            <span>Monitor Cliente</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
+          {/* ENLACE ÚNICO DE SALA (CLIENTE & BROKER) */}
+          <div className="flex items-center gap-1.5 bg-[#051124] border border-blue-500/50 p-1 rounded-xl shadow-lg">
+            <span className="text-[11px] font-bold text-blue-300 hidden xl:inline px-1">
+              🔗 Sala (Cliente + Broker):
+            </span>
 
-          {/* Botón Invitar por WhatsApp */}
-          <button
-            type="button"
-            onClick={() => setIsWhatsAppModalOpen(true)}
-            className="bg-[#25D366] hover:bg-[#1EBE5D] text-slate-950 font-black px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 transition shadow active:scale-95 cursor-pointer"
-            title="Enviar invitación por WhatsApp con el enlace de la sala en vivo al cliente"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden xl:inline">Invitar por WhatsApp</span>
-            <span className="xl:hidden">WhatsApp</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                const url = `${window.location.origin}${window.location.pathname}#/sala/${session.room_token || 'copart-live-johan101'}`;
+                navigator.clipboard.writeText(url);
+                showFeedback('✓ Enlace de la Sala copiado al portapapeles (mismo enlace para Cliente y Broker)');
+              }}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-black px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 transition shadow active:scale-95 cursor-pointer"
+              title="Copiar el enlace de la sala en vivo (compartido para Cliente y Broker)"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copiar Enlace</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsWhatsAppModalOpen(true)}
+              className="bg-[#25D366] hover:bg-[#1EBE5D] text-slate-950 font-black px-2 py-1.5 rounded-lg text-xs flex items-center gap-1 transition shadow active:scale-95 cursor-pointer"
+              title="Enviar enlace de la sala por WhatsApp"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </button>
+
+            <a
+              href={`#/sala/${session.room_token || 'copart-live-johan101'}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 transition shadow active:scale-95"
+              title="Abrir la sala oficial Copart en pestaña nueva"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Ver Sala</span>
+            </a>
+          </div>
+
         </div>
       </header>
 
@@ -1005,11 +1122,32 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       {/* 2. CUADRÍCULA PRINCIPAL DE TRABAJO (1 SOLA VISTA - SIN SCROLL) */}
       {/* ========================================================================= */}
       <main className="flex-1 p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 max-w-[1700px] w-full mx-auto">
-        
-        {/* ========================================================================= */}
-        {/* BANNER MAESTRO PRINCIPAL: ESTADO DE SALA Y BOTÓN DAR INICIO A LA SUBASTA */}
-        {/* ========================================================================= */}
-        <div className="lg:col-span-12 bg-gradient-to-r from-[#07192e] via-[#0b274c] to-[#07192e] border-2 border-emerald-500/80 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
+        {activeMasterView === 'clientes' && (
+          <div className="lg:col-span-12">
+            <ClientsView onOpenRoom={() => setActiveMasterView('consola')} />
+          </div>
+        )}
+        {activeMasterView === 'vehiculos' && (
+          <div className="lg:col-span-12">
+            <VehiclesView />
+          </div>
+        )}
+        {activeMasterView === 'historial' && (
+          <div className="lg:col-span-12">
+            <HistoryView />
+          </div>
+        )}
+        {activeMasterView === 'configuracion' && (
+          <div className="lg:col-span-12">
+            <SettingsView />
+          </div>
+        )}
+        {activeMasterView === 'consola' && (
+          <>
+            {/* ========================================================================= */}
+            {/* BANNER MAESTRO PRINCIPAL: ESTADO DE SALA Y BOTÓN DAR INICIO A LA SUBASTA */}
+            {/* ========================================================================= */}
+            <div className="lg:col-span-12 bg-gradient-to-r from-[#07192e] via-[#0b274c] to-[#07192e] border-2 border-emerald-500/80 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-lg ${
               session.status === 'open' || session.status === 'bidding' || session.status === 'last_call'
@@ -1120,7 +1258,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
               <span className="text-xs text-slate-400 font-medium">Clic para activar postor</span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {OFFICIAL_PADDLES.map((p) => {
                 const isSelected = selectedPaddle === p.number;
                 const isLeading = (session as any).currentWinnerPaddle === p.number || (session as any).current_winner_paddle === p.number;
@@ -1128,11 +1266,9 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                 const displayLoc = p.isBroker ? (lotBrokerLocation || (session as any).broker_location || p.location) : p.location;
 
                 return (
-                  <button
+                  <div
                     key={p.number}
-                    type="button"
-                    onClick={() => setSelectedPaddle(p.number)}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between ${
+                    className={`w-full p-2.5 rounded-xl border transition flex items-center justify-between gap-2 ${
                       isSelected
                         ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/50 shadow-xl'
                         : isLeading
@@ -1140,39 +1276,64 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
                         : 'bg-[#050a16] border-slate-800 hover:bg-slate-800/70 hover:border-slate-700'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center border ${
+                    <div 
+                      onClick={() => setSelectedPaddle(p.number)}
+                      className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
+                    >
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border shrink-0 ${
                         isSelected ? 'bg-amber-400 border-amber-300' : 'border-slate-600 bg-transparent'
                       }`}>
-                        {isSelected && <div className="w-2 h-2 rounded-full bg-slate-950" />}
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
                       </div>
 
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-black text-base sm:text-lg ${isSelected ? 'text-amber-300' : 'text-white'}`}>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-mono font-black text-sm ${isSelected ? 'text-amber-300' : 'text-white'}`}>
                             {p.number}
                           </span>
                           {p.isBroker && (
-                            <span className="bg-blue-600/40 text-blue-300 border border-blue-400/50 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wide">
-                              CLIENTE / BROKER
+                            <span className="bg-blue-600/40 text-blue-300 border border-blue-400/50 text-[9px] px-1.5 py-0.2 rounded font-black uppercase tracking-wide">
+                              CLIENTE
+                            </span>
+                          )}
+                          {isLeading && (
+                            <span className="text-[9px] bg-emerald-500/30 border border-emerald-500 text-emerald-300 font-black px-1.5 py-0.2 rounded uppercase">
+                              ★ LÍDER
                             </span>
                           )}
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-300 font-medium truncate mt-0.5">
-                          {displayName}
+                        <p className="text-[11px] text-slate-300 font-medium truncate">
+                          {displayName} • <span className="text-slate-400 font-mono">{displayLoc}</span>
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-xs text-slate-400 font-mono block">{displayLoc}</span>
-                      {isLeading && (
-                        <span className="text-[10px] bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-black px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-0.5">
-                          ★ LÍDER
-                        </span>
-                      )}
+                    {/* Botones de Disparo Rápido Directo en la Fila */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickPaddleBid(p.number, 100);
+                        }}
+                        className="bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-amber-300 font-black text-[10px] px-2 py-1 rounded border border-slate-700 hover:border-amber-400 transition cursor-pointer"
+                        title={`Pujar +$100 inmediatamente con ${p.number}`}
+                      >
+                        +$100
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickPaddleBid(p.number, 250);
+                        }}
+                        className="bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300 font-black text-[10px] px-2 py-1 rounded border border-slate-700 hover:border-emerald-400 transition cursor-pointer"
+                        title={`Pujar +$250 inmediatamente con ${p.number}`}
+                      >
+                        +$250
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -2233,6 +2394,8 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
           )}
 
         </div>
+          </>
+        )}
       </main>
 
       {/* ========================================================================= */}

@@ -132,17 +132,9 @@ export function App() {
         return;
       }
 
-      // 3. RUTA CONSOLA PRIVADA DE MANDO: #/consola o #/control
-      if (hash.startsWith('#/consola') || hash.startsWith('#/control')) {
-        setActiveSession(null);
-        setCurrentView('consola');
-        setIsRoomExpired(false);
-        setRoomError(null);
-        return;
-      }
-
-      // 4. RUTA DASHBOARD ORIGINAL / PANEL ADMINISTRATIVO: #/admin, #/dashboard o raíz
+      // 3. CENTRO DE MANDO MAESTRO UNIFICADO: #/admin, #/dashboard, #/consola o raíz
       setActiveSession(null);
+      setActiveDocumentToken(null);
       setCurrentView('admin');
       setIsRoomExpired(false);
       setRoomError(null);
@@ -182,7 +174,7 @@ export function App() {
     setActiveSession(null);
     setIsRoomExpired(false);
     setActiveDocumentToken(null);
-    window.location.hash = '#/admin';
+    window.location.hash = '';
   };
 
   // 1. Vista independiente de entrega de documentación (#/documento/:doc_token)
@@ -270,21 +262,12 @@ export function App() {
     buyer_access_token: 'bdr_buyer_johan101',
   } as unknown as AuctionSession);
 
-  // 5. PANTALLA 2: CONSOLA PRIVADA DE MANDO EN VIVO (Control de Rivales y Subastador)
-  if (currentView === 'consola') {
-    return (
-      <AuctioneerPrivateConsole
-        session={fallbackSession}
-        onOpenLiveRoom={handleOpenRoomAsAdmin}
-        onExit={() => { window.location.hash = '#/admin'; }}
-      />
-    );
-  }
-
-  // 6. PANTALLA PRINCIPAL: DASHBOARD ORIGINAL (AdminLayout: Inicio, Clientes, Vehículos, Subastas, Historial, Configuración)
+  // 5. CENTRO DE MANDO MAESTRO UNIFICADO (Tú, el Operador: Consola, Rivales, Martillo, Clientes, Vehículos e Historial)
   return (
-    <AdminLayout
+    <AuctioneerPrivateConsole
+      session={fallbackSession}
       onOpenLiveRoom={handleOpenRoomAsAdmin}
+      onExit={() => { window.location.hash = ''; }}
     />
   );
 }
