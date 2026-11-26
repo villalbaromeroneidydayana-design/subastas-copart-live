@@ -5,6 +5,7 @@ class SoundManager {
   public isMuted: boolean = false;
   public readonly voiceGender: 'male' = 'male'; // EXCLUSIVAMENTE VOZ MASCULINA OFICIAL DE COPART (LANE A)
   private cachedMaleVoice: SpeechSynthesisVoice | null = null;
+  private lastSoldTimestamp: number = 0;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -62,6 +63,11 @@ class SoundManager {
 
   public setMuted(muted: boolean) {
     this.isMuted = muted;
+  }
+
+  public toggleMute(): boolean {
+    this.isMuted = !this.isMuted;
+    return this.isMuted;
   }
 
   public setVoiceGender(_gender?: string) {
@@ -310,8 +316,17 @@ class SoundManager {
 
   // Fanfarria de victoria / adjudicación (Sold!) anunciando ganador
   public playSoldFanfare(price?: number, paddle?: string, winnerName?: string) {
+    const now = Date.now();
+    if (now - this.lastSoldTimestamp < 10000) {
+      return; // Prevenir bucles de audio consecutivos en 10 segundos
+    }
+    this.lastSoldTimestamp = now;
+
     this.isMuted = false;
     this.unlockAudio();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     const ctx = this.getContext();
 
     try {

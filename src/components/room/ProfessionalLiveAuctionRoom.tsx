@@ -279,6 +279,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   }, [session?.status, scrollToClockTerminal]);
 
   const triggerSoldCelebration = useCallback((winnerPaddleParam?: string, winnerNameParam?: string) => {
+    if (hasCelebratedSoldRef.current) return;
+    hasCelebratedSoldRef.current = true;
+
     try {
       // 1. AUTO-SCROLL INMEDIATO Y SUAVE HACIA ARRIBA PARA MOSTRAR EL VEHÍCULO VENDIDO
       if (typeof window !== 'undefined') {
@@ -295,7 +298,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       sounds.unlockAudio();
       sounds.playSoldFanfare(price, winnerPaddle, winnerName);
     } catch { /* ignore */ }
-  }, []);
+  }, [bids, participants, session]);
 
   const isAuctioneer = role === 'auctioneer';
   const isBroker = role === 'broker' || role === 'auctioneer';
@@ -1254,420 +1257,87 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       )}
 
-      {/* BARRA SUPERIOR INSTITUCIONAL COPART (SOLO EN MODO VB3 OFICIAL) */}
-      {themeMode === 'copart-light' && (
-        <>
-          <div className="bg-[#1a1a1a] text-slate-300 text-[11px] px-3 sm:px-6 py-1 flex items-center justify-between border-b border-neutral-800">
-            <div className="flex items-center gap-4 overflow-x-auto">
-              <span className="font-bold text-white tracking-wide">copart.com</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden sm:inline">Dashboard</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden md:inline">Driver's Seat</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden sm:inline">Find Vehicles</span>
-              <span className="text-amber-400 font-bold border-b border-amber-400 cursor-pointer">Auctions</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden lg:inline">Bid Status</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden lg:inline">Payments</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden xl:inline">Locations</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden xl:inline">Services</span>
-              <span className="text-slate-400 hover:text-white cursor-pointer hidden xl:inline">Support</span>
-            </div>
-            <span className="text-[10px] text-slate-400 font-medium hidden md:inline">
-              Copart USA • Leader in Online Salvage & Insurance Auctions
-            </span>
-          </div>
-
-          <div className="bg-[#f8fafc] text-slate-600 text-[11px] px-3 sm:px-6 py-1 flex items-center justify-between border-b border-slate-300">
-            <div className="flex items-center gap-3 overflow-x-auto">
-              <span className="font-bold text-slate-800">Auction View:</span>
-              <span className="text-slate-600 font-medium">Small</span>
-              <span className="text-slate-400">•</span>
-              <span className="font-bold text-[#1d70b8] underline cursor-pointer">Large</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-slate-600 font-medium">Full</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-[#1d70b8] cursor-pointer hidden sm:inline">+ Add Auction</span>
-              <span className="text-slate-400 hidden sm:inline">•</span>
-              <span className="text-slate-700 cursor-pointer hidden sm:inline">Music On 🔊</span>
-              <span className="text-slate-400 hidden sm:inline">•</span>
-              <span className="text-slate-700 cursor-pointer hidden sm:inline">Confetti On</span>
-              <span className="text-slate-400 hidden sm:inline">•</span>
-              <span className="text-slate-700 cursor-pointer hidden md:inline">My Activity</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold">
-                ● LIVE STREAMING
-              </span>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 1. BARRA SUPERIOR AUTÉNTICA COPART VB3 LIVE */}
-      <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-2 sm:px-4 lg:px-6 py-2 shadow-xl sticky top-0 z-40">
-        <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-2">
-
-          <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-            {/* RETORNO A LISTA DE SUBASTAS (IDÉNTICO AL SCREENSHOT DE COPART) */}
-            <button
-              type="button"
-              onClick={onExit || (() => { window.location.hash = ''; })}
-              className="flex items-center gap-1 text-white hover:text-amber-300 font-bold text-xs py-1 px-2 rounded bg-[#07172e] hover:bg-[#0c2345] border border-blue-400/50 transition cursor-pointer shadow-sm"
-              title="Volver al catálogo oficial de subastas"
-            >
-              <ChevronLeft className="w-4 h-4 text-white" />
-              <span className="font-bold whitespace-nowrap">Auction List</span>
-            </button>
-
-            <div className="sm:hidden">
-              <CopartLogo size="sm" showSubtitle={false} className="py-0.5 filter drop-shadow-md" />
-            </div>
-            <div className="hidden sm:block">
-              <CopartLogo size="md" showSubtitle={true} className="py-0.5 filter drop-shadow-md" />
-            </div>
-
-            {/* Pista e Identificación de Lote */}
-            <div className="hidden 2xl:flex items-center gap-2 bg-[#0c192c] border border-blue-900/60 px-3 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-black text-white tracking-wide">{t('laneTitle')}</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-amber-300 font-mono font-bold">{vehicle?.location || 'Atlanta East Yard 12'}</span>
-            </div>
-
-            {/* LOTE OFICIAL COPART Y EXPEDIENTE DE PATIO */}
-            <div className="flex items-center bg-[#0c192c] border border-slate-700/80 rounded-lg overflow-hidden text-xs sm:text-sm shadow-sm whitespace-nowrap">
-              <div className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5">
-                <span className="text-slate-300 text-xs font-bold uppercase tracking-wider">{t('lotPrefix')}</span>
-                <span className="font-mono font-black text-amber-400 text-sm sm:text-base">
-                  #{vehicle?.lot_number || '48291032'}
-                </span>
-              </div>
-              <a
-                href={copartLotUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2 sm:px-2.5 py-1.5 bg-[#002855] hover:bg-[#003d80] text-amber-300 font-bold text-xs flex items-center gap-1.5 border-l border-slate-700/80 transition whitespace-nowrap"
-                title="Consultar expediente técnico del lote en patio Copart"
-              >
-                <span className="hidden md:inline">{lang === 'en' ? 'COPART LOT' : 'FICHA'}</span>
-                <span className="hidden xl:inline">{lang === 'en' ? ' DETAILS' : ' DE LOTE'}</span>
-                <ExternalLink className="w-3 h-3 text-amber-400 shrink-0" />
-              </a>
-            </div>
-
-            {/* BOTÓN 6 COMPROBACIONES OFICIALES COPART */}
-            <button
-              type="button"
-              onClick={() => setIsVerificationModalOpen(true)}
-              className="flex items-center gap-1.5 bg-[#002855] hover:bg-[#003875] border border-amber-500/60 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-300 transition shadow cursor-pointer whitespace-nowrap"
-              title="Verificar las 6 comprobaciones de seguridad Copart: Vehículo, Subasta, Broker, Oferta, Resultado y Pago"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="hidden xl:inline">Auditoría:</span>
-              <span className="text-emerald-400 font-mono font-black">6/6 ✓</span>
-            </button>
-
-            {/* Conteo y Movimiento de Espectadores Conectados en Tiempo Real */}
-            <div className="hidden 2xl:flex items-center gap-2 text-xs sm:text-sm text-cyan-300 bg-cyan-950/50 border border-cyan-800/60 px-3 py-1.5 rounded-lg font-bold whitespace-nowrap">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-              <span>{viewersCount} {t('viewersInLane')}</span>
-              {latestSpectatorEvent && (
-                <span className="text-xs text-amber-300 font-mono animate-fadeIn pl-2 border-l border-cyan-700/60 font-medium">
-                  {latestSpectatorEvent}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* BOTÓN GUÍA DE INDUCCIÓN AL COMPRADOR */}
-            <button
-              type="button"
-              onClick={() => setIsBuyerGuideOpen(true)}
-              className="hidden 2xl:flex items-center gap-1.5 bg-[#081528] hover:bg-[#0c2242] border border-blue-500/60 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-200 hover:text-white transition shadow cursor-pointer whitespace-nowrap"
-              title="¿Cómo funciona tu sala en vivo? Guía rápida de inducción para el comprador"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>¿Cómo funciona mi sala?</span>
-            </button>
-
-            {/* HORARIO REAL DE ESTADOS UNIDOS (USA / EST) */}
-            <div className="hidden md:flex items-center gap-1.5 bg-[#07111e] border border-blue-900/60 px-2 py-1.5 rounded-lg text-xs font-mono font-black text-amber-300 shadow-inner whitespace-nowrap">
-              <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>{usTime || '12:00:00 PM EST'}</span>
-            </div>
-
-            {/* SELECTOR BILINGÜE EN / ES */}
-            <div className="flex items-center bg-[#07111e] border border-slate-700/80 rounded-lg p-0.5 text-xs font-bold shadow-inner">
-              <button
-                type="button"
-                onClick={() => setLang('en')}
-                className={`px-2 py-1 rounded text-xs font-black transition ${lang === 'en'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                title="Switch interface to English (Default US Terminal)"
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang('es')}
-                className={`px-2 py-1 rounded text-xs font-black transition ${lang === 'es'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                title="Cambiar interfaz a Español"
-              >
-                ES
-              </button>
-            </div>
-
-            {/* INTERRUPTOR MODO COPART VB3 ORIGINAL (BLANCO) / MODO CLÁSICO (OSCURO) */}
-            <button
-              type="button"
-              onClick={toggleThemeMode}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-black border flex items-center gap-1.5 transition shadow whitespace-nowrap cursor-pointer ${
-                themeMode === 'copart-light'
-                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300 shadow-md ring-1 ring-amber-300'
-                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
-              }`}
-              title="Alternar entre la pantalla oficial Copart VB3 (Blanca) y el Modo Clásico (Oscuro)"
-            >
-              <span>{themeMode === 'copart-light' ? '☀️ Copart VB3 Oficial' : '🌙 Modo Clásico'}</span>
-            </button>
-
-            {/* Si es Broker: selector de su paleta */}
-            {isBroker ? (
-              <div className="flex items-center gap-1.5 bg-[#080d18] border border-emerald-500/70 px-2.5 py-1.5 rounded-lg text-xs">
-                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-300 font-bold hidden lg:inline text-xs">{t('brokerRole')}</span>
-                <select
-                  value={activeParticipant?.token || ''}
-                  onChange={(e) => {
-                    const p = participants.find((x) => x.token === e.target.value);
-                    if (p) setActiveParticipant(p);
-                  }}
-                  className="bg-transparent text-white font-black text-xs focus:outline-none cursor-pointer"
-                >
-                  {participants.map((p) => (
-                    <option key={p.id} value={p.token} className="bg-slate-900 text-white font-medium">
-                      {p.paddleNumber} - {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              /* Si es Cliente: Monitor Oficial Copart VB3 Compacto */
-              <div className="hidden lg:flex items-center gap-1.5 bg-[#091222] border border-blue-600/60 px-2.5 py-1.5 rounded-lg text-xs shadow-sm whitespace-nowrap">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-white font-bold text-xs">VB3</span>
-                <span className="text-slate-600">|</span>
-                <span className="text-amber-400 font-mono font-bold text-xs">#101</span>
-              </div>
-            )}
-
-            {/* Botón de Audio Visible y Claro */}
-            <button
-              onClick={handleToggleAudio}
-              className={`px-2 py-1.5 rounded text-xs font-black border flex items-center gap-1 transition shadow whitespace-nowrap ${isAudioMuted
-                  ? 'bg-rose-950/80 border-rose-600 text-rose-300 hover:bg-rose-900'
-                  : 'bg-emerald-950/80 border-emerald-500 text-emerald-300 hover:bg-emerald-900'
-                }`}
-              title={isAudioMuted ? 'Activar sonido de la subasta' : 'Silenciar sonido'}
-            >
-              {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
-              <span className="font-bold">{isAudioMuted ? '🔇 Audio' : '🔊 Audio'}</span>
-            </button>
-
-            {/* Enlace para Compartir con el Cliente (Espectador) */}
-            {isBroker && (
-              <button
-                onClick={handleCopyClientAccessLink}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white border border-blue-400/50 px-2.5 py-1 rounded text-xs font-bold transition shadow"
-                title={lang === 'en' ? 'Copy buyer access link' : 'Copiar enlace de acceso de espectador para el cliente'}
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{copiedBuyerLink ? t('clientLinkCopied') : t('copyClientLink')}</span>
-              </button>
-            )}
-
-            {onExit && (
-              <button
-                onClick={onExit}
-                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition"
-              >
-                {t('exitButton')}
-              </button>
-            )}
-          </div>
+      {/* ================= BARRA SUPERIOR COPART IDÉNTICA AL SCREENSHOT (3 FILAS LIMPIAS) ================= */}
+      {/* FILA 1: NAV BAR NEGRA CON PESTAÑA AZUL Y BOTÓN AMARILLO SELL YOUR CAR */}
+      <div className="bg-[#181818] text-white text-[12px] px-3 sm:px-6 py-1.5 flex items-center justify-between border-b border-neutral-900 select-none z-30 sticky top-0 shadow-md">
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto text-slate-300">
+          <span className="font-extrabold text-white px-2 py-0.5 tracking-tight hidden sm:inline">copart</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden md:inline">Dashboard</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden lg:inline">Driver's Seat</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden md:inline">Inventory ▾</span>
+          {/* Pestaña Auctions activa en AZUL COPART como el screenshot */}
+          <span className="bg-[#0d6efd] text-white font-bold px-3 py-1 rounded-t-sm shadow-sm cursor-pointer whitespace-nowrap">
+            Auctions ▾
+          </span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden sm:inline">Bid Status ▾</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden lg:inline">Payments ▾</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden xl:inline">Locations</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden xl:inline">Services & Support ▾</span>
+          <span className="hover:text-white px-2 py-0.5 cursor-pointer hidden 2xl:inline">Help Center</span>
         </div>
-      </header>
-
-      {/* BARRA OFICIAL DE CARRILES COPART VB3 (LANE TABS) */}
-      <div className="bg-[#050c18] border-b border-[#1b2b44] px-3 sm:px-6 py-1.5 flex items-center justify-between text-xs">
-        <div className="max-w-[1720px] w-full mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-1.5 overflow-x-auto">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1 hidden sm:inline">LANES:</span>
-
-            {/* LANE A (LIVE) */}
-            <button
-              type="button"
-              onClick={() => setSelectedLane('A')}
-              className={`px-3 py-1 rounded-md text-xs font-black flex items-center gap-2 transition ${selectedLane === 'A'
-                  ? 'bg-emerald-600 text-white shadow-lg ring-1 ring-emerald-400'
-                  : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800'
-                }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span>LANE A • LIVE ({vehicle?.location || 'FL - Miami North'})</span>
-            </button>
-
-            {/* LANE B (DALLAS SOUTH) */}
-            <button
-              type="button"
-              onClick={() => setSelectedLane('B')}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${selectedLane === 'B'
-                  ? 'bg-blue-600 text-white shadow ring-1 ring-blue-400'
-                  : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800'
-                }`}
-              title="Carril B: Próxima apertura 2:00 PM EST"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span>LANE B • Dallas South (Pre-Bid)</span>
-            </button>
-
-            {/* LANE C (CHICAGO NORTH) */}
-            <button
-              type="button"
-              onClick={() => setSelectedLane('C')}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${selectedLane === 'C'
-                  ? 'bg-blue-600 text-white shadow ring-1 ring-blue-400'
-                  : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800'
-                }`}
-              title="Carril C: Subasta pesada y camiones"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-              <span>LANE C • Chicago Heavy Duty</span>
-            </button>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono text-slate-400">
-            <span>Terminal ID: <strong className="text-amber-300">VB3-US-EAST-492</strong></span>
-            <span>Audio Engine: <strong className="text-emerald-400">EN-US Procedural Live</strong></span>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            className="bg-[#ffc107] hover:bg-[#ffcd39] text-slate-900 font-extrabold text-[11px] px-3 py-1 rounded shadow-sm transition cursor-pointer whitespace-nowrap"
+          >
+            Sell Your Car ▾
+          </button>
         </div>
       </div>
 
-      {/* CINTILLO CONTINUO DE PATROCINADORES Y SEGUROS OFICIALES DE EE. UU. (LIVE SPONSORS TICKER) */}
-      <div className="bg-[#020610] border-b border-[#1b2b44] py-1.5 px-2 overflow-hidden relative flex items-center shadow-inner select-none">
-        {/* Etiqueta fija en el borde izquierdo */}
-        <div className="z-20 bg-gradient-to-r from-[#020610] via-[#020610] to-transparent pr-4 pl-1 flex items-center shrink-0">
-          <div className="flex items-center gap-1.5 bg-red-600 text-white font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span>OFFICIAL SPONSORS</span>
-          </div>
+      {/* FILA 2: BARRA BLANCA DE VISTA Y CONTROLES IDÉNTICA AL SCREENSHOT */}
+      <div className="bg-white text-slate-700 text-[11px] px-3 sm:px-6 py-1.5 flex items-center justify-between border-b border-slate-200 select-none shadow-xs">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
+          <span className="font-bold text-slate-900">Auction View :</span>
+          <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Small</span>
+          <span className="text-slate-300">|</span>
+          <span className="font-bold text-[#0d6efd] cursor-pointer">Large</span>
+          <span className="text-slate-300 hidden sm:inline">|</span>
+          <span className="text-[#0d6efd] hover:underline cursor-pointer hidden sm:inline">+ Add Auction</span>
+          <span className="text-slate-300 hidden sm:inline">|</span>
+          <span className="text-slate-600 hover:text-slate-900 cursor-pointer hidden md:inline">Classic View</span>
+          <span className="text-slate-300 hidden sm:inline">|</span>
+          <button
+            type="button"
+            onClick={() => {
+              const muted = sounds.toggleMute();
+              setIsAudioMuted(muted);
+            }}
+            className="text-slate-700 hover:text-slate-950 font-medium cursor-pointer"
+          >
+            {isAudioMuted ? 'Music Off 🔇' : 'Music On 🔊'}
+          </button>
+          <span className="text-slate-300 hidden sm:inline">|</span>
+          <span className="text-slate-700 hover:text-slate-950 cursor-pointer hidden sm:inline">Confetti On</span>
+          <span className="text-slate-300 hidden md:inline">|</span>
+          <span className="text-slate-700 hover:text-slate-950 cursor-pointer hidden md:inline">My Activity</span>
+          <span className="text-slate-300 hidden lg:inline">|</span>
+          <span className="text-slate-700 hover:text-slate-950 cursor-pointer hidden lg:inline">Feedback</span>
         </div>
-
-        {/* Marquesina desplazándose de derecha a izquierda */}
-        <div className="overflow-hidden w-full relative flex items-center">
-          <div className="animate-marquee flex items-center gap-8 text-[11px] font-medium tracking-wide">
-            {[1, 2].map((loopIdx) => (
-              <React.Fragment key={loopIdx}>
-                {/* STATE FARM */}
-                <div className="flex items-center gap-2 text-slate-300 shrink-0">
-                  <span className="bg-[#d3122a] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
-                    State Farm®
-                  </span>
-                  <span className="text-white font-bold">Auto Claims & Liquidation Partner</span>
-                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "Like a good neighbor, State Farm is there®"</span>
-                </div>
-
-                <span className="text-slate-600 font-bold">•</span>
-
-                {/* GEICO */}
-                <div className="flex items-center gap-2 text-slate-300 shrink-0">
-                  <span className="bg-[#005088] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-wider border border-blue-400/40 shadow">
-                    GEICO®
-                  </span>
-                  <span className="text-white font-bold">Commercial Fleet & Cargo Insurance</span>
-                  <span className="text-slate-400 text-[10px] hidden sm:inline">• 15 minutes could save you 15% or more on transit protection</span>
-                </div>
-
-                <span className="text-slate-600 font-bold">•</span>
-
-                {/* PROGRESSIVE */}
-                <div className="flex items-center gap-2 text-slate-300 shrink-0">
-                  <span className="bg-[#0077c8] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
-                    PROGRESSIVE®
-                  </span>
-                  <span className="text-white font-bold">Official Lane A Salvage & Recovery Sponsor</span>
-                  <span className="text-slate-400 text-[10px] hidden sm:inline">• Commercial Auto & Total Loss Coverage</span>
-                </div>
-
-                <span className="text-slate-600 font-bold">•</span>
-
-                {/* FARMERS INSURANCE */}
-                <div className="flex items-center gap-2 text-slate-300 shrink-0">
-                  <span className="bg-[#002f6c] text-white font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow border-l-2 border-red-500">
-                    FARMERS®
-                  </span>
-                  <span className="text-white font-bold">Verified Title & Insurance Inspection</span>
-                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "We are insurance."</span>
-                </div>
-
-                <span className="text-slate-600 font-bold">•</span>
-
-                {/* ALLSTATE */}
-                <div className="flex items-center gap-2 text-slate-300 shrink-0">
-                  <span className="bg-[#003366] text-cyan-300 font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
-                    Allstate®
-                  </span>
-                  <span className="text-white font-bold">Total Loss Vehicle Settlement</span>
-                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "You're in good hands®"</span>
-                </div>
-
-                <span className="text-slate-600 font-bold">•</span>
-
-                {/* LIBERTY MUTUAL */}
-                <div className="flex items-center gap-2 text-slate-300 shrink-0">
-                  <span className="bg-[#ffbf00] text-slate-950 font-black text-[10px] px-2 py-0.5 rounded font-sans tracking-tight shadow">
-                    LIBERTY MUTUAL®
-                  </span>
-                  <span className="text-white font-bold">Official Heavy Duty Transport Underwriter</span>
-                  <span className="text-slate-400 text-[10px] hidden sm:inline">• "Only pay for what you need™"</span>
-                </div>
-
-                <span className="text-slate-600 font-bold">•</span>
-              </React.Fragment>
-            ))}
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+            ● LIVE STREAMING
+          </span>
         </div>
       </div>
 
-      {/* CINTILLO OFICIAL DE AVISOS EN VIVO COPART VB3 */}
-      {liveAnnouncement && (
-        <div className="bg-gradient-to-r from-[#001428] via-[#002855] to-[#001428] border-b-2 border-amber-400 px-3 sm:px-6 py-2 shadow-xl animate-fadeIn">
-          <div className="max-w-[1720px] w-full mx-auto flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="flex h-2.5 w-2.5 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-              </span>
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs uppercase tracking-wider px-2 py-0.5 rounded shadow shrink-0 flex items-center gap-1 font-mono">
-                  <Megaphone className="w-3.5 h-3.5 text-slate-950" />
-                  <span>AVISO EN VIVO</span>
-                </span>
-                <span className="text-white font-black text-xs sm:text-sm tracking-wide truncate">
-                  {liveAnnouncement}
-                </span>
-              </div>
-            </div>
-            <span className="text-[10px] font-mono text-amber-300 font-bold uppercase tracking-wider shrink-0 hidden md:inline">
-              COPART VB3 OFFICIAL BROADCAST
-            </span>
-          </div>
+      {/* FILA 3: FRANJA AZUL SÓLIDA COPART CON CARRIL Y NÚMERO DE PARTICIPANTES */}
+      <div className="bg-[#00438a] text-white px-3 sm:px-6 py-2 flex items-center justify-between select-none shadow">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onExit || (() => { window.location.hash = '#/consola'; })}
+            className="text-white hover:text-amber-300 font-bold text-xs flex items-center gap-1 cursor-pointer transition"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Auction List</span>
+          </button>
         </div>
-      )}
+        <div className="font-extrabold text-xs sm:text-sm tracking-wide text-white uppercase text-center truncate">
+          {vehicle?.location || 'NV - LAS VEGAS'} | Lane A - {viewersCount ? viewersCount.toLocaleString() : '3,220'} Participants
+        </div>
+        <div className="w-16 hidden sm:block"></div>
+      </div>
 
 
       {/* ERROR BANNER EN CASO DE RECHAZO DE OFERTA */}
@@ -1999,7 +1669,13 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                     {/* Sub-columna 2: Dial VB3, Red label, Stepper, Bid Button, Previous Bids */}
                     <div className="sm:col-span-5 flex flex-col items-center">
                       
-                      <div className="w-full flex items-center justify-end mb-1">
+                      <div className="w-full flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${session.status === 'open' || session.status === 'bidding' || session.status === 'last_call' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                          <span className="font-mono text-[11px] font-bold text-slate-600">
+                            RELOJ: <span className={`px-1.5 py-0.2 rounded font-black font-mono ${session.time_remaining_seconds <= 4 ? 'bg-red-600 text-white animate-pulse' : session.time_remaining_seconds <= 8 ? 'bg-amber-500 text-white' : 'bg-blue-100 text-[#1d70b8]'}`}>{session.time_remaining_seconds}s</span>
+                          </span>
+                        </div>
                         <span className="font-mono font-black text-slate-400 text-[11px] tracking-wider">VB3</span>
                       </div>
 
@@ -2039,25 +1715,36 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </button>
                       </div>
 
-                      {/* Botón Azul Sólido Bid */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isBroker) {
-                            handlePlaceBrokerBid();
-                          } else {
-                            handlePlaceBuyerDirectBid(nextBidAmount);
-                          }
-                        }}
-                        disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status)}
-                        className={`w-full mt-1.5 py-2 px-3 rounded text-sm font-black text-white shadow transition flex items-center justify-center gap-1 ${
-                          isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status)
-                            ? 'bg-slate-400 cursor-not-allowed'
-                            : 'bg-[#1d70b8] hover:bg-[#155b96] active:scale-98 cursor-pointer'
-                        }`}
-                      >
-                        <span>Bid</span>
-                      </button>
+                      {/* Botón Azul Sólido Bid o Botón Verde Ganador si ya fue vendido */}
+                      {session.status === 'sold' ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowCertificateModal(true)}
+                          className="w-full mt-1.5 py-2.5 px-3 rounded text-xs sm:text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer animate-pulse"
+                        >
+                          <Award className="w-4 h-4 text-amber-300" />
+                          <span>¡GANADOR PALETA #101! VER CERTIFICADO</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isBroker) {
+                              handlePlaceBrokerBid();
+                            } else {
+                              handlePlaceBuyerDirectBid(nextBidAmount);
+                            }
+                          }}
+                          disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status)}
+                          className={`w-full mt-1.5 py-2 px-3 rounded text-sm font-black text-white shadow transition flex items-center justify-center gap-1 ${
+                            isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status)
+                              ? 'bg-slate-400 cursor-not-allowed'
+                              : 'bg-[#1d70b8] hover:bg-[#155b96] active:scale-98 cursor-pointer'
+                          }`}
+                        >
+                          <span>Bid</span>
+                        </button>
+                      )}
 
                       {/* Previous Bids Feed */}
                       <div className="w-full mt-2.5 pt-2 border-t border-slate-200">
@@ -2107,8 +1794,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </div>
                       </div>
 
-                      {/* PANEL MAESTRO DE CONTROL DE SUBASTA Y RIVALES (SOLO VISIBLE PARA TI COMO OPERADOR) */}
-                      {isBroker && (
+                      {/* PANEL MAESTRO TRASLADADO AL DASHBOARD UNIFICADO */}
+                      {false && (
                         <div className="w-full mt-3 p-3 bg-gradient-to-b from-[#0a1322] to-[#070d18] text-white rounded-lg border-2 border-amber-400/90 shadow-2xl space-y-2.5">
                           {/* Cabecera del Panel */}
                           <div className="flex items-center justify-between border-b border-amber-400/30 pb-1.5">

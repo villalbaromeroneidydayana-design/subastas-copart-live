@@ -118,6 +118,18 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
                 ¡SOLD!
               </span>
             </div>
+          ) : status === 'prepared' ? (
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                STANDBY
+              </span>
+              <span className="text-xl sm:text-2xl font-black font-mono leading-tight text-slate-700">
+                ${(currentPrice || 5000).toLocaleString()}
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded mt-0.5">
+                Pre-Bid (15s)
+              </span>
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center">
               <div className="flex items-center gap-1 mb-0.5">
@@ -129,12 +141,18 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
               <span className="text-xl sm:text-2xl font-black font-mono leading-tight text-[#1d70b8]">
                 ${(currentPrice || 6150).toLocaleString()}
               </span>
-              <div className="flex items-center gap-1 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[10px] font-black text-[#1d70b8] uppercase tracking-wider">
                   Bid!
                 </span>
-                <span className={`text-[9px] font-mono font-bold px-1 rounded ${displaySeconds <= 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
-                  {displaySeconds}s
+                <span className={`text-xs font-mono font-black px-2 py-0.5 rounded shadow-xs ${
+                  displaySeconds <= 4 
+                    ? 'bg-red-600 text-white animate-pulse' 
+                    : displaySeconds <= 8 
+                    ? 'bg-amber-500 text-white' 
+                    : 'bg-[#1d70b8] text-white'
+                }`}>
+                  ⏱️ {displaySeconds}s
                 </span>
               </div>
             </div>
