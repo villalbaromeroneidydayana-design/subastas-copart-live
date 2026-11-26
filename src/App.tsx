@@ -222,21 +222,21 @@ export function App() {
   }
 
   // 5. PANTALLA 2: CONSOLA PRIVADA DEL SUBASTADOR (Centro de Mando Exclusivo)
-  const fallbackSession = consoleSession || ({
-    id: 'ses-live-001',
-    title: '1971 Ford Mustang Mach 1 Fastback',
-    lot_number: '88192003',
-    brand: 'Ford',
-    model: 'Mustang Mach 1 Fastback',
-    year: 1971,
-    status: 'open',
-    starting_price: 5000,
-    current_price: 5000,
-    bid_increment: 250,
+  const fallbackSession = consoleSession || store.getSessionById('ses-live-camry-johan') || store.getSessions()[0] || ({
+    id: 'ses-live-camry-johan',
+    title: 'Subasta Oficial en Vivo - 2022 Toyota Camry SE Sport Edition',
+    lot_number: '76061096',
+    brand: 'Toyota',
+    model: 'Camry SE',
+    year: 2022,
+    status: 'prepared',
+    starting_price: 3000,
+    current_price: 3000,
+    bid_increment: 100,
     client_max_budget: 7500,
-    room_token: 'copart-live-m729k1',
-    broker_access_token: 'bdr_broker_m729k1',
-    buyer_access_token: 'bdr_buyer_m729k1',
+    room_token: 'copart-live-johan101',
+    broker_access_token: 'bdr_broker_johan101',
+    buyer_access_token: 'bdr_buyer_johan101',
   } as unknown as AuctionSession);
 
   return (

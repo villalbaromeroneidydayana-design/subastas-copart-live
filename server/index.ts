@@ -1640,9 +1640,9 @@ app.post('/api/sessions/:id/reset', (req, res) => {
 
   db.prepare(`
     UPDATE auction_participants 
-    SET token_hash = ?, name = 'David Rodríguez (Broker Rep. #101)', authorization_status = 'approved'
+    SET token_hash = ?, authorization_status = 'approved'
     WHERE session_id = ? AND paddle_number = 'Paleta #101'
-  `).run(hashToken('bdr_broker_m729k1'), session.id);
+  `).run(hashToken(session.broker_access_token || ('bdr_broker_' + session.id)), session.id);
 
   broadcast({
     type: 'AUCTION_RESET',
