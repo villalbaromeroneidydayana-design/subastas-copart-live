@@ -669,20 +669,34 @@ class RealAuctionStore {
       const parsed: AuctionSession[] = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         let modified = false;
-        // Actualizar sesiones existentes con datos frescos de INITIAL_SESSIONS (como fotos y badges)
+        // Actualizar sesiones existentes con datos frescos de INITIAL_SESSIONS (como fotos, badges y estado sold)
         const updated = parsed.map((s) => {
           const fresh = INITIAL_SESSIONS.find((is) => is.id === s.id || is.room_token === s.room_token);
-          if (fresh && fresh.vehicle_snapshot?.images?.length) {
-            modified = true;
-            return {
-              ...s,
-              vehicle_snapshot: {
+          if (fresh) {
+            let itemChanged = false;
+            let updatedItem = { ...s };
+            if (fresh.vehicle_snapshot?.images?.length) {
+              updatedItem.vehicle_snapshot = {
                 ...s.vehicle_snapshot,
                 ...fresh.vehicle_snapshot,
                 images: fresh.vehicle_snapshot.images,
                 custom_badges: fresh.vehicle_snapshot.custom_badges || s.vehicle_snapshot?.custom_badges,
-              }
-            };
+              };
+              itemChanged = true;
+            }
+            if (fresh.status === 'sold' && (s.status !== 'sold' || s.current_price !== fresh.current_price)) {
+              updatedItem.status = 'sold';
+              updatedItem.current_price = fresh.current_price;
+              updatedItem.is_token_revoked = true;
+              updatedItem.time_remaining_seconds = 0;
+              updatedItem.current_bidder_name = fresh.current_bidder_name;
+              updatedItem.is_client_winning = true;
+              itemChanged = true;
+            }
+            if (itemChanged) {
+              modified = true;
+              return updatedItem;
+            }
           }
           return s;
         });
