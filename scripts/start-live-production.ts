@@ -51,19 +51,9 @@ async function main() {
     console.log(`   🔗 ${tunnelUrl}/#/`);
     console.log(`   (O también de forma local: http://localhost:3001/#/)\n`);
 
-    console.log('👨‍💼 2. ENLACE PARA EL BROKER (Pega esto en el WhatsApp de tu Broker):');
-    console.log(`   🔗 ${tunnelUrl}/#/sala/copart-live-m729k1?broker=bdr_broker_m729k1`);
-    console.log('   * Cuenta con botones de oferta (+250, +500, +1000) y Paleta #101.');
-    console.log('   * Incluye margen operativo de cortesía de $1,500 USD por llamada de WhatsApp.\n');
-
-    console.log('📱 3. ENLACE PARA EL CLIENTE (Pega esto en el WhatsApp de tu Cliente):');
-    console.log(`   🔗 ${tunnelUrl}/#/sala/copart-live-m729k1`);
-    console.log('   * Transmisión limpia estilo Copart VB3 (fotos, reloj 15s, voz en inglés).');
-    console.log('   * CERO botones de oferta (solo modo espectador).\n');
-
-    console.log('🌐 4. ALTERNATIVA CON TU DOMINIO DE VERCEL (También funcionan en paralelo):');
-    console.log(`   * Cliente: https://subastas-copart-live.vercel.app/#/sala/copart-live-m729k1?server=${tunnelUrl}`);
-    console.log(`   * Broker:  https://subastas-copart-live.vercel.app/#/sala/copart-live-m729k1?broker=bdr_broker_m729k1&server=${tunnelUrl}\n`);
+    console.log('📱 2. ENLACE UNIVERSAL PARA CLIENTE Y BROKER (Toyota Camry SE - Lote #76061096):');
+    console.log(`   🔗 ${tunnelUrl}/#/sala/copart-live-johan101`);
+    console.log(`   (O en Vercel: https://subastas-copart-live.vercel.app/#/sala/copart-live-johan101?server=${tunnelUrl})\n`);
 
     console.log('------------------------------------------------------------------------------');
     console.log('📞 INSTRUCCIÓN RÁPIDA:');

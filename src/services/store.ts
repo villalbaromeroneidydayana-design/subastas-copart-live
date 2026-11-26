@@ -2,7 +2,7 @@ import { Client, Vehicle, AuctionSession, AuctionBid, AuctionResult, DashboardMe
 import { INITIAL_CLIENTS, INITIAL_VEHICLES, INITIAL_SESSIONS } from './seedData';
 import { sounds } from '../lib/soundEffects';
 
-const CLOUDFLARE_TUNNEL_URL = 'https://seat-fleece-dakota-textile.trycloudflare.com';
+const CLOUDFLARE_TUNNEL_URL = 'https://rental-evaluate-robinson-intl.trycloudflare.com';
 
 const getDynamicBackendUrls = () => {
   if (typeof window === 'undefined') {
