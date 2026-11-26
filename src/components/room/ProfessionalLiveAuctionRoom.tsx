@@ -165,6 +165,23 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
   const [activeExtraBadgeModal, setActiveExtraBadgeModal] = useState<CustomBadgeItem | null>(null);
 
+  // Modo de visualización: 'copart-light' (Blanco oficial Copart VB3) o 'classic-dark' (Modo oscuro clásico)
+  const [themeMode, setThemeMode] = useState<'copart-light' | 'classic-dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('copart_theme_mode');
+      if (saved === 'classic-dark' || saved === 'copart-light') return saved;
+    }
+    return 'copart-light'; // Por defecto: Tema oficial Copart VB3 Blanco idéntico a las fotos
+  });
+
+  const toggleThemeMode = () => {
+    const next = themeMode === 'copart-light' ? 'classic-dark' : 'copart-light';
+    setThemeMode(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('copart_theme_mode', next);
+    }
+  };
+
   const handleTriggerEngineSound = () => {
     setIsEngineRunning(true);
     try { sounds.playEngineSound(); } catch { }
@@ -975,6 +992,26 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
   };
 
+  const highBidderStateName = (() => {
+    if (vehicle?.location && vehicle.location.includes('-')) {
+      const stateCode = vehicle.location.split('-')[0].trim().toUpperCase();
+      const stateMap: Record<string, string> = {
+        CA: 'California',
+        AZ: 'Arizona',
+        TX: 'Texas',
+        FL: 'Florida',
+        GA: 'Georgia',
+        IL: 'Illinois',
+        NY: 'New York',
+        NJ: 'New Jersey',
+        PA: 'Pennsylvania',
+        TN: 'Tennessee'
+      };
+      return stateMap[stateCode] || vehicle.location.split('-')[1]?.trim() || 'California';
+    }
+    return 'California';
+  })();
+
   // PANTALLA OFICIAL DE ACCESO EXPIRADO Y REVOCADO CUANDO LA SALA FINALIZA
   if (isRoomAccessExpired && !isBroker) {
     return (
@@ -985,7 +1022,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   }
 
   return (
-    <div className="min-h-screen bg-[#060a12] text-slate-100 flex flex-col font-sans select-none antialiased">
+    <div className={`min-h-screen ${themeMode === 'copart-light' ? 'bg-[#f4f6f8] text-slate-900' : 'bg-[#060a12] text-slate-100'} flex flex-col font-sans select-none antialiased`}>
 
       {/* BANNER PARA ACTIVAR AUDIO EN CELULARES (FLUJO NORMAL PARA NO TAPAR EL HEADER) */}
       {!hasInteracted && (
@@ -1007,11 +1044,69 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         </div>
       )}
 
+      {/* BARRA SUPERIOR INSTITUCIONAL COPART (SOLO EN MODO VB3 OFICIAL) */}
+      {themeMode === 'copart-light' && (
+        <>
+          <div className="bg-[#1a1a1a] text-slate-300 text-[11px] px-3 sm:px-6 py-1 flex items-center justify-between border-b border-neutral-800">
+            <div className="flex items-center gap-4 overflow-x-auto">
+              <span className="font-bold text-white tracking-wide">copart.com</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden sm:inline">Dashboard</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden md:inline">Driver's Seat</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden sm:inline">Find Vehicles</span>
+              <span className="text-amber-400 font-bold border-b border-amber-400 cursor-pointer">Auctions</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden lg:inline">Bid Status</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden lg:inline">Payments</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden xl:inline">Locations</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden xl:inline">Services</span>
+              <span className="text-slate-400 hover:text-white cursor-pointer hidden xl:inline">Support</span>
+            </div>
+            <span className="text-[10px] text-slate-400 font-medium hidden md:inline">
+              Copart USA • Leader in Online Salvage & Insurance Auctions
+            </span>
+          </div>
+
+          <div className="bg-[#f8fafc] text-slate-600 text-[11px] px-3 sm:px-6 py-1 flex items-center justify-between border-b border-slate-300">
+            <div className="flex items-center gap-3 overflow-x-auto">
+              <span className="font-bold text-slate-800">Auction View:</span>
+              <span className="text-slate-600 font-medium">Small</span>
+              <span className="text-slate-400">•</span>
+              <span className="font-bold text-[#1d70b8] underline cursor-pointer">Large</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-600 font-medium">Full</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-[#1d70b8] cursor-pointer hidden sm:inline">+ Add Auction</span>
+              <span className="text-slate-400 hidden sm:inline">•</span>
+              <span className="text-slate-700 cursor-pointer hidden sm:inline">Music On 🔊</span>
+              <span className="text-slate-400 hidden sm:inline">•</span>
+              <span className="text-slate-700 cursor-pointer hidden sm:inline">Confetti On</span>
+              <span className="text-slate-400 hidden sm:inline">•</span>
+              <span className="text-slate-700 cursor-pointer hidden md:inline">My Activity</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold">
+                ● LIVE STREAMING
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* 1. BARRA SUPERIOR AUTÉNTICA COPART VB3 LIVE */}
       <header className="bg-[#002855] border-b-2 border-[#ffb81c] px-2 sm:px-4 lg:px-6 py-2 shadow-xl sticky top-0 z-40">
         <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-2">
 
           <div className="flex items-center gap-2 lg:gap-3 shrink-0">
+            {/* RETORNO A LISTA DE SUBASTAS (IDÉNTICO AL SCREENSHOT DE COPART) */}
+            <button
+              type="button"
+              onClick={onExit || (() => { window.location.hash = ''; })}
+              className="flex items-center gap-1 text-white hover:text-amber-300 font-bold text-xs py-1 px-2 rounded bg-[#07172e] hover:bg-[#0c2345] border border-blue-400/50 transition cursor-pointer shadow-sm"
+              title="Volver al catálogo oficial de subastas"
+            >
+              <ChevronLeft className="w-4 h-4 text-white" />
+              <span className="font-bold whitespace-nowrap">Auction List</span>
+            </button>
+
             <div className="sm:hidden">
               <CopartLogo size="sm" showSubtitle={false} className="py-0.5 filter drop-shadow-md" />
             </div>
@@ -1115,6 +1210,20 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 ES
               </button>
             </div>
+
+            {/* INTERRUPTOR MODO COPART VB3 ORIGINAL (BLANCO) / MODO CLÁSICO (OSCURO) */}
+            <button
+              type="button"
+              onClick={toggleThemeMode}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-black border flex items-center gap-1.5 transition shadow whitespace-nowrap cursor-pointer ${
+                themeMode === 'copart-light'
+                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300 shadow-md ring-1 ring-amber-300'
+                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+              }`}
+              title="Alternar entre la pantalla oficial Copart VB3 (Blanca) y el Modo Clásico (Oscuro)"
+            >
+              <span>{themeMode === 'copart-light' ? '☀️ Copart VB3 Oficial' : '🌙 Modo Clásico'}</span>
+            </button>
 
             {/* Si es Broker: selector de su paleta */}
             {isBroker ? (
@@ -1360,7 +1469,526 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       )}
 
       {/* 2. ÁREA PRINCIPAL: SHOWCASE DEL VEHÍCULO Y TERMINAL DE PUJAS */}
-      <main className="flex-1 max-w-[1720px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
+      {themeMode === 'copart-light' ? (
+        /* ================= VISTA OFICIAL COPART VB3 LIGHT (IDÉNTICA A LAS CAPTURAS) ================= */
+        <div className="flex-1 w-full bg-[#f4f6f8] text-slate-900 select-none antialiased">
+          <main className="max-w-[1780px] w-full mx-auto p-2 sm:p-3">
+            {/* Banner de Adjudicación / Sold si el vehículo ya fue vendido */}
+            {session.status === 'sold' && (
+              <div className="mb-3 w-full bg-gradient-to-r from-red-700 via-rose-600 to-red-700 text-white py-2.5 px-4 rounded shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 border-b-2 border-red-300 animate-fadeIn">
+                <div className="flex items-center gap-2.5">
+                  <Gavel className="w-5 h-5 text-amber-300 fill-amber-300 shrink-0" />
+                  <div>
+                    <span className="font-black text-sm sm:text-base tracking-wide uppercase">
+                      VEHÍCULO VENDIDO • SOLD
+                    </span>
+                    <span className="ml-2 text-xs bg-red-950/70 px-2 py-0.5 rounded text-amber-300 font-mono font-bold">
+                      {(session as any).currentWinnerPaddle || (session as any).current_winner_paddle || 'Paleta #101'}
+                    </span>
+                    <span className="ml-2 text-xs text-white font-medium">
+                      {((session as any).currentWinnerName || (session as any).current_winner_name || 'Johan Vladimir Rajo Arias')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="font-mono font-black text-base sm:text-lg text-amber-200">
+                    ${(Number(session.current_price || 6150)).toLocaleString()} USD
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCertificateModal(true)}
+                    className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-3 py-1.5 rounded shadow transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Ver Acta Oficial (PDF)</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* CONTENEDOR PRINCIPAL EN 3 COLUMNAS IDÉNTICO AL SCREENSHOT COMPLETO */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
+              
+              {/* COLUMNA 1 (5 COLS): FOTO PRINCIPAL + TIRA DE MINIATURAS HORIZONTAL */}
+              <div className="lg:col-span-5 flex flex-col gap-2">
+                <div className="bg-white border border-[#d5dce5] rounded shadow-sm overflow-hidden">
+                  
+                  {/* Foto Principal */}
+                  <div className="relative aspect-[16/10] bg-slate-900 flex items-center justify-center overflow-hidden group">
+                    {activeImage ? (
+                      <img
+                        src={activeImage.url}
+                        alt={vehicle?.model || 'Vehículo'}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=1200&q=80';
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Car className="w-16 h-16 text-slate-500" />
+                    )}
+
+                    {/* Flechas directas de navegación < y > */}
+                    {displayedImages.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handlePrevPhoto}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition shadow opacity-85 hover:opacity-100 cursor-pointer"
+                          title="Foto anterior"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleNextPhoto}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition shadow opacity-85 hover:opacity-100 cursor-pointer"
+                          title="Siguiente foto"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </>
+                    )}
+
+                    {/* Botón flotante HD Gallery */}
+                    <button
+                      type="button"
+                      onClick={() => setIsGalleryOpen(true)}
+                      className="absolute top-2 right-2 z-20 bg-black/65 hover:bg-black/90 text-white text-[10.5px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur transition cursor-pointer"
+                      title="Ver fotos en pantalla completa"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                      <span>HD</span>
+                    </button>
+
+                    {/* Badge de lote en la foto */}
+                    <div className="absolute top-2 left-2 z-20 bg-[#002855]/90 text-white font-mono text-[11px] font-bold px-2 py-0.5 rounded shadow">
+                      Lot #{cleanLotNumber}
+                    </div>
+                  </div>
+
+                  {/* Tira Horizontal de Miniaturas (Idéntica al Screenshot de Copart) */}
+                  <div className="p-1.5 bg-[#f8fafc] border-t border-[#d5dce5] flex items-center gap-1.5 overflow-x-auto">
+                    {displayedImages.map((img: any, idx: number) => {
+                      const isSelected = idx === selectedImageIdx;
+                      return (
+                        <button
+                          key={img.id || idx}
+                          type="button"
+                          onClick={() => setSelectedImageIdx(idx)}
+                          className={`relative shrink-0 w-20 h-14 rounded overflow-hidden transition cursor-pointer border-2 ${
+                            isSelected ? 'border-[#1d70b8] ring-2 ring-blue-300 shadow scale-105' : 'border-slate-300 opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img
+                            src={img.url}
+                            alt=""
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
+                            }}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* COLUMNA 2 (4 COLS): "ON THE BLOCK" CARD + TABLA CEBRA + TERMINAL DE PUJA */}
+              <div className="lg:col-span-4 flex flex-col gap-2">
+                <div className="bg-white border border-[#d5dce5] rounded p-3 shadow-sm text-slate-900">
+                  
+                  {/* Encabezado On The Block */}
+                  <div className="border-b border-slate-200 pb-2 mb-2">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div>
+                        <span className="text-[#1976d2] font-black text-xs sm:text-sm tracking-wide uppercase block">
+                          On The Block
+                        </span>
+                        <h1 className="text-base sm:text-lg font-black text-slate-900 leading-tight mt-0.5">
+                          {vehicle?.year} {vehicle?.brand} {vehicle?.model} {vehicle?.version || ''}
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 mt-0.5">
+                          <span>
+                            Lot:{' '}
+                            <a
+                              href={copartLotUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#1976d2] font-bold hover:underline font-mono"
+                            >
+                              {cleanLotNumber}
+                            </a>
+                          </span>
+                          <span>•</span>
+                          <span>Item: <strong className="text-slate-800">22</strong></span>
+                          <span>•</span>
+                          <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            Pure Sale
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Badges circulares R y O */}
+                      <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                        <span
+                          className="w-6 h-6 rounded-full bg-[#00a84d] text-white font-black text-[11px] flex items-center justify-center shadow-sm"
+                          title="Run and Drive (Verificado)"
+                        >
+                          R
+                        </span>
+                        <span
+                          className="w-6 h-6 rounded-full bg-[#673ab7] text-white font-black text-[11px] flex items-center justify-center shadow-sm"
+                          title="Offsite / Title Clean"
+                        >
+                          O
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contenido dividido en 2: Tabla Cebra (Izq) y Dial/Bid (Der) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-start">
+                    
+                    {/* Tabla Cebra de Especificaciones Técnicas */}
+                    <div className="sm:col-span-7 border border-slate-200 rounded overflow-hidden text-[11px]">
+                      <table className="w-full text-left border-collapse">
+                        <tbody>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500 w-2/5">Location</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 font-mono text-[10px] truncate max-w-[110px]">{vehicle?.location || 'CA - VAN NUYS'}</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Doc Type</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[9.5px] truncate max-w-[110px]">
+                              {vehicle?.title_type ? `${vehicle.title_type.toUpperCase()} - TITLE (P)` : 'CT-CERTIFICATE OF TITLE (P)'}
+                            </td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Odometer</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 font-mono text-[10px]">{displayedOdometer} - Actual</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Est. Retail Value</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 font-mono text-[10px]">
+                              ${(vehicle?.est_retail_value || 22500).toLocaleString()} USD
+                            </td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Primary Damage</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{vehicle?.primary_damage || 'Normal Wear'}</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Secondary Damage</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{vehicle?.secondary_damage || 'Minor Dents/Scratches'}</td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Highlights</td>
+                            <td className="py-0.5 px-1.5 font-bold text-emerald-700 text-[10px]">Run and Drive</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">VIN</td>
+                            <td className="py-0.5 px-1.5 font-bold text-[#1976d2] font-mono text-[10px] cursor-pointer" onClick={handleCopyVin} title="Copiar VIN">
+                              {displayedVin}
+                            </td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Body Style</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{(vehicle as any)?.body_style || 'SEDAN 4D'}</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Color</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{(vehicle?.exterior_color || (vehicle as any)?.color || 'BLACK').toUpperCase()}</td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Engine Type</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{vehicle?.engine || '2.5L 4'}</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Cylinders</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{(vehicle as any)?.cylinders || 4}</td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Drive</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{vehicle?.drivetrain || 'Front-wheel Drive'}</td>
+                          </tr>
+                          <tr className="bg-[#f4f7fa] border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Fuel</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">{vehicle?.fuel || (vehicle as any)?.fuel_type || 'Gas'}</td>
+                          </tr>
+                          <tr className="bg-white border-b border-slate-100">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Keys</td>
+                            <td className="py-0.5 px-1.5 font-bold text-emerald-700 text-[10px]">{vehicle?.has_keys ? 'YES' : 'NO'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      
+                      {/* Nota en rojo idéntica al screenshot */}
+                      <div className="p-1.5 bg-red-50 text-[9px] font-bold text-red-600 leading-tight border-t border-red-200">
+                        THIS VEHICLE IS BEING SOLD "AS IS - WHERE IS" - ALL BIDS ARE BINDING AND ALL SALES ARE FINAL.
+                      </div>
+                    </div>
+
+                    {/* Sub-columna 2: Dial VB3, Red label, Stepper, Bid Button, Previous Bids */}
+                    <div className="sm:col-span-5 flex flex-col items-center">
+                      
+                      <div className="w-full flex justify-end mb-0.5">
+                        <span className="font-mono font-black text-slate-400 text-[10.5px]">VB3</span>
+                      </div>
+
+                      {/* Dial Circular Copart */}
+                      <CircularCountdown
+                        seconds={session.time_remaining_seconds}
+                        totalDuration={15}
+                        status={session.status}
+                        size={140}
+                        lang={lang}
+                        theme="light"
+                        highBidderState={highBidderStateName}
+                        currentPrice={session.current_price}
+                        highBidderPaddle={((session as any).currentWinnerPaddle || (session as any).current_winner_paddle || 'Paleta #101')}
+                      />
+
+                      {/* Red label */}
+                      <span className="text-[10px] font-bold text-rose-600 mt-1.5 text-center">
+                        All Bids in USD.
+                      </span>
+
+                      {/* Stepper $ [ AMOUNT ] - + */}
+                      <div className="w-full mt-1.5 flex items-center border border-slate-300 rounded overflow-hidden shadow-inner bg-slate-50">
+                        <span className="px-2 py-1 text-xs font-bold text-slate-500 bg-slate-100 border-r border-slate-300">$</span>
+                        <input
+                          type="text"
+                          readOnly
+                          value={nextBidAmount.toLocaleString()}
+                          className="w-full text-center font-mono font-black text-xs text-slate-900 bg-transparent focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 100))}
+                          className="px-2 py-1 text-xs font-bold bg-slate-200 hover:bg-slate-300 border-l border-slate-300 text-slate-700 transition cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Botón Azul Sólido Bid */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isBroker) {
+                            handlePlaceBrokerBid();
+                          } else {
+                            handlePlaceBuyerDirectBid(nextBidAmount);
+                          }
+                        }}
+                        disabled={isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status)}
+                        className={`w-full mt-1.5 py-2 px-3 rounded text-sm font-black text-white shadow transition flex items-center justify-center gap-1 ${
+                          isSubmittingBid || !['open', 'bidding', 'last_call'].includes(session.status)
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-[#1d70b8] hover:bg-[#155b96] active:scale-98 cursor-pointer'
+                        }`}
+                      >
+                        <span>Bid</span>
+                      </button>
+
+                      {/* Previous Bids Feed */}
+                      <div className="w-full mt-2.5 pt-2 border-t border-slate-200">
+                        <span className="text-[10.5px] font-bold text-slate-700 block mb-1">
+                          Previous Bids
+                        </span>
+                        <div className="space-y-1 max-h-[115px] overflow-y-auto">
+                          {bids.length > 0 ? (
+                            bids.slice(0, 3).map((b) => (
+                              <div key={b.id} className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50 border border-slate-100">
+                                <div className="flex items-center gap-1 min-w-0">
+                                  <span className="text-xs">🇺🇸</span>
+                                  <span className="text-slate-600 font-medium truncate max-w-[65px]">
+                                    {(b as any).paddle_number || b.bidder_name || 'USA'}
+                                  </span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900">
+                                  ${b.amount.toLocaleString()}
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs">🇲🇽</span>
+                                  <span className="text-slate-600 font-medium">Mexico</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900">
+                                  ${(session.current_price - 150).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1 rounded bg-slate-50">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs">🇺🇸</span>
+                                  <span className="text-slate-600 font-medium">{highBidderStateName}</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900">
+                                  ${(session.current_price - 300).toLocaleString()}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* COLUMNA 3 (3 COLS): "UPCOMING LOTS" (IDÉNTICA AL SEGUNDO SCREENSHOT) */}
+              <div className="lg:col-span-3 flex flex-col gap-2">
+                <div className="bg-white border border-[#d5dce5] rounded p-2.5 shadow-sm text-slate-900">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-2">
+                    <span className="font-black text-xs text-slate-800 tracking-wide">
+                      Upcoming Lots
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 font-bold">
+                      ({dockVehicles.length} Lots in Lane)
+                    </span>
+                  </div>
+
+                  {/* Lista con scroll de próximos lotes */}
+                  <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+                    {dockVehicles.map((veh, idx) => {
+                      const isCurrent = String(veh.lot_number).trim() === String(vehicle?.lot_number).trim();
+                      const thumb = veh.images?.[0]?.url || 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
+                      
+                      return (
+                        <div
+                          key={veh.id || idx}
+                          className={`p-1.5 rounded border transition flex gap-2 ${
+                            isCurrent
+                              ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300'
+                              : 'bg-white border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="w-16 h-12 bg-black rounded overflow-hidden shrink-0 border border-slate-300">
+                            <img
+                              src={thumb}
+                              alt={veh.model}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=300&q=80';
+                              }}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          <div className="min-w-0 flex-1 text-[10px] leading-tight">
+                            <div className="font-bold text-slate-900 truncate">
+                              {veh.year} {veh.brand} {veh.model}
+                            </div>
+                            <div className="text-[#1976d2] font-mono font-bold mt-0.5">
+                              Lot: {veh.lot_number}
+                            </div>
+                            <div className="text-slate-500 text-[9px] truncate">
+                              {veh.title_type ? `${veh.title_type.toUpperCase()} TITLE` : 'CERT OF TITLE - SALVAGE'}
+                            </div>
+                            <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-100">
+                              <span className="font-bold text-emerald-700 font-mono">
+                                ${Number(veh.current_price || veh.starting_price || 2500).toLocaleString()} USD
+                              </span>
+                              <span className="text-[9px] text-slate-400">
+                                Item: {3017 + idx}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </main>
+
+          {/* PIE DE PÁGINA OFICIAL COPART (AZUL INSTITUCIONAL #002855) */}
+          <footer className="mt-6 bg-[#002855] text-white border-t-4 border-[#ffb81c] py-6 px-4 sm:px-8 text-xs select-none">
+            <div className="max-w-[1780px] mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
+              <div>
+                <h4 className="font-black text-amber-300 uppercase tracking-wider mb-2 text-[11px]">Get to Know Us</h4>
+                <ul className="space-y-1 text-slate-300 text-[10.5px]">
+                  <li className="hover:text-white cursor-pointer">About Copart</li>
+                  <li className="hover:text-white cursor-pointer">Our History</li>
+                  <li className="hover:text-white cursor-pointer">Copart Global</li>
+                  <li className="hover:text-white cursor-pointer">How VB3 Works</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-amber-300 uppercase tracking-wider mb-2 text-[11px]">Find a Vehicle</h4>
+                <ul className="space-y-1 text-slate-300 text-[10.5px]">
+                  <li className="hover:text-white cursor-pointer">Vehicle Finder</li>
+                  <li className="hover:text-white cursor-pointer">Sales List</li>
+                  <li className="hover:text-white cursor-pointer">Watchlist</li>
+                  <li className="hover:text-white cursor-pointer">Run & Drive</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-amber-300 uppercase tracking-wider mb-2 text-[11px]">Auctions</h4>
+                <ul className="space-y-1 text-slate-300 text-[10.5px]">
+                  <li className="hover:text-white cursor-pointer">Today's Auctions</li>
+                  <li className="hover:text-white cursor-pointer">Auctions Calendar</li>
+                  <li className="hover:text-white cursor-pointer">Join Auction</li>
+                  <li className="hover:text-white cursor-pointer">Night Cap Sales</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-amber-300 uppercase tracking-wider mb-2 text-[11px]">Our Locations</h4>
+                <ul className="space-y-1 text-slate-300 text-[10.5px]">
+                  <li className="hover:text-white cursor-pointer">North America</li>
+                  <li className="hover:text-white cursor-pointer">Europe</li>
+                  <li className="hover:text-white cursor-pointer">Middle East</li>
+                  <li className="hover:text-white cursor-pointer">Yard 12 Facilities</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-amber-300 uppercase tracking-wider mb-2 text-[11px]">Services</h4>
+                <ul className="space-y-1 text-slate-300 text-[10.5px]">
+                  <li className="hover:text-white cursor-pointer">Brokers Network</li>
+                  <li className="hover:text-white cursor-pointer">Certified Inspectors</li>
+                  <li className="hover:text-white cursor-pointer">Vehicle Reports</li>
+                  <li className="hover:text-white cursor-pointer">Title Processing</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-amber-300 uppercase tracking-wider mb-2 text-[11px]">Support</h4>
+                <ul className="space-y-1 text-slate-300 text-[10.5px]">
+                  <li className="hover:text-white cursor-pointer">How to Buy</li>
+                  <li className="hover:text-white cursor-pointer">Common Questions</li>
+                  <li className="hover:text-white cursor-pointer">Glossary of Terms</li>
+                  <li className="hover:text-white cursor-pointer">Security Center</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="max-w-[1780px] mx-auto mt-6 pt-4 border-t border-blue-900/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10.5px] text-slate-400">
+              <div>
+                © {new Date().getFullYear()} Copart Inc. All Rights Reserved • Member of NASDAQ: CPRT
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+                <span>•</span>
+                <span className="hover:text-white cursor-pointer">Terms of Service</span>
+                <span>•</span>
+                <span className="hover:text-white cursor-pointer">Copyright</span>
+              </div>
+            </div>
+          </footer>
+        </div>
+      ) : (
+        /* ================= VISTA MODO CLÁSICO OSCURO (CONSERVADA 100% INTACTA) ================= */
+        <>
+          <main className="flex-1 max-w-[1720px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
 
         {/* COLUMNA IZQUIERDA (7 COLUMNAS): VEHÍCULO COMO PROTAGONISTA */}
         <div className="lg:col-span-7 flex flex-col gap-3">
@@ -2674,6 +3302,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
         </div>
       </section>
+    </>
+  )}
 
       {/* 3. CONSOLA DEL OPERADOR/BROKER ("LO MANEJO YO") */}
       {isBroker && (

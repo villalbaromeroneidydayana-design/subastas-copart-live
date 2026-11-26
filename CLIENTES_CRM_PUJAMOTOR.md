@@ -31,9 +31,23 @@
 * **Vehículos de Interés:**
   1. Chevrolet Tahoe LT / Z71 / Premier (2020 - 2022 Nueva Generación)
   2. Chevrolet Suburban Premier / High Country (2020 - 2022 Versión Larga)
+  3. Chevrolet Silverado 1500 Custom / 4x4 (2022 a 2025)
 * **Presupuesto Total:** **$25,000 a $40,000 USD**
 * **Requisitos:** Camioneta familiar/trabajo de alta gama, Título Limpio, Run & Drive, entrega a domicilio con grúa plataforma.
-* **Estado:** Mensaje de bienvenida y opciones preparado.
+* **Estado:** Opciones mayoristas con Luz Verde compartidas.
+
+---
+
+### 3. ANGEL ROJAS BALAREZO (LEAD NUEVO - TRABAJO TOYOTA)
+* **Nombre:** Angel Rojas Balarezo
+* **Teléfono / WhatsApp:** `+1 (551) 224-1213` (5512241213 - Confirmado segundo número)
+* **Ubicación Estimada:** New Jersey (Área 551 - Jersey City / Bergen County)
+* **Vehículo de Interés:** Camioneta de trabajo, de preferencia Toyota (Tacoma o Tundra)
+* **Requisito:** "Que no sea muy elevado el costo" • Lista para trabajar y cargar
+* **Presupuesto Total:** **$5,000 USD**
+* **Presupuesto Objetivo en Martillo:** $3,500 - $4,100 USD (para reservar margen de grúa y gastos)
+* **Condición Obligatoria:** Título Limpio (Clean Title), Run & Drive verificado.
+* **Estado:** Ficha de asignación generada para broker.
 
 ---
 
