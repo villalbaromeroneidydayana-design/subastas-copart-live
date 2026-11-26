@@ -11,7 +11,6 @@ LOGO_IMAGE_PATH = r"d:\SUBASTAS\public\copart_logo_header.png"
 BARCODE_IMAGE_PATH = r"d:\SUBASTAS\public\barcode_76061096.png"
 
 def create_barcode():
-    # Generate high quality crisp barcode image
     im = Image.new('RGB', (340, 56), color='white')
     draw = ImageDraw.Draw(im)
     pattern = [
@@ -55,27 +54,28 @@ def generate_pro_invoice():
     lot_number = "76061096"
     vin = "4T1T11AK8NU519082"
     vehicle_desc = "2022 TOYOTA CAMRY SE SPORT EDITION"
-    title_type = "CA - CERTIFICATE OF TITLE (CLEAN TITLE) + Placa Provisional"
+    title_type = "CA - CERTIFICATE OF TITLE (CLEAN TITLE) + Placa Provisional (30 Días)"
     hammer_price = 6150.0
     output_docx_path = r"d:\SUBASTAS\FACTURA_COPART_JOHAN_VLADIMIR_CAMRY_2022.docx"
 
     doc = docx.Document()
     sec = doc.sections[0]
-    sec.top_margin = Inches(0.30)
-    sec.bottom_margin = Inches(0.30)
-    sec.left_margin = Inches(0.40)
-    sec.right_margin = Inches(0.40)
+    sec.top_margin = Inches(0.35)
+    sec.bottom_margin = Inches(0.35)
+    sec.left_margin = Inches(0.50)
+    sec.right_margin = Inches(0.50)
     sec.page_width = Inches(8.5)
     sec.page_height = Inches(11.0)
 
-    # 1. HEADER TABLE: Logo & Yard on Left | Barcode & Invoice Meta on Right
+    # 1. HEADER TABLE (3 Columns, Exact widths = 2.50 + 2.30 + 2.60 = 7.40 in)
     ht = doc.add_table(rows=1, cols=3)
     ht.alignment = WD_TABLE_ALIGNMENT.CENTER
     ht.autofit = False
+    ht_widths = [Inches(2.50), Inches(2.30), Inches(2.60)]
+    for c_idx, w in enumerate(ht_widths):
+        ht.rows[0].cells[c_idx].width = w
+
     c1, c2, c3 = ht.rows[0].cells[0], ht.rows[0].cells[1], ht.rows[0].cells[2]
-    c1.width = Inches(2.7)
-    c2.width = Inches(2.3)
-    c3.width = Inches(2.7)
 
     # Left: Copart Logo & Facility Info
     p_logo = c1.paragraphs[0]
@@ -84,7 +84,7 @@ def generate_pro_invoice():
     p_logo.paragraph_format.space_after = Pt(0)
     if os.path.exists(LOGO_IMAGE_PATH):
         r_l = p_logo.add_run()
-        r_l.add_picture(LOGO_IMAGE_PATH, width=Inches(1.85))
+        r_l.add_picture(LOGO_IMAGE_PATH, width=Inches(1.80))
 
     p_sub = c1.add_paragraph()
     p_sub.paragraph_format.space_before = Pt(2)
@@ -93,7 +93,7 @@ def generate_pro_invoice():
     r_s = p_sub.add_run(
         "COPART AUTO AUCTIONS • FACILITY #106\n"
         "16161 Raymer St, Van Nuys, CA 91406\n"
-        "Tel: (818) 782-9600 | Dispatch: ca-dispatch@copart.com\n"
+        "Tel: (818) 782-9600 | dispatch.ca@copart.com\n"
         "Division: Member Settlement & Title Clearance"
     )
     r_s.font.name = "Arial"
@@ -130,10 +130,10 @@ def generate_pro_invoice():
         f"FECHA DE VENTA: {date_str}\n"
         f"POSTOR / PADDLE: PALETA OFICIAL #101\n"
         f"ESTADO: ADJUDICADO / SOLD (LOTE GANADO)\n"
-        f"TÉRMINOS: WIRE TRANSFER / LIQUIDACIÓN DIRECTA"
+        f"TÉRMINOS: WIRE TRANSFER / LIQUIDACIÓN"
     )
     r_m.font.name = "Arial"
-    r_m.font.size = Pt(7.2)
+    r_m.font.size = Pt(7.0)
     r_m.font.bold = True
     r_m.font.color.rgb = RGBColor(11, 46, 89)
 
@@ -142,7 +142,7 @@ def generate_pro_invoice():
     p_div.paragraph_format.space_before = Pt(2)
     p_div.paragraph_format.space_after = Pt(2)
     p_div.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r_bar = p_div.add_run("―" * 78)
+    r_bar = p_div.add_run("―" * 74)
     r_bar.font.name = "Arial"
     r_bar.font.size = Pt(8.5)
     r_bar.font.bold = True
@@ -155,7 +155,7 @@ def generate_pro_invoice():
     pt.paragraph_format.space_after = Pt(1)
     rt = pt.add_run("CERTIFICADO OFICIAL DE ADJUDICACIÓN Y ORDEN DE COMPRA LEGAL (BILL OF SALE)")
     rt.font.name = "Arial Black"
-    rt.font.size = Pt(10.5)
+    rt.font.size = Pt(10.0)
     rt.font.color.rgb = RGBColor(11, 46, 89)
 
     ps = doc.add_paragraph()
@@ -164,7 +164,7 @@ def generate_pro_invoice():
     ps.paragraph_format.space_after = Pt(3)
     rts = ps.add_run("AUTORIZACIÓN DE DESPACHO EN PATIO Y TRASLADO DIRECTO (GATE PASS)")
     rts.font.name = "Arial"
-    rts.font.size = Pt(8.0)
+    rts.font.size = Pt(7.8)
     rts.font.bold = True
     rts.font.color.rgb = RGBColor(16, 122, 60)
 
@@ -172,6 +172,7 @@ def generate_pro_invoice():
     it = doc.add_table(rows=5, cols=4)
     it.alignment = WD_TABLE_ALIGNMENT.CENTER
     it.autofit = False
+    it_col_widths = [Inches(1.80), Inches(1.90), Inches(1.80), Inches(1.90)]
 
     table_fields = [
         ("ADJUDICATARIO / COMPRADOR:", client_name, "DNI / LICENCIA CA:", client_id),
@@ -185,7 +186,8 @@ def generate_pro_invoice():
         row = it.rows[r_idx]
         for c_idx in range(4):
             c = row.cells[c_idx]
-            set_cell_margins(c, 20, 20, 40, 40)
+            c.width = it_col_widths[c_idx]
+            set_cell_margins(c, 18, 18, 35, 35)
             p = c.paragraphs[0]
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.space_before = Pt(0)
@@ -193,30 +195,29 @@ def generate_pro_invoice():
             r = p.add_run(val)
             r.font.name = "Arial"
             if c_idx in (0, 2):
-                c.width = Inches(1.85)
                 set_cell_background(c, "F1F5F9")
-                r.font.size = Pt(7.2)
+                r.font.size = Pt(7.0)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(30, 41, 59)
             else:
-                c.width = Inches(2.00)
                 set_cell_background(c, "FFFFFF")
-                r.font.size = Pt(7.5)
+                r.font.size = Pt(7.2)
                 r.font.color.rgb = RGBColor(15, 23, 42)
 
-    # 3. VEHICLE SPECIFICATIONS GRID (Official Copart Format)
+    # 3. VEHICLE SPECIFICATIONS GRID
     p_vsp = doc.add_paragraph()
     p_vsp.paragraph_format.space_before = Pt(3)
     p_vsp.paragraph_format.space_after = Pt(1)
     r_vth = p_vsp.add_run("ESPECIFICACIONES TÉCNICAS Y CONDICIÓN DEL VEHÍCULO REGISTRADAS EN PATIO:")
     r_vth.font.name = "Arial"
-    r_vth.font.size = Pt(7.5)
+    r_vth.font.size = Pt(7.2)
     r_vth.font.bold = True
     r_vth.font.color.rgb = RGBColor(11, 46, 89)
 
     vt = doc.add_table(rows=4, cols=4)
     vt.alignment = WD_TABLE_ALIGNMENT.CENTER
     vt.autofit = False
+    vt_col_widths = [Inches(1.80), Inches(1.90), Inches(1.80), Inches(1.90)]
 
     veh_fields = [
         ("VEHÍCULO / MODELO:", "2022 TOYOTA CAMRY SE (SPORT)", "LOTE COPART:", f"#{lot_number}"),
@@ -229,7 +230,8 @@ def generate_pro_invoice():
         row = vt.rows[r_idx]
         for c_idx in range(4):
             c = row.cells[c_idx]
-            set_cell_margins(c, 20, 20, 40, 40)
+            c.width = vt_col_widths[c_idx]
+            set_cell_margins(c, 18, 18, 35, 35)
             p = c.paragraphs[0]
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.space_before = Pt(0)
@@ -237,25 +239,24 @@ def generate_pro_invoice():
             r = p.add_run(val)
             r.font.name = "Arial"
             if c_idx in (0, 2):
-                c.width = Inches(1.85)
                 set_cell_background(c, "EFF6FF")
-                r.font.size = Pt(7.2)
+                r.font.size = Pt(7.0)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(30, 58, 138)
             else:
-                c.width = Inches(2.00)
                 set_cell_background(c, "FFFFFF")
-                r.font.size = Pt(7.5)
+                r.font.size = Pt(7.2)
                 r.font.color.rgb = RGBColor(15, 23, 42)
 
-    # 4. FINANCIAL ITEMIZED LEDGER (Official Copart Item Codes)
+    # 4. FINANCIAL ITEMIZED LEDGER (3 COLUMNS WITH MASSIVE ROOM FOR IMPORTE: 3.40 + 2.20 + 1.80 = 7.40 INCHES)
     p_sp = doc.add_paragraph()
     p_sp.paragraph_format.space_before = Pt(3)
     p_sp.paragraph_format.space_after = Pt(1)
 
-    ft = doc.add_table(rows=7, cols=4)
+    ft = doc.add_table(rows=7, cols=3)
     ft.alignment = WD_TABLE_ALIGNMENT.CENTER
     ft.autofit = False
+    ft_col_widths = [Inches(3.40), Inches(2.20), Inches(1.80)]
 
     buyer_fee = 585.0
     internet_fee = 89.0
@@ -265,20 +266,21 @@ def generate_pro_invoice():
     copart_total = hammer_price + subtotal_fees # 7000.0
 
     fees_data = [
-        ("CÓDIGO", "DESCRIPCIÓN DEL CONCEPTO", "DETALLE / NORMATIVA COPART", "IMPORTE (USD)"),
-        ("LOT SALE", "PRECIO DE MARTILLO EN VIVO (HAMMER PRICE)", "Adjudicado en tiempo real bajo Paleta Oficial #101", f"${hammer_price:,.2f} USD"),
-        ("BUYF", "TARIFA DE COMPRADOR COPART (BUYER FEE)", "Arancel reglamentario según escala de subasta Copart", f"${buyer_fee:,.2f} USD"),
-        ("VIBF", "CARGO POR PUJA VIRTUAL (INTERNET BID FEE)", "Conexión autorizada terminal en vivo Copart VB3", f"${internet_fee:,.2f} USD"),
-        ("GATE", "CARGO DE RETIRO EN PATIO (GATE & LOADING FEE)", "Maniobra de carga, precinto y salida en patio Van Nuys #106", f"${gate_fee:,.2f} USD"),
-        ("DOCF", "DOCUMENTACIÓN, TÍTULO CA Y PLACA TEMPORAL", "Título Limpio California endosado + Placa temporal de circulación (30 días)", f"${doc_fee:,.2f} USD"),
-        ("SUBT", "SUBTOTAL DE GASTOS Y ARANCELES OFICIALES", "Total cargos operativos y aranceles Copart Member Services", f"${subtotal_fees:,.2f} USD")
+        ("DESCRIPCIÓN DEL CONCEPTO (ITEM / CODE)", "DETALLE TÉCNICO Y NORMATIVA COPART", "IMPORTE (USD)"),
+        ("[LOT SALE] VALOR MARTILLADO EN VIVO (HAMMER PRICE)", "Adjudicado en tiempo real bajo Paleta Oficial #101", f"${hammer_price:,.2f} USD"),
+        ("[BUYF] TARIFA DE COMPRADOR COPART (BUYER FEE)", "Arancel reglamentario según escala de subasta Copart", f"${buyer_fee:,.2f} USD"),
+        ("[VIBF] CARGO POR PUJA VIRTUAL EN VIVO (VB3 FEE)", "Conexión autorizada terminal en vivo Copart VB3", f"${internet_fee:,.2f} USD"),
+        ("[GATE] CARGO DE RETIRO EN PATIO (GATE & LOADING)", "Maniobra de carga, precinto y salida en patio Van Nuys #106", f"${gate_fee:,.2f} USD"),
+        ("[DOCF] GESTIÓN DMV CA, TÍTULO Y PLACA TEMPORAL", "Título Limpio California endosado + Placa temporal 30 días", f"${doc_fee:,.2f} USD"),
+        ("[SUBT] SUBTOTAL CARGOS Y ARANCELES OFICIALES", "Total cargos operativos y aranceles Copart Member Services", f"${subtotal_fees:,.2f} USD")
     ]
 
-    for f_idx, (col0, col1, col2, col3) in enumerate(fees_data):
+    for f_idx, (col0, col1, col2) in enumerate(fees_data):
         row = ft.rows[f_idx]
-        for c_idx, text in enumerate([col0, col1, col2, col3]):
+        for c_idx, text in enumerate([col0, col1, col2]):
             c = row.cells[c_idx]
-            set_cell_margins(c, 20, 20, 40, 40)
+            c.width = ft_col_widths[c_idx]
+            set_cell_margins(c, 20, 20, 35, 35)
             p = c.paragraphs[0]
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.space_before = Pt(0)
@@ -290,68 +292,65 @@ def generate_pro_invoice():
                 r.font.size = Pt(7.5)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(255, 255, 255)
-                if c_idx == 3:
+                if c_idx == 2:
                     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
             else:
                 set_cell_background(c, "F8FAFC" if f_idx % 2 == 1 else "FFFFFF")
                 r.font.size = Pt(7.5)
                 if c_idx == 0:
-                    c.width = Inches(0.8)
-                    r.font.bold = True
-                    r.font.color.rgb = RGBColor(71, 85, 105)
-                elif c_idx == 1:
-                    c.width = Inches(3.2)
                     r.font.bold = True
                     r.font.color.rgb = RGBColor(15, 23, 42)
-                elif c_idx == 2:
-                    c.width = Inches(2.3)
+                elif c_idx == 1:
                     r.font.color.rgb = RGBColor(71, 85, 105)
                 else:
-                    c.width = Inches(1.4)
                     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
                     r.font.bold = True
                     r.font.color.rgb = RGBColor(11, 46, 89)
 
-    # Total Balance Box
-    p_tot = doc.add_paragraph()
-    p_tot.paragraph_format.space_before = Pt(3)
-    p_tot.paragraph_format.space_after = Pt(2)
-    p_tot.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    # 5. TOTAL BALANCE SUMMARY BOX (Proven, clean, right-aligned)
+    p_tot_info = doc.add_paragraph()
+    p_tot_info.paragraph_format.space_before = Pt(3)
+    p_tot_info.paragraph_format.space_after = Pt(1)
+    p_tot_info.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    r_ti = p_tot_info.add_run(f"VALOR MARTILLO (HAMMER): ${hammer_price:,.2f} USD   |   ARANCELES COPART: ${subtotal_fees:,.2f} USD")
+    r_ti.font.name = "Arial"
+    r_ti.font.size = Pt(8.0)
+    r_ti.font.bold = True
+    r_ti.font.color.rgb = RGBColor(71, 85, 105)
 
-    r_hprice = p_tot.add_run(f"VALOR MARTILLO (HAMMER): ${hammer_price:,.2f} USD  +  ARANCELES: ${subtotal_fees:,.2f} USD   |   ")
-    r_hprice.font.name = "Arial"
-    r_hprice.font.size = Pt(8.0)
-    r_hprice.font.bold = True
-    r_hprice.font.color.rgb = RGBColor(71, 85, 105)
+    p_tot = doc.add_paragraph()
+    p_tot.paragraph_format.space_before = Pt(0)
+    p_tot.paragraph_format.space_after = Pt(3)
+    p_tot.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
     r_tlabel = p_tot.add_run("TOTAL LIQUIDACIÓN DIRECTA COPART: ")
     r_tlabel.font.name = "Arial"
-    r_tlabel.font.size = Pt(9.0)
+    r_tlabel.font.size = Pt(9.5)
     r_tlabel.font.bold = True
     r_tlabel.font.color.rgb = RGBColor(15, 23, 42)
 
     r_tval = p_tot.add_run(f" ${copart_total:,.2f} USD")
     r_tval.font.name = "Arial Black"
-    r_tval.font.size = Pt(12.0)
+    r_tval.font.size = Pt(12.5)
     r_tval.font.bold = True
     r_tval.font.color.rgb = RGBColor(16, 122, 60)
 
-    # 5. PAYMENT SETTLEMENT INSTRUCTIONS & CERTIFICATION SEAL
+    # 6. PAYMENT SETTLEMENT INSTRUCTIONS & CERTIFICATION SEAL
     pay_table = doc.add_table(rows=1, cols=2)
     pay_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     pay_table.autofit = False
 
     pc1, pc2 = pay_table.rows[0].cells[0], pay_table.rows[0].cells[1]
-    pc1.width, pc2.width = Inches(4.5), Inches(3.2)
+    pc1.width, pc2.width = Inches(4.30), Inches(3.10)
     set_cell_background(pc1, "F1F5F9")
     set_cell_background(pc2, "F8FAFC")
-    set_cell_margins(pc1, 24, 24, 40, 40)
-    set_cell_margins(pc2, 24, 24, 40, 40)
+    set_cell_margins(pc1, 20, 20, 35, 35)
+    set_cell_margins(pc2, 20, 20, 35, 35)
 
     p_inst = pc1.paragraphs[0]
     p_inst.paragraph_format.space_before = Pt(0)
     p_inst.paragraph_format.space_after = Pt(0)
-    p_inst.paragraph_format.line_spacing = 1.10
+    p_inst.paragraph_format.line_spacing = 1.05
     r_pi = p_inst.add_run(
         "INSTRUCCIONES OFICIALES DE LIQUIDACIÓN Y DESPACHO COPART:\n"
         "1. BENEFICIARIO: COPART, INC. / MEMBER SETTLEMENT SERVICES\n"
@@ -361,7 +360,7 @@ def generate_pro_invoice():
         "5. DOCUMENTACIÓN DE ENTREGA: Al acreditarse los fondos se entrega Título Limpio de California endosado a nombre del comprador y Placa Provisional de 30 días para circular legalmente."
     )
     r_pi.font.name = "Arial"
-    r_pi.font.size = Pt(6.8)
+    r_pi.font.size = Pt(6.5)
     r_pi.font.color.rgb = RGBColor(30, 41, 59)
 
     # Seal & Officer Signature
@@ -372,13 +371,13 @@ def generate_pro_invoice():
 
     r_sl = p_seal.add_run("CERTIFICACIÓN OFICIAL COPART MEMBER SERVICES:\n")
     r_sl.font.name = "Arial"
-    r_sl.font.size = Pt(6.8)
+    r_sl.font.size = Pt(6.5)
     r_sl.font.bold = True
     r_sl.font.color.rgb = RGBColor(11, 46, 89)
 
     if os.path.exists(SEAL_IMAGE_PATH):
         r_simg = p_seal.add_run()
-        r_simg.add_picture(SEAL_IMAGE_PATH, width=Inches(3.0))
+        r_simg.add_picture(SEAL_IMAGE_PATH, width=Inches(2.85))
 
     p_sm = pc2.add_paragraph()
     p_sm.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -386,11 +385,11 @@ def generate_pro_invoice():
     p_sm.paragraph_format.space_after = Pt(0)
     r_smt = p_sm.add_run("Copart Member Settlement & Title Clearance Division\nFacility #106 (Van Nuys, CA) • Gate Pass Official")
     r_smt.font.name = "Arial"
-    r_smt.font.size = Pt(6.5)
+    r_smt.font.size = Pt(6.2)
     r_smt.font.bold = True
     r_smt.font.color.rgb = RGBColor(11, 46, 89)
 
-    # 6. LEGAL NOTICE & SECURITY HASH FOOTER
+    # 7. LEGAL NOTICE & SECURITY HASH FOOTER
     p_sec = doc.add_paragraph()
     p_sec.paragraph_format.space_before = Pt(2)
     p_sec.paragraph_format.space_after = Pt(0)
@@ -400,7 +399,7 @@ def generate_pro_invoice():
         "COPART MEMBER SERVICES • VEHICLE AUCTIONEER & SETTLEMENT LICENSE #489210 • GREEN LIGHT CERTIFIED"
     )
     r_sec.font.name = "Courier New"
-    r_sec.font.size = Pt(6.0)
+    r_sec.font.size = Pt(5.8)
     r_sec.font.bold = True
     r_sec.font.color.rgb = RGBColor(100, 116, 139)
 
@@ -408,12 +407,15 @@ def generate_pro_invoice():
     print(f"Created DOCX: {output_docx_path}")
 
     output_pdf_path = output_docx_path.replace(".docx", ".pdf")
+
     word = win32com.client.Dispatch("Word.Application")
     word.Visible = False
-    d = word.Documents.Open(os.path.abspath(output_docx_path))
-    d.SaveAs(os.path.abspath(output_pdf_path), FileFormat=17)
-    d.Close()
-    word.Quit()
+    try:
+        d = word.Documents.Open(os.path.abspath(output_docx_path))
+        d.SaveAs(os.path.abspath(output_pdf_path), FileFormat=17)
+        d.Close()
+    finally:
+        word.Quit()
 
     pub_pdf = os.path.join(r"d:\SUBASTAS\public", os.path.basename(output_pdf_path))
     shutil.copy2(output_pdf_path, pub_pdf)

@@ -1,0 +1,21 @@
+=== SALUDO INICIAL ===
+¡Hola! Bienvenido. Para que un asesor te envie los catalogos de vehiculos a tu WhatsApp, por favor dinos:
+1. Que modelo buscas?
+2. Cual es tu presupuesto?
+3. En que estado o ciudad te encuentras?
+4. Tu numero de telefono para contactarte.
+
+
+=== PREGUNTA 1 ===
+Boton: Quiero ver el catalogo de vehiculos
+Respuesta: Con gusto. Escribenos que modelo buscas, cual es tu presupuesto y tu numero de WhatsApp para que un asesor se ponga en contacto y te envie el catalogo.
+
+
+=== PREGUNTA 2 ===
+Boton: Como es el proceso de compra?
+Respuesta: Buscamos tu vehiculo en subasta sin pasarnos de tu presupuesto, y nuestra comision se paga al recibir el auto y las llaves en mano. Dejanos que modelo buscas, tu presupuesto y tu WhatsApp para contactarte.
+
+
+=== PREGUNTA 3 ===
+Boton: Hablar con un asesor por WhatsApp
+Respuesta: Dejanos que modelo buscas, cual es tu presupuesto y tu numero de WhatsApp para que un asesor se ponga en contacto contigo y te comparta las opciones disponibles.
