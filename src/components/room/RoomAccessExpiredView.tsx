@@ -1,6 +1,6 @@
 import React from 'react';
 import { CopartLogo } from '../common/CopartLogo';
-import { Lock, ShieldAlert, ArrowLeft, PhoneCall, FileText } from 'lucide-react';
+import { Lock, ShieldAlert, ExternalLink, PhoneCall, FileText } from 'lucide-react';
 import { useTranslation } from '../../lib/i18n';
 
 interface RoomAccessExpiredViewProps {
@@ -86,15 +86,15 @@ export const RoomAccessExpiredView: React.FC<RoomAccessExpiredViewProps> = ({
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-5 py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition border border-slate-700"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>{t('btnReturnHome')}</span>
-              </button>
-            )}
+            <a
+              href="https://www.copart.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto bg-[#002855] hover:bg-[#003875] text-amber-400 font-bold px-5 py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition border border-amber-500/40 shadow-md"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>{lang === 'es' ? 'Ir al Portal Oficial Copart.com' : 'Official Copart.com Portal'}</span>
+            </a>
             <div className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-xs text-amber-400 font-mono font-semibold bg-amber-950/40 border border-amber-800/50 px-4 py-2.5 rounded-lg">
               <PhoneCall className="w-3.5 h-3.5" />
               <span>{t('supportActive')}</span>

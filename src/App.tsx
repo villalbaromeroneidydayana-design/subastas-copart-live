@@ -181,7 +181,6 @@ export function App() {
     return (
       <RoomAccessExpiredView
         lotNumber={expiredLotNumber}
-        onBack={handleExitRoom}
       />
     );
   }
@@ -195,13 +194,14 @@ export function App() {
           <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto mb-3" />
           <h2 className="text-lg font-bold text-white mb-2">Acceso a Sala Restringido</h2>
           <p className="text-xs text-slate-400 mb-6">{roomError}</p>
-          <button
-            onClick={handleExitRoom}
-            className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition"
+          <a
+            href="https://www.copart.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#002855] hover:bg-[#003875] text-amber-400 border border-amber-500/40 font-semibold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Volver al Inicio</span>
-          </button>
+            <span>Ir al Portal Oficial Copart.com</span>
+          </a>
         </div>
       </div>
     );
@@ -231,7 +231,7 @@ export function App() {
     year: 2022,
     status: 'sold',
     starting_price: 3000,
-    current_price: 6250,
+    current_price: 6150,
     bid_increment: 100,
     client_max_budget: 7500,
     current_winner_paddle: 'Paleta #101',

@@ -980,7 +980,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     return (
       <RoomAccessExpiredView
         lotNumber={vehicle?.lot_number || '48291032'}
-        onBack={onExit}
       />
     );
   }
