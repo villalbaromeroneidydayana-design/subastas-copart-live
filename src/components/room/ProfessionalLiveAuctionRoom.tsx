@@ -174,6 +174,23 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     return 'copart-light'; // Por defecto: Tema oficial Copart VB3 Blanco idéntico a las fotos
   });
 
+  // Estado geográfico de nuestra postura (para que coincida con el cliente o con la licencia broker elegida)
+  const [clientState, setClientState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('copart_client_state');
+      if (saved) return saved;
+    }
+    return 'Texas';
+  });
+
+  const getStateInfo = (stateName: string) => {
+    const s = (stateName || '').toLowerCase();
+    if (s.includes('mexico') || s.includes('méxico')) {
+      return { state: 'Mexico', name: 'Mexico', flag: '🇲🇽' };
+    }
+    return { state: stateName, name: stateName, flag: '🇺🇸' };
+  };
+
   const toggleThemeMode = () => {
     const next = themeMode === 'copart-light' ? 'classic-dark' : 'copart-light';
     setThemeMode(next);
@@ -853,7 +870,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         'Paleta #101',
         amountToBid,
         (session as any).broker_name || 'David Rodríguez',
-        'California, USA'
+        `${clientState}, USA`
       );
     }
     setIsSubmittingBid(false);
@@ -1029,23 +1046,28 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     const latestBid = bids.length > 0 ? bids[0] : null;
 
     if (winnerPaddle === 'Paleta #101' || (latestBid as any)?.paddle_number === 'Paleta #101') {
+      const info = getStateInfo(clientState);
       return {
-        flag: '🇺🇸',
-        state: 'California',
-        paddle: 'California',
+        flag: info.flag,
+        state: info.name,
+        paddle: info.name,
         isClient: true
       };
     }
 
     if (latestBid) {
       const loc = ((latestBid as any).location || latestBid.bidder_name || '').toLowerCase();
-      let state = 'California';
+      let state = 'Texas';
       let flag = '🇺🇸';
 
       if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
         state = 'Texas';
       } else if (loc.includes('ca') || loc.includes('angeles') || loc.includes('california')) {
         state = 'California';
+      } else if (loc.includes('nj') || loc.includes('jersey')) {
+        state = 'New Jersey';
+      } else if (loc.includes('ny') || loc.includes('york')) {
+        state = 'New York';
       } else if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
         state = 'Arizona';
       } else if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
@@ -1056,6 +1078,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
         state = 'Illinois';
       } else if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
         state = 'Ohio';
+      } else if (loc.includes('nc') || loc.includes('carolina')) {
+        state = 'North Carolina';
+      } else if (loc.includes('va') || loc.includes('virginia')) {
+        state = 'Virginia';
       } else if (loc.includes('mexico') || loc.includes('méxico')) {
         state = 'Mexico';
         flag = '🇲🇽';
@@ -1069,23 +1095,33 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       };
     }
 
+    const defaultInfo = getStateInfo(clientState);
     return {
-      flag: '🇺🇸',
-      state: highBidderStateName || 'California',
-      paddle: 'Paleta #101',
+      flag: defaultInfo.flag,
+      state: defaultInfo.name,
+      paddle: defaultInfo.name,
       isClient: false
     };
   })();
 
   const getBidDisplayInfo = (bid: any) => {
+    const isOurBid = (bid as any).paddle_number === 'Paleta #101' || (bid as any).paddleNumber === 'Paleta #101';
+    if (isOurBid) {
+      return getStateInfo(clientState);
+    }
+
     const loc = (bid.location || bid.bidder_name || '').toLowerCase();
-    let state = 'USA';
+    let state = 'Texas';
     let flag = '🇺🇸';
 
     if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
       state = 'Texas';
     } else if (loc.includes('ca') || loc.includes('california') || loc.includes('angeles')) {
       state = 'California';
+    } else if (loc.includes('nj') || loc.includes('jersey')) {
+      state = 'New Jersey';
+    } else if (loc.includes('ny') || loc.includes('york')) {
+      state = 'New York';
     } else if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
       state = 'Arizona';
     } else if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
@@ -1096,11 +1132,13 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       state = 'Illinois';
     } else if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
       state = 'Ohio';
+    } else if (loc.includes('nc') || loc.includes('carolina')) {
+      state = 'North Carolina';
+    } else if (loc.includes('va') || loc.includes('virginia')) {
+      state = 'Virginia';
     } else if (loc.includes('mexico') || loc.includes('méxico')) {
       state = 'Mexico';
       flag = '🇲🇽';
-    } else if ((bid as any).paddle_number === 'Paleta #101' || (bid as any).paddleNumber === 'Paleta #101') {
-      state = 'California';
     }
     return { state, flag };
   };
@@ -1967,13 +2005,47 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
 
                       {/* PANEL DE MANDO RÁPIDO PARA EL BROKER / SUBASTADOR (SOLO VISIBLE PARA TI) */}
                       {isBroker && (
-                        <div className="w-full mt-3 p-2 bg-slate-900 text-white rounded border border-amber-400/80 shadow-md space-y-1.5">
+                        <div className="w-full mt-3 p-2.5 bg-slate-900 text-white rounded border border-amber-400/80 shadow-md space-y-2">
                           <div className="flex items-center justify-between text-[10px]">
                             <span className="text-amber-400 font-bold flex items-center gap-1">
                               <Zap className="w-3 h-3 text-amber-400" />
-                              Control de Paletas y Rivales
+                              Control de Sala y Posturas
                             </span>
                             <span className="text-emerald-400 font-mono font-bold">LANE A</span>
+                          </div>
+
+                          {/* SELECTOR EN VIVO DEL ESTADO/PAÍS DE NUESTRA POSTURA */}
+                          <div className="flex items-center justify-between gap-1 p-1 bg-slate-800/90 rounded border border-slate-700">
+                            <span className="text-[10px] text-amber-300 font-bold whitespace-nowrap">
+                              📍 Nuestra Postura:
+                            </span>
+                            <select
+                              value={clientState}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setClientState(val);
+                                if (typeof window !== 'undefined') {
+                                  localStorage.setItem('copart_client_state', val);
+                                }
+                              }}
+                              className="bg-slate-950 text-amber-300 font-bold text-[10.5px] py-0.5 px-1.5 rounded border border-amber-400/60 focus:outline-none cursor-pointer w-full max-w-[155px]"
+                            >
+                              <option value="New Jersey">🇺🇸 New Jersey</option>
+                              <option value="New York">🇺🇸 New York</option>
+                              <option value="Florida">🇺🇸 Florida</option>
+                              <option value="Texas">🇺🇸 Texas</option>
+                              <option value="California">🇺🇸 California</option>
+                              <option value="Illinois">🇺🇸 Illinois</option>
+                              <option value="Georgia">🇺🇸 Georgia</option>
+                              <option value="North Carolina">🇺🇸 North Carolina</option>
+                              <option value="Virginia">🇺🇸 Virginia</option>
+                              <option value="Pennsylvania">🇺🇸 Pennsylvania</option>
+                              <option value="Arizona">🇺🇸 Arizona</option>
+                              <option value="Nevada">🇺🇸 Nevada</option>
+                              <option value="Washington">🇺🇸 Washington</option>
+                              <option value="Colorado">🇺🇸 Colorado</option>
+                              <option value="Mexico">🇲🇽 Mexico</option>
+                            </select>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-1">
@@ -1981,7 +2053,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               type="button"
                               onClick={() => handleTriggerFastCompetitor(100)}
                               className="py-1 px-1.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
-                              title="Simular que un rival de Texas/California/Georgia hace una contraoferta"
+                              title="Simular que un rival de otro estado hace una contraoferta"
                             >
                               <span>⚡ +$100 Rival</span>
                             </button>
@@ -1990,9 +2062,9 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               type="button"
                               onClick={() => handlePlaceBrokerBid(session.current_price + (session.bid_increment || 100))}
                               className="py-1 px-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 transition shadow cursor-pointer"
-                              title="Enviar puja a nombre de California (Nosotros)"
+                              title={`Enviar puja a nombre de ${clientState}`}
                             >
-                              <span>🟢 +$100 California</span>
+                              <span>🟢 +$100 {clientState}</span>
                             </button>
                           </div>
 
