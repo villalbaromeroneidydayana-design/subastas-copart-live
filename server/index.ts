@@ -2299,6 +2299,14 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
       'approved',
       new Date().toISOString()
     );
+  } else {
+    try {
+      db.prepare(`
+        UPDATE auction_participants 
+        SET token_hash = ?, authorization_status = 'approved', name = ?, location = ?
+        WHERE id = ?
+      `).run(chosenTokenHash, chosen.name, chosen.loc, existingParticipant.id);
+    } catch {}
   }
 
   // Ejecución atómica en base de datos

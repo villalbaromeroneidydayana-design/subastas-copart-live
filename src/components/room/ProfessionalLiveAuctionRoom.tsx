@@ -1724,24 +1724,24 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </button>
                       )}
 
-                      {/* Previous Bids Feed */}
+                      {/* Previous Bids Feed - 2 Columnas idéntico a Copart VB3 */}
                       <div className="w-full mt-2.5 pt-2 border-t border-slate-200">
-                        <span className="text-[10.5px] font-bold text-slate-700 block mb-1">
+                        <span className="text-[10px] font-bold text-slate-700 block mb-1">
                           Previous Bids
                         </span>
-                        <div className="space-y-1 max-h-[115px] overflow-y-auto">
-                          {bids.length > 0 ? (
-                            bids.slice(0, 4).map((b) => {
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {bids.length >= 2 ? (
+                            bids.slice(1, 3).map((b) => {
                               const info = getBidDisplayInfo(b);
                               return (
-                                <div key={b.id} className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <CountryFlag code={info.flag || info.state} className="w-4 h-3 shrink-0" />
-                                    <span className="truncate max-w-[95px] text-slate-700 font-medium">
+                                <div key={b.id} className="bg-slate-50 border border-slate-200/80 rounded p-1 flex flex-col items-center justify-center text-center">
+                                  <div className="flex items-center gap-1 mb-0.5 min-w-0">
+                                    <CountryFlag code={info.flag || info.state} className="w-3.5 h-2.5 shrink-0" />
+                                    <span className="truncate max-w-[55px] text-[9.5px] font-medium text-slate-700">
                                       {info.state}
                                     </span>
                                   </div>
-                                  <span className="font-mono font-bold text-slate-900">
+                                  <span className="font-mono font-bold text-[10.5px] text-slate-900 leading-tight">
                                     ${b.amount.toLocaleString()}
                                   </span>
                                 </div>
@@ -1749,40 +1749,22 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                             })
                           ) : (
                             <>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
-                                <div className="flex items-center gap-1.5">
-                                  <CountryFlag code="Mexico" className="w-4 h-3 shrink-0" />
-                                  <span className="text-slate-700 font-medium">Mexico</span>
+                              <div className="bg-slate-50 border border-slate-200/80 rounded p-1 flex flex-col items-center justify-center text-center">
+                                <div className="flex items-center gap-1 mb-0.5">
+                                  <CountryFlag code="UAE" className="w-3.5 h-2.5 shrink-0" />
+                                  <span className="text-[9.5px] font-medium text-slate-700 truncate max-w-[55px]">United A...</span>
                                 </div>
-                                <span className="font-mono font-bold text-slate-900">
+                                <span className="font-mono font-bold text-[10.5px] text-slate-900 leading-tight">
                                   ${(session.current_price - 100).toLocaleString()}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
-                                <div className="flex items-center gap-1.5">
-                                  <CountryFlag code="UAE" className="w-4 h-3 shrink-0" />
-                                  <span className="text-slate-700 font-medium">United Ar...</span>
+                              <div className="bg-slate-50 border border-slate-200/80 rounded p-1 flex flex-col items-center justify-center text-center">
+                                <div className="flex items-center gap-1 mb-0.5">
+                                  <CountryFlag code="Iraq" className="w-3.5 h-2.5 shrink-0" />
+                                  <span className="text-[9.5px] font-medium text-slate-700 truncate max-w-[55px]">Iraq</span>
                                 </div>
-                                <span className="font-mono font-bold text-slate-900">
+                                <span className="font-mono font-bold text-[10.5px] text-slate-900 leading-tight">
                                   ${(session.current_price - 200).toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
-                                <div className="flex items-center gap-1.5">
-                                  <CountryFlag code="Texas" className="w-4 h-3 shrink-0" />
-                                  <span className="text-slate-700 font-medium">Texas</span>
-                                </div>
-                                <span className="font-mono font-bold text-slate-900">
-                                  ${(session.current_price - 300).toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
-                                <div className="flex items-center gap-1.5">
-                                  <CountryFlag code="Canada" className="w-4 h-3 shrink-0" />
-                                  <span className="text-slate-700 font-medium">Canada</span>
-                                </div>
-                                <span className="font-mono font-bold text-slate-900">
-                                  ${(session.current_price - 400).toLocaleString()}
                                 </span>
                               </div>
                             </>
@@ -2077,7 +2059,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       return (
                         <div
                           key={veh.id || idx}
-                          className={`p-1.5 rounded border transition flex gap-2 ${
+                          className={`p-1.5 rounded border transition flex gap-2 relative ${
                             isCurrent
                               ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300'
                               : 'bg-white border-slate-200 hover:border-slate-300'
@@ -2094,7 +2076,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                             />
                           </div>
 
-                          <div className="min-w-0 flex-1 text-[10px] leading-tight">
+                          <div className="min-w-0 flex-1 text-[10px] leading-tight pr-8">
                             <div className="font-bold text-slate-900 truncate">
                               {veh.year} {veh.brand} {veh.model}
                             </div>
@@ -2102,17 +2084,14 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               Lot: {veh.lot_number}
                             </div>
                             <div className="text-slate-500 text-[9px] truncate">
-                              {veh.title_type ? `${veh.title_type.toUpperCase()} TITLE` : 'CERT OF TITLE - SALVAGE'}
-                            </div>
-                            <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-100">
-                              <span className="font-bold text-emerald-700 font-mono">
-                                ${Number(veh.current_price || veh.starting_price || 2500).toLocaleString()} USD
-                              </span>
-                              <span className="text-[9px] text-slate-400">
-                                Item: {3017 + idx}
-                              </span>
+                              Odo: {veh.mileage ? Number(veh.mileage).toLocaleString() : '35,000'} mi
                             </div>
                           </div>
+
+                          {/* Copart Red Time Tag */}
+                          <span className="absolute bottom-1.5 right-1.5 bg-[#e01a22] text-white font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs font-mono">
+                            {idx === 0 ? 'Next' : `${idx + 1}min`}
+                          </span>
                         </div>
                       );
                     })}

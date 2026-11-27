@@ -150,20 +150,11 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
               <span className="text-xl sm:text-2xl font-black font-mono leading-tight text-[#1d70b8]">
                 ${(currentPrice || 6150).toLocaleString()}
               </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] font-black text-[#1d70b8] uppercase tracking-wider">
-                  Bid!
-                </span>
-                <span className={`text-xs font-mono font-black px-2 py-0.5 rounded shadow-xs ${
-                  displaySeconds <= 4 
-                    ? 'bg-red-600 text-white animate-pulse' 
-                    : displaySeconds <= 8 
-                    ? 'bg-amber-500 text-white' 
-                    : 'bg-[#1d70b8] text-white'
-                }`}>
-                  ⏱️ {displaySeconds}s
-                </span>
-              </div>
+              <span className={`text-[11px] font-black uppercase tracking-wider mt-0.5 ${
+                displaySeconds <= 4 ? 'text-red-600 animate-pulse' : 'text-[#1d70b8]'
+              }`}>
+                Bid!
+              </span>
             </div>
           )
         ) : (
