@@ -1429,6 +1429,18 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                       <Car className="w-16 h-16 text-slate-500" />
                     )}
 
+                    {/* Botón oficial de enlace a Copart.com */}
+                    <a
+                      href={copartLotUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute top-2 left-2 z-20 bg-[#00438a]/90 hover:bg-[#00438a] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-md backdrop-blur-xs border border-white/20 flex items-center gap-1.5 transition cursor-pointer"
+                      title="Ver publicación oficial en Copart.com"
+                    >
+                      <ExternalLink className="w-3 h-3 text-amber-300" />
+                      <span>Copart.com</span>
+                    </a>
+
                     {/* Flechas directas de navegación < y > */}
                     {displayedImages.length > 1 && !isPlayingEngineVideo && (
                       <>
@@ -1524,9 +1536,11 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               href={copartLotUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[#1976d2] font-bold hover:underline font-mono"
+                              className="text-[#1976d2] font-bold hover:underline font-mono inline-flex items-center gap-0.5"
+                              title="Abrir este lote directamente en Copart.com"
                             >
-                              {cleanLotNumber}
+                              <span>{cleanLotNumber}</span>
+                              <ExternalLink className="w-3 h-3 text-[#1976d2]" />
                             </a>
                           </span>
                           <span>•</span>
@@ -1535,6 +1549,17 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                           <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
                             Pure Sale
                           </span>
+                          <span>•</span>
+                          <a
+                            href={copartLotUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-[#1976d2]/10 hover:bg-[#1976d2]/20 text-[#1976d2] font-bold px-1.5 py-0.5 rounded text-[10.5px] inline-flex items-center gap-1 transition"
+                            title="Abrir ficha original en Copart.com"
+                          >
+                            <span>Ver en Copart.com</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
                         </div>
                       </div>
 
@@ -2177,9 +2202,21 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         <span>Ficha del Vehículo</span>
                       </h4>
                       <div className="space-y-1.5 text-slate-700">
-                        <div className="flex justify-between py-1 border-b border-slate-100">
+                        <div className="flex justify-between items-center py-1 border-b border-slate-100">
                           <span className="text-slate-500 font-medium">Lote Oficial:</span>
-                          <span className="font-mono font-bold text-slate-900">#{cleanLotNumber}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-bold text-slate-900">#{cleanLotNumber}</span>
+                            <a
+                              href={copartLotUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] bg-[#1976d2] hover:bg-[#155b96] text-white font-bold px-1.5 py-0.5 rounded inline-flex items-center gap-1 transition"
+                              title="Abrir en Copart Oficial"
+                            >
+                              <span>Copart.com</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          </div>
                         </div>
                         <div className="flex justify-between py-1 border-b border-slate-100">
                           <span className="text-slate-500 font-medium">VIN:</span>
