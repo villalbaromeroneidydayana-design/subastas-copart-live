@@ -1161,17 +1161,27 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       const parsed = parseLocationInfo((latestBid as any).location || latestBid.bidder_name || '', (latestBid as any).paddle_number);
       return {
         flag: parsed.flag,
-        state: parsed.state,
+        state: parsed.shortName || parsed.state,
         paddle: (latestBid as any).paddle_number || latestBid.bidder_name || 'USA',
         isClient: false
       };
     }
 
-    const defaultInfo = getStateInfo(clientState);
+    if (winnerPaddle) {
+      const parsedWinner = parseLocationInfo('', winnerPaddle);
+      return {
+        flag: parsedWinner.flag,
+        state: parsedWinner.shortName || parsedWinner.state,
+        paddle: winnerPaddle,
+        isClient: winnerPaddle === 'Paleta #101'
+      };
+    }
+
+    // Por defecto inicial idéntico al screenshot oficial de Copart (Líder Internacional UAE)
     return {
-      flag: defaultInfo.flag,
-      state: defaultInfo.name,
-      paddle: defaultInfo.name,
+      flag: '🇦🇪',
+      state: 'United Ar...',
+      paddle: 'Paleta #650',
       isClient: false
     };
   })();
@@ -1741,8 +1751,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                             <>
                               <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
                                 <div className="flex items-center gap-1.5">
-                                  <CountryFlag code="Texas" className="w-4 h-3 shrink-0" />
-                                  <span className="text-slate-700 font-medium">Texas</span>
+                                  <CountryFlag code="Mexico" className="w-4 h-3 shrink-0" />
+                                  <span className="text-slate-700 font-medium">Mexico</span>
                                 </div>
                                 <span className="font-mono font-bold text-slate-900">
                                   ${(session.current_price - 100).toLocaleString()}
@@ -1750,11 +1760,29 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               </div>
                               <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
                                 <div className="flex items-center gap-1.5">
-                                  <CountryFlag code="California" className="w-4 h-3 shrink-0" />
-                                  <span className="text-slate-700 font-medium">California</span>
+                                  <CountryFlag code="UAE" className="w-4 h-3 shrink-0" />
+                                  <span className="text-slate-700 font-medium">United Ar...</span>
                                 </div>
                                 <span className="font-mono font-bold text-slate-900">
                                   ${(session.current_price - 200).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
+                                <div className="flex items-center gap-1.5">
+                                  <CountryFlag code="Texas" className="w-4 h-3 shrink-0" />
+                                  <span className="text-slate-700 font-medium">Texas</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900">
+                                  ${(session.current_price - 300).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
+                                <div className="flex items-center gap-1.5">
+                                  <CountryFlag code="Canada" className="w-4 h-3 shrink-0" />
+                                  <span className="text-slate-700 font-medium">Canada</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900">
+                                  ${(session.current_price - 400).toLocaleString()}
                                 </span>
                               </div>
                             </>
