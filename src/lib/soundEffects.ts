@@ -6,6 +6,8 @@ class SoundManager {
   public readonly voiceGender: 'male' = 'male'; // EXCLUSIVAMENTE VOZ MASCULINA OFICIAL DE COPART (LANE A)
   private cachedMaleVoice: SpeechSynthesisVoice | null = null;
   private lastSoldTimestamp: number = 0;
+  private lastBidVoiceTimestamp: number = 0;
+  private lastBidVoiceAmount: number = 0;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -374,6 +376,13 @@ class SoundManager {
 
   // Locución de nueva puja en inglés al estilo Copart (VB3 Auction Chant)
   public playBidVoice(amount: number, paddleNumber?: string, isClient?: boolean) {
+    const now = Date.now();
+    if (amount === this.lastBidVoiceAmount && now - this.lastBidVoiceTimestamp < 1500) {
+      return; // Prevenir duplicación exacta en 1.5 segundos
+    }
+    this.lastBidVoiceTimestamp = now;
+    this.lastBidVoiceAmount = amount;
+
     this.playBidPing();
 
     setTimeout(() => {
@@ -413,13 +422,11 @@ class SoundManager {
       const brand = vehicleInfo?.brand || 'Ford';
       const model = vehicleInfo?.model || 'Mustang GT';
       const price = startPrice ? Number(startPrice).toLocaleString() : '5,000';
-      const miles = vehicleInfo?.odometer ? `${Number(vehicleInfo.odometer).toLocaleString()} miles` : 'low miles';
-      const condition = vehicleInfo?.condition === 'run_and_drive' ? 'run and drive' : 'starts';
 
-      // Canto auténtico de bienvenida y elogio del vehículo al estilo Copart VB3
-      const welcomeChant = `Welcome bidders to Lane A! Coming up on the block, we have an incredible ${year} ${brand} ${model}! Verified ${condition}, with only ${miles}, keys in hand! Beautiful unit, folks! Who'll give me ${price} dollars to open? Let's start the bidding at ${price} dollars!`;
+      // Canto auténtico de bienvenida estilo Copart VB3 breve y dinámico
+      const welcomeChant = `Lane A is open! ${year} ${brand} ${model}, starting the bidding at ${price} dollars!`;
 
-      this.speak(welcomeChant, 1.08);
+      this.speak(welcomeChant, 1.12);
     }, 220);
   }
 

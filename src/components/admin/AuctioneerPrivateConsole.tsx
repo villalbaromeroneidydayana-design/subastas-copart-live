@@ -111,7 +111,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
   const [announcementText, setAnnouncementText] = useState<string>('');
   const [activeAnnouncement, setActiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState<boolean>(false);
-  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(sounds.isMuted);
+  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(true); // Consola silenciosa por defecto para evitar doble audio con la sala
   const [activeDocToken, setActiveDocToken] = useState<string | null>(null);
   const [copiedDocLink, setCopiedDocLink] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
@@ -194,9 +194,13 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
         setSession((prev) => ({
           ...prev,
           ...data.session,
-          current_price: Number(data.session.current_price ?? data.session.currentPrice ?? 700),
-          starting_price: Number(data.session.starting_price ?? data.session.startingPrice ?? 700),
-          client_max_budget: Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? 2500),
+          current_price: Number(data.session.current_price ?? data.session.currentPrice ?? prev.current_price ?? 5000),
+          starting_price: Number(data.session.starting_price ?? data.session.startingPrice ?? prev.starting_price ?? 5000),
+          client_max_budget: Number(data.session.client_max_budget ?? data.session.clientMaxBudget ?? prev.client_max_budget ?? 7500),
+          time_remaining_seconds: (prev.status === 'open' || prev.status === 'bidding' || prev.status === 'last_call')
+            ? prev.time_remaining_seconds
+            : (data.session.time_remaining_seconds ?? data.session.timeRemainingSeconds ?? prev.time_remaining_seconds ?? 15),
+          status: data.session.status ?? prev.status,
         }));
         setLotStartingPrice(Number(data.session.starting_price ?? data.session.startingPrice ?? 700));
         setLotMinIncrement(Number(data.session.min_increment ?? data.session.minIncrement ?? 250));
@@ -247,6 +251,33 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
       // Ignorar caídas momentáneas
     }
   };
+
+  // Cronómetro local 1 Hz continuo en consola para que el reloj baje visiblemente segundo a segundo
+  useEffect(() => {
+    if (session.status !== 'open' && session.status !== 'bidding' && session.status !== 'last_call') {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setSession((prev) => {
+        if (prev.status !== 'open' && prev.status !== 'bidding' && prev.status !== 'last_call') {
+          return prev;
+        }
+        if ((prev.time_remaining_seconds ?? 15) <= 0) {
+          return prev;
+        }
+        const nextTime = Math.max(0, (prev.time_remaining_seconds ?? 15) - 1);
+        const nextStatus = nextTime <= 4 ? 'last_call' : prev.status;
+        return {
+          ...prev,
+          time_remaining_seconds: nextTime,
+          status: nextStatus,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [session.status]);
 
   // Centralizar inicio y apertura de subasta con reloj autoritativo
   const handleStartAuction = async () => {

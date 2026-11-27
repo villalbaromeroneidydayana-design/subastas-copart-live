@@ -1318,7 +1318,7 @@ app.post('/api/sessions/:id/start', (req, res) => {
 
   db.prepare(`
     UPDATE auction_sessions 
-    SET status = 'prepared', is_token_revoked = 0, time_remaining_seconds = ?, updated_at = ? 
+    SET status = 'open', is_token_revoked = 0, time_remaining_seconds = ?, updated_at = ? 
     WHERE id = ?
   `).run(duration, new Date().toISOString(), session.id);
 
@@ -2241,9 +2241,9 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
 
   if (!['open', 'bidding', 'last_call'].includes(session.status)) {
     // Si la subasta estaba en preparación, abrirla automáticamente
-    db.prepare(`UPDATE auction_sessions SET status = 'prepared', time_remaining_seconds = total_duration_seconds WHERE id = ?`).run(session.id);
+    db.prepare(`UPDATE auction_sessions SET status = 'open', time_remaining_seconds = total_duration_seconds WHERE id = ?`).run(session.id);
     startServerClock(session.id);
-  activeAuctioneerCalls.delete(session.id);
+    activeAuctioneerCalls.delete(session.id);
   }
 
   const clientMaxBudget = Number(session.client_max_budget) || 7500;

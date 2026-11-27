@@ -164,6 +164,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('COPART LIVE LANE A • Transmisión oficial en vivo desde Estados Unidos');
   const [usTime, setUsTime] = useState<string>('');
   const hasCelebratedSoldRef = useRef<boolean>(false);
+  const lastHandledBidIdRef = useRef<string | null>(null);
 
   // Estados exclusivos Copart VB3 (5 Features Oficiales)
   const [selectedLane, setSelectedLane] = useState<'A' | 'B' | 'C'>('A');
@@ -415,9 +416,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           paddle_number: b.paddleNumber,
         }));
 
-        if (formattedBids.length > 0 && formattedBids[0].id !== lastBidId) {
+        if (formattedBids.length > 0 && formattedBids[0].id !== lastHandledBidIdRef.current) {
           const newest = formattedBids[0];
-          const isInitialLoad = lastBidId === null;
+          const isInitialLoad = lastHandledBidIdRef.current === null;
+          lastHandledBidIdRef.current = newest.id;
           setLastBidId(newest.id);
           setBidFlash(true);
           setTimeout(() => setBidFlash(false), 800);
@@ -684,6 +686,8 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
               sequence_number: msg.bid.sequenceNumber || 1,
               paddle_number: msg.bid.paddleNumber || newWinner,
             };
+            lastHandledBidIdRef.current = formatted.id;
+            setLastBidId(formatted.id);
             setBids((prev) => [formatted, ...prev.filter((b) => b.id !== formatted.id)]);
             sounds.playBidVoice(formatted.amount, formatted.paddle_number, formatted.is_client);
           } else {
@@ -1237,26 +1241,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   return (
     <div className={`min-h-screen ${themeMode === 'copart-light' ? 'bg-[#f4f6f8] text-slate-900' : 'bg-[#060a12] text-slate-100'} flex flex-col font-sans select-none antialiased`}>
 
-      {/* BANNER PARA ACTIVAR AUDIO EN CELULARES (FLUJO NORMAL PARA NO TAPAR EL HEADER) */}
-      {!hasInteracted && (
-        <div
-          onClick={() => {
-            setHasInteracted(true);
-            try {
-              sounds.setMuted(false);
-              setIsAudioMuted(false);
-              sounds.unlockAudio();
-              sounds.playBidPing();
-              sounds.speak('Audio connected', 1.1, 'en-US');
-            } catch { }
-          }}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white text-center py-2.5 px-4 text-xs sm:text-sm font-black cursor-pointer shadow-md flex items-center justify-center gap-2 border-b-2 border-emerald-300 relative z-30 transition animate-pulse"
-        >
-          <Volume2 className="w-5 h-5 animate-bounce" />
-          <span>🔊 TOCA AQUÍ PARA ACTIVAR EL AUDIO EN VIVO DE LA SUBASTA (LANE A)</span>
-        </div>
-      )}
-
       {/* ================= BARRA SUPERIOR COPART IDÉNTICA AL SCREENSHOT (3 FILAS LIMPIAS) ================= */}
       {/* FILA 1: NAV BAR NEGRA CON PESTAÑA AZUL Y BOTÓN AMARILLO SELL YOUR CAR */}
       <div className="bg-[#181818] text-white text-[12px] px-3 sm:px-6 py-1.5 flex items-center justify-between border-b border-neutral-900 select-none z-30 sticky top-0 shadow-md">
@@ -1315,9 +1299,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
           <span className="text-slate-700 hover:text-slate-950 cursor-pointer hidden lg:inline">Feedback</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-            ● LIVE STREAMING
-          </span>
         </div>
       </div>
 
@@ -1449,35 +1430,6 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </button>
                       </>
                     )}
-
-                    {/* Botón flotante Video del Motor (si el vehículo tiene video) */}
-                    {vehicleVideoUrl && !isPlayingEngineVideo && (
-                      <button
-                        type="button"
-                        onClick={() => setIsPlayingEngineVideo(true)}
-                        className="absolute top-2 right-12 z-20 bg-rose-600/95 hover:bg-rose-700 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur transition cursor-pointer"
-                        title="Ver video oficial del motor"
-                      >
-                        <Play className="w-3 h-3 fill-white text-white" />
-                        <span>Video Motor</span>
-                      </button>
-                    )}
-
-                    {/* Botón flotante HD Gallery */}
-                    <button
-                      type="button"
-                      onClick={() => setIsGalleryOpen(true)}
-                      className="absolute top-2 right-2 z-20 bg-black/65 hover:bg-black/90 text-white text-[10.5px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur transition cursor-pointer"
-                      title="Ver fotos en pantalla completa"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-amber-400" />
-                      <span>HD</span>
-                    </button>
-
-                    {/* Badge de lote en la foto */}
-                    <div className="absolute top-2 left-2 z-20 bg-[#002855]/90 text-white font-mono text-[11px] font-bold px-2 py-0.5 rounded shadow">
-                      Lot #{cleanLotNumber}
-                    </div>
                   </div>
 
                   {/* Tira Horizontal de Miniaturas (Idéntica al Screenshot de Copart) */}
@@ -1657,13 +1609,12 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                             <td className="py-0.5 px-1.5 font-medium text-slate-500">Keys</td>
                             <td className="py-0.5 px-1.5 font-bold text-emerald-700 text-[10px]">{vehicle?.has_keys ? 'YES' : 'NO'}</td>
                           </tr>
+                          <tr className="bg-[#f4f7fa]">
+                            <td className="py-0.5 px-1.5 font-medium text-slate-500">Special Note</td>
+                            <td className="py-0.5 px-1.5 font-bold text-slate-800 text-[10px]">N/A</td>
+                          </tr>
                         </tbody>
                       </table>
-                      
-                      {/* Nota en rojo idéntica al screenshot */}
-                      <div className="p-1.5 bg-red-50 text-[9px] font-bold text-red-600 leading-tight border-t border-red-200">
-                        THIS VEHICLE IS BEING SOLD "AS IS - WHERE IS" - ALL BIDS ARE BINDING AND ALL SALES ARE FINAL.
-                      </div>
                     </div>
 
                     {/* Sub-columna 2: Dial VB3, Red label, Stepper, Bid Button, Previous Bids */}
