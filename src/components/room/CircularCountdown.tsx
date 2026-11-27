@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation, Language } from '../../lib/i18n';
+import { CountryFlag } from '../common/CountryFlag';
 
 interface CircularCountdownProps {
   seconds: number;
@@ -110,9 +111,12 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
           /* DISEÑO IDÉNTICO A COPART VB3 LIGHT DEL SCREENSHOT */
           status === 'sold' ? (
             <div className="flex flex-col items-center justify-center">
-              <span className="text-[11px] font-bold text-slate-500 uppercase">
-                {highBidderState}
-              </span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <CountryFlag code={highBidderFlag || highBidderState} className="w-5 h-3.5" />
+                <span className="text-[11px] font-bold text-slate-600 uppercase">
+                  {highBidderState}
+                </span>
+              </div>
               <span className="text-xl sm:text-2xl font-black font-mono text-emerald-600 leading-tight">
                 ${(currentPrice || 6150).toLocaleString()}
               </span>
@@ -122,9 +126,12 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
             </div>
           ) : status === 'prepared' ? (
             <div className="flex flex-col items-center justify-center">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                STANDBY
-              </span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <CountryFlag code={highBidderFlag || highBidderState} className="w-5 h-3.5" />
+                <span className="text-[11px] font-bold text-slate-700">
+                  {highBidderState}
+                </span>
+              </div>
               <span className="text-xl sm:text-2xl font-black font-mono leading-tight text-slate-700">
                 ${(currentPrice || 5000).toLocaleString()}
               </span>
@@ -135,7 +142,7 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
           ) : (
             <div className="flex flex-col items-center justify-center">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-sm">{highBidderFlag || (highBidderState.toLowerCase().includes('mexico') ? '🇲🇽' : highBidderState.toLowerCase().includes('emirates') || highBidderState.toLowerCase().includes('arab') ? '🇦🇪' : '🇺🇸')}</span>
+                <CountryFlag code={highBidderFlag || highBidderState} className="w-5 h-3.5" />
                 <span className="text-[11px] font-bold text-slate-800 truncate max-w-[85px]">
                   {highBidderState}
                 </span>

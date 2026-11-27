@@ -3,6 +3,7 @@ import { AuctionSession, AuctionBid, VehicleImage, PhotoCategory, CustomBadgeIte
 import { store, ParticipantInfo } from '../../services/store';
 import { sounds } from '../../lib/soundEffects';
 import { CopartLogo } from '../common/CopartLogo';
+import { CountryFlag } from '../common/CountryFlag';
 import { CircularCountdown } from './CircularCountdown';
 import { ImageGalleryModal } from '../common/ImageGalleryModal';
 import { RoomAccessExpiredView } from './RoomAccessExpiredView';
@@ -1725,7 +1726,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               return (
                                 <div key={b.id} className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
                                   <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-xs">{info.flag}</span>
+                                    <CountryFlag code={info.flag || info.state} className="w-4 h-3 shrink-0" />
                                     <span className="truncate max-w-[95px] text-slate-700 font-medium">
                                       {info.state}
                                     </span>
@@ -1740,7 +1741,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                             <>
                               <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-xs">🇺🇸</span>
+                                  <CountryFlag code="Texas" className="w-4 h-3 shrink-0" />
                                   <span className="text-slate-700 font-medium">Texas</span>
                                 </div>
                                 <span className="font-mono font-bold text-slate-900">
@@ -1749,7 +1750,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                               </div>
                               <div className="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200/60">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-xs">🇺🇸</span>
+                                  <CountryFlag code="California" className="w-4 h-3 shrink-0" />
                                   <span className="text-slate-700 font-medium">California</span>
                                 </div>
                                 <span className="font-mono font-bold text-slate-900">

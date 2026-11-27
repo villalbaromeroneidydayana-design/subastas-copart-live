@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { store } from '../../services/store';
 import { AuctionSession, CustomVehicleBadges } from '../../types';
 import { sounds } from '../../lib/soundEffects';
+import { CountryFlag } from '../common/CountryFlag';
 import {
   Gavel,
   Play,
@@ -1324,7 +1325,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm">{p.flag || '🇺🇸'}</span>
+                          <CountryFlag code={p.flag || p.location} className="w-4 h-3 shrink-0" />
                           <span className={`font-mono font-black text-sm ${isSelected ? 'text-amber-300' : 'text-white'}`}>
                             {p.number}
                           </span>
