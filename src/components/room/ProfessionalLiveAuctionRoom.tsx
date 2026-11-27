@@ -1519,19 +1519,25 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         </div>
                       </div>
 
-                      {/* Badges circulares R y O */}
+                      {/* Badges circulares oficiales Copart VB3 (R, I, M) */}
                       <div className="flex items-center gap-1 shrink-0 pt-0.5">
                         <span
                           className="w-6 h-6 rounded-full bg-[#00a84d] text-white font-black text-[11px] flex items-center justify-center shadow-sm"
-                          title="Run and Drive (Verificado)"
+                          title="R - Run and Drive (Verificado)"
                         >
                           R
                         </span>
                         <span
-                          className="w-6 h-6 rounded-full bg-[#673ab7] text-white font-black text-[11px] flex items-center justify-center shadow-sm"
-                          title="Offsite / Title Clean"
+                          className="w-6 h-6 rounded-full bg-[#1976d2] text-white font-black text-[11px] flex items-center justify-center shadow-sm"
+                          title="I - Inspected / Condition Report"
                         >
-                          O
+                          I
+                        </span>
+                        <span
+                          className="w-6 h-6 rounded-full bg-[#64748b] text-white font-black text-[11px] flex items-center justify-center shadow-sm"
+                          title="M - Mainline / Featured Vehicle"
+                        >
+                          M
                         </span>
                       </div>
                     </div>
