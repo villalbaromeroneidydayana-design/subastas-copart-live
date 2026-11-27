@@ -11,6 +11,7 @@ interface CircularCountdownProps {
   highBidderState?: string;
   currentPrice?: number;
   highBidderPaddle?: string;
+  highBidderFlag?: string;
 }
 
 export const CircularCountdown: React.FC<CircularCountdownProps> = ({
@@ -23,6 +24,7 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
   highBidderState = 'California',
   currentPrice,
   highBidderPaddle,
+  highBidderFlag,
 }) => {
   const { lang: contextLang, t } = useTranslation();
   const lang = propLang || contextLang || 'en';
@@ -132,9 +134,9 @@ export const CircularCountdown: React.FC<CircularCountdownProps> = ({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-xs">{highBidderState.toLowerCase().includes('mexico') ? '🇲🇽' : '🇺🇸'}</span>
-                <span className="text-[11px] font-bold text-slate-700 truncate max-w-[85px]">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-sm">{highBidderFlag || (highBidderState.toLowerCase().includes('mexico') ? '🇲🇽' : highBidderState.toLowerCase().includes('emirates') || highBidderState.toLowerCase().includes('arab') ? '🇦🇪' : '🇺🇸')}</span>
+                <span className="text-[11px] font-bold text-slate-800 truncate max-w-[85px]">
                   {highBidderState}
                 </span>
               </div>

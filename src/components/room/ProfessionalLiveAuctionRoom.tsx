@@ -29,6 +29,10 @@ export const OPERATOR_PADDLES = [
   { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH', state: 'Ohio', flag: '🇺🇸' },
   { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX', state: 'Texas', flag: '🇺🇸' },
   { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL', state: 'Illinois', flag: '🇺🇸' },
+  { paddle: 'Paleta #650', name: 'Emirates Auto Trading LLC', loc: 'Dubai, UAE', state: 'United Arab Emirates', flag: '🇦🇪' },
+  { paddle: 'Paleta #720', name: 'Maple Leaf Remarketing', loc: 'Toronto, Canada', state: 'Canada', flag: '🇨🇦' },
+  { paddle: 'Paleta #830', name: 'Monterrey Subastas', loc: 'Monterrey, Mexico', state: 'Mexico', flag: '🇲🇽' },
+  { paddle: 'Paleta #940', name: 'Al-Mansour International Motors', loc: 'Baghdad, Iraq', state: 'Iraq', flag: '🇮🇶' },
   { paddle: 'Paleta #101', name: 'Broker / Cliente', loc: 'Wylie, TX', state: 'Texas', flag: '🇺🇸', isClient: true },
 ];
 
@@ -1073,6 +1077,70 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     return 'California';
   })();
 
+  const parseLocationInfo = (locStr: string, paddleStr?: string) => {
+    if (paddleStr) {
+      const matchPaddle = OPERATOR_PADDLES.find(p => p.paddle === paddleStr);
+      if (matchPaddle) {
+        return {
+          state: matchPaddle.state,
+          shortName: matchPaddle.state.length > 12 ? matchPaddle.state.substring(0, 10) + '...' : matchPaddle.state,
+          flag: matchPaddle.flag,
+        };
+      }
+    }
+
+    const loc = (locStr || '').toLowerCase();
+    if (loc.includes('uae') || loc.includes('emirates') || loc.includes('dubai') || loc.includes('arab')) {
+      return { state: 'United Arab Emirates', shortName: 'United Ar...', flag: '🇦🇪' };
+    }
+    if (loc.includes('iraq') || loc.includes('baghdad') || loc.includes('irak')) {
+      return { state: 'Iraq', shortName: 'Iraq', flag: '🇮🇶' };
+    }
+    if (loc.includes('canada') || loc.includes('toronto') || loc.includes('ontario') || loc.includes('quebec')) {
+      return { state: 'Canada', shortName: 'Canada', flag: '🇨🇦' };
+    }
+    if (loc.includes('mexico') || loc.includes('méxico') || loc.includes('monterrey') || loc.includes('guadalajara')) {
+      return { state: 'Mexico', shortName: 'Mexico', flag: '🇲🇽' };
+    }
+    if (loc.includes('germany') || loc.includes('alemania') || loc.includes('berlin')) {
+      return { state: 'Germany', shortName: 'Germany', flag: '🇩🇪' };
+    }
+    if (loc.includes('ca') || loc.includes('california') || loc.includes('angeles')) {
+      return { state: 'California', shortName: 'California', flag: '🇺🇸' };
+    }
+    if (loc.includes('nj') || loc.includes('jersey') || loc.includes('newark')) {
+      return { state: 'New Jersey', shortName: 'New Jersey', flag: '🇺🇸' };
+    }
+    if (loc.includes('ny') || loc.includes('york')) {
+      return { state: 'New York', shortName: 'New York', flag: '🇺🇸' };
+    }
+    if (loc.includes('fl') || loc.includes('florida') || loc.includes('miami') || loc.includes('orlando')) {
+      return { state: 'Florida', shortName: 'Florida', flag: '🇺🇸' };
+    }
+    if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
+      return { state: 'Georgia', shortName: 'Georgia', flag: '🇺🇸' };
+    }
+    if (loc.includes('il') || loc.includes('illinois') || loc.includes('chicago')) {
+      return { state: 'Illinois', shortName: 'Illinois', flag: '🇺🇸' };
+    }
+    if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
+      return { state: 'Ohio', shortName: 'Ohio', flag: '🇺🇸' };
+    }
+    if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
+      return { state: 'Arizona', shortName: 'Arizona', flag: '🇺🇸' };
+    }
+    if (loc.includes('nc') || loc.includes('carolina')) {
+      return { state: 'North Carolina', shortName: 'North Carolina', flag: '🇺🇸' };
+    }
+    if (loc.includes('va') || loc.includes('virginia')) {
+      return { state: 'Virginia', shortName: 'Virginia', flag: '🇺🇸' };
+    }
+    if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
+      return { state: 'Texas', shortName: 'Texas', flag: '🇺🇸' };
+    }
+    return { state: 'Texas', shortName: 'Texas', flag: '🇺🇸' };
+  };
+
   // Obtener estado y bandera del postor líder actual (para el dial auténtico de Copart VB3)
   const currentLeaderInfo = (() => {
     const winnerPaddle = (session as any).currentWinnerPaddle || (session as any).current_winner_paddle;
@@ -1089,40 +1157,10 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
     }
 
     if (latestBid) {
-      const loc = ((latestBid as any).location || latestBid.bidder_name || '').toLowerCase();
-      let state = 'Texas';
-      let flag = '🇺🇸';
-
-      if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
-        state = 'Texas';
-      } else if (loc.includes('ca') || loc.includes('angeles') || loc.includes('california')) {
-        state = 'California';
-      } else if (loc.includes('nj') || loc.includes('jersey')) {
-        state = 'New Jersey';
-      } else if (loc.includes('ny') || loc.includes('york')) {
-        state = 'New York';
-      } else if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
-        state = 'Arizona';
-      } else if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
-        state = 'Georgia';
-      } else if (loc.includes('fl') || loc.includes('florida') || loc.includes('miami')) {
-        state = 'Florida';
-      } else if (loc.includes('il') || loc.includes('chicago') || loc.includes('illinois')) {
-        state = 'Illinois';
-      } else if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
-        state = 'Ohio';
-      } else if (loc.includes('nc') || loc.includes('carolina')) {
-        state = 'North Carolina';
-      } else if (loc.includes('va') || loc.includes('virginia')) {
-        state = 'Virginia';
-      } else if (loc.includes('mexico') || loc.includes('méxico')) {
-        state = 'Mexico';
-        flag = '🇲🇽';
-      }
-
+      const parsed = parseLocationInfo((latestBid as any).location || latestBid.bidder_name || '', (latestBid as any).paddle_number);
       return {
-        flag,
-        state,
+        flag: parsed.flag,
+        state: parsed.state,
         paddle: (latestBid as any).paddle_number || latestBid.bidder_name || 'USA',
         isClient: false
       };
@@ -1143,37 +1181,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
       return getStateInfo(clientState);
     }
 
-    const loc = (bid.location || bid.bidder_name || '').toLowerCase();
-    let state = 'Texas';
-    let flag = '🇺🇸';
-
-    if (loc.includes('tx') || loc.includes('texas') || loc.includes('dallas') || loc.includes('houston')) {
-      state = 'Texas';
-    } else if (loc.includes('ca') || loc.includes('california') || loc.includes('angeles')) {
-      state = 'California';
-    } else if (loc.includes('nj') || loc.includes('jersey')) {
-      state = 'New Jersey';
-    } else if (loc.includes('ny') || loc.includes('york')) {
-      state = 'New York';
-    } else if (loc.includes('az') || loc.includes('arizona') || loc.includes('phoenix')) {
-      state = 'Arizona';
-    } else if (loc.includes('ga') || loc.includes('georgia') || loc.includes('atlanta')) {
-      state = 'Georgia';
-    } else if (loc.includes('fl') || loc.includes('florida') || loc.includes('miami')) {
-      state = 'Florida';
-    } else if (loc.includes('il') || loc.includes('illinois') || loc.includes('chicago')) {
-      state = 'Illinois';
-    } else if (loc.includes('oh') || loc.includes('ohio') || loc.includes('columbus')) {
-      state = 'Ohio';
-    } else if (loc.includes('nc') || loc.includes('carolina')) {
-      state = 'North Carolina';
-    } else if (loc.includes('va') || loc.includes('virginia')) {
-      state = 'Virginia';
-    } else if (loc.includes('mexico') || loc.includes('méxico')) {
-      state = 'Mexico';
-      flag = '🇲🇽';
-    }
-    return { state, flag };
+    return parseLocationInfo(bid.location || bid.bidder_name || '', (bid as any).paddle_number || (bid as any).paddleNumber);
   };
 
   const handleTriggerFastCompetitor = async (increment = 100) => {
@@ -1646,6 +1654,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                         lang={lang}
                         theme="light"
                         highBidderState={currentLeaderInfo.state}
+                        highBidderFlag={currentLeaderInfo.flag}
                         currentPrice={session.current_price}
                         highBidderPaddle="Bid!"
                       />

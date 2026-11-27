@@ -2259,14 +2259,18 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
     });
   }
 
-  // Lista ampliada de competidores realistas para simular subastas dinámicas
+  // Lista ampliada de competidores realistas para simular subastas dinámicas con banderas locales e internacionales
   const competitors = [
     { paddle: 'Paleta #108', name: 'AutoExport Dallas LLC', loc: 'Dallas, TX', base: 'bdr_comp_dallas' },
     { paddle: 'Paleta #214', name: 'Pacific Salvage Auctions', loc: 'Los Angeles, CA', base: 'bdr_comp_pacific' },
     { paddle: 'Paleta #305', name: 'Global Fleet Buyers', loc: 'Atlanta, GA', base: 'bdr_comp_global' },
     { paddle: 'Paleta #412', name: 'Buckeye Motor Exchange', loc: 'Columbus, OH', base: 'bdr_comp_buckeye' },
     { paddle: 'Paleta #519', name: 'Lone Star Salvage Group', loc: 'Houston, TX', base: 'bdr_comp_lonestar' },
-    { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL', base: 'bdr_comp_midwest' }
+    { paddle: 'Paleta #623', name: 'Midwest Premier Liquidation', loc: 'Chicago, IL', base: 'bdr_comp_midwest' },
+    { paddle: 'Paleta #650', name: 'Emirates Auto Trading LLC', loc: 'Dubai, UAE', base: 'bdr_comp_emirates' },
+    { paddle: 'Paleta #720', name: 'Maple Leaf Remarketing', loc: 'Toronto, Canada', base: 'bdr_comp_canada' },
+    { paddle: 'Paleta #830', name: 'Monterrey Subastas', loc: 'Monterrey, Mexico', base: 'bdr_comp_mexico' },
+    { paddle: 'Paleta #940', name: 'Al-Mansour International Motors', loc: 'Baghdad, Iraq', base: 'bdr_comp_iraq' }
   ];
 
   // Alternar competidor para que no puje el mismo dos veces seguidas

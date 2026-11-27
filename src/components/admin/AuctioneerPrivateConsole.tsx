@@ -60,22 +60,27 @@ interface PaddleInfo {
   number: string;
   name: string;
   location: string;
+  flag?: string;
   isBroker?: boolean;
 }
 
 const OFFICIAL_PADDLES: PaddleInfo[] = [
-  { number: 'Paleta #101', name: 'David Rodríguez / Johan', location: 'Wylie, TX', isBroker: true },
-  { number: 'Paleta #108', name: 'AutoExport Dallas LLC', location: 'Dallas, TX' },
-  { number: 'Paleta #214', name: 'Pacific Salvage Auctions', location: 'Los Angeles, CA' },
-  { number: 'Paleta #305', name: 'Global Fleet Buyers', location: 'Atlanta, GA' },
-  { number: 'Paleta #412', name: 'Buckeye Motor Exchange', location: 'Columbus, OH' },
-  { number: 'Paleta #519', name: 'Lone Star Salvage Group', location: 'Houston, TX' },
-  { number: 'Paleta #623', name: 'Midwest Premier Liquidation', location: 'Chicago, IL' },
-  { number: 'Paleta #734', name: 'Sunstate Auto Wholesale', location: 'Orlando, FL' },
-  { number: 'Paleta #845', name: 'Tri-State Metro Salvage', location: 'Newark, NJ' },
-  { number: 'Paleta #912', name: 'Cascade Auto Remarketing', location: 'Seattle, WA' },
-  { number: 'Paleta #965', name: 'Carolina Fleet Dispersal', location: 'Charlotte, NC' },
-  { number: 'Paleta #988', name: 'Keystone Auto Liquidation', location: 'Philadelphia, PA' },
+  { number: 'Paleta #101', name: 'David Rodríguez / Johan', location: 'Wylie, TX', flag: '🇺🇸', isBroker: true },
+  { number: 'Paleta #108', name: 'AutoExport Dallas LLC', location: 'Dallas, TX', flag: '🇺🇸' },
+  { number: 'Paleta #214', name: 'Pacific Salvage Auctions', location: 'Los Angeles, CA', flag: '🇺🇸' },
+  { number: 'Paleta #305', name: 'Global Fleet Buyers', location: 'Atlanta, GA', flag: '🇺🇸' },
+  { paddle: 'Paleta #412', number: 'Paleta #412', name: 'Buckeye Motor Exchange', location: 'Columbus, OH', flag: '🇺🇸' } as any,
+  { paddle: 'Paleta #519', number: 'Paleta #519', name: 'Lone Star Salvage Group', location: 'Houston, TX', flag: '🇺🇸' } as any,
+  { paddle: 'Paleta #623', number: 'Paleta #623', name: 'Midwest Premier Liquidation', location: 'Chicago, IL', flag: '🇺🇸' } as any,
+  { paddle: 'Paleta #650', number: 'Paleta #650', name: 'Emirates Auto Trading LLC', location: 'Dubai, UAE', flag: '🇦🇪' } as any,
+  { paddle: 'Paleta #720', number: 'Paleta #720', name: 'Maple Leaf Remarketing', location: 'Toronto, Canada', flag: '🇨🇦' } as any,
+  { paddle: 'Paleta #830', number: 'Paleta #830', name: 'Monterrey Subastas', location: 'Monterrey, Mexico', flag: '🇲🇽' } as any,
+  { paddle: 'Paleta #940', number: 'Paleta #940', name: 'Al-Mansour International Motors', location: 'Baghdad, Iraq', flag: '🇮🇶' } as any,
+  { number: 'Paleta #734', name: 'Sunstate Auto Wholesale', location: 'Orlando, FL', flag: '🇺🇸' },
+  { number: 'Paleta #845', name: 'Tri-State Metro Salvage', location: 'Newark, NJ', flag: '🇺🇸' },
+  { number: 'Paleta #912', name: 'Cascade Auto Remarketing', location: 'Seattle, WA', flag: '🇺🇸' },
+  { number: 'Paleta #965', name: 'Carolina Fleet Dispersal', location: 'Charlotte, NC', flag: '🇺🇸' },
+  { number: 'Paleta #988', name: 'Keystone Auto Liquidation', location: 'Philadelphia, PA', flag: '🇺🇸' },
 ];
 
 export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> = ({
@@ -1319,6 +1324,7 @@ export const AuctioneerPrivateConsole: React.FC<AuctioneerPrivateConsoleProps> =
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
+                          <span className="text-sm">{p.flag || '🇺🇸'}</span>
                           <span className={`font-mono font-black text-sm ${isSelected ? 'text-amber-300' : 'text-white'}`}>
                             {p.number}
                           </span>
