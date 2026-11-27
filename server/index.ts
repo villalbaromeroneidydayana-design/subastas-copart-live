@@ -1638,11 +1638,13 @@ app.post('/api/sessions/:id/reset', (req, res) => {
     WHERE id = ?
   `).run(new Date().toISOString(), session.id);
 
-  db.prepare(`
-    UPDATE auction_participants 
-    SET token_hash = ?, authorization_status = 'approved'
-    WHERE session_id = ? AND paddle_number = 'Paleta #101'
-  `).run(hashToken(session.broker_access_token || ('bdr_broker_' + session.id)), session.id);
+  try {
+    db.prepare(`
+      UPDATE auction_participants 
+      SET token_hash = ?, authorization_status = 'approved'
+      WHERE session_id = ? AND paddle_number = 'Paleta #101'
+    `).run(hashToken(session.broker_access_token || ('bdr_broker_' + session.id)), session.id);
+  } catch {}
 
   broadcast({
     type: 'AUCTION_RESET',
@@ -2278,13 +2280,7 @@ app.post('/api/sessions/:id/trigger-competitor-bid', (req, res) => {
   const chosen = eligible.length > 0 ? eligible[Math.floor(Math.random() * eligible.length)] : competitors[0];
 
   // Token único para esta sesión para evitar conflicto con la restricción UNIQUE de token_hash
-  const compToken = session.id === 'ses-live-001'
-    ? (chosen.paddle === 'Paleta #108' ? 'bdr_comp_dallas_108' :
-       chosen.paddle === 'Paleta #214' ? 'bdr_comp_pacific_214' :
-       chosen.paddle === 'Paleta #305' ? 'bdr_comp_global_305' :
-       chosen.paddle === 'Paleta #412' ? 'bdr_comp_buckeye_412' :
-       chosen.paddle === 'Paleta #519' ? 'bdr_comp_lonestar_519' : 'bdr_comp_midwest_623')
-    : `${chosen.base}_${session.id}`;
+  const compToken = `${chosen.base || 'bdr_comp'}_${chosen.paddle.replace(/[^0-9]/g, '')}_${session.id}`;
 
   const chosenTokenHash = hashToken(compToken);
   const existingParticipant = db.prepare('SELECT id FROM auction_participants WHERE session_id = ? AND (paddle_number = ? OR token_hash = ?)').get(session.id, chosen.paddle, chosenTokenHash) as any;
