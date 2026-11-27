@@ -177,6 +177,7 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
   const [is360Active, setIs360Active] = useState<boolean>(false);
   const [clientBidFeedback, setClientBidFeedback] = useState<string | null>(null);
   const [activeExtraBadgeModal, setActiveExtraBadgeModal] = useState<CustomBadgeItem | null>(null);
+  const [lightDockTab, setLightDockTab] = useState<'detalles' | 'catalogo' | 'patio' | 'terminos'>('detalles');
 
   // Modo de visualización: 'copart-light' (Blanco oficial Copart VB3) o 'classic-dark' (Modo oscuro clásico)
   const [themeMode, setThemeMode] = useState<'copart-light' | 'classic-dark'>(() => {
@@ -2075,6 +2076,326 @@ export const ProfessionalLiveAuctionRoom: React.FC<ProfessionalLiveAuctionRoomPr
                 </div>
               </div>
 
+            </div>
+
+            {/* ================= DOCK DE INFORMACIÓN INFERIOR COPART VB3 LIGHT ================= */}
+            <div className="mt-4 bg-white border border-[#d5dce5] rounded shadow-sm overflow-hidden text-slate-800">
+              
+              {/* Barra de Pestañas estilo Copart */}
+              <div className="bg-[#f8fafc] border-b border-slate-200 px-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setLightDockTab('detalles')}
+                    className={`py-2.5 px-3 sm:px-4 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border-b-2 -mb-[1px] ${
+                      lightDockTab === 'detalles'
+                        ? 'border-[#0d6efd] text-[#0d6efd] bg-white font-black'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Detalles del Lote</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLightDockTab('catalogo')}
+                    className={`py-2.5 px-3 sm:px-4 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border-b-2 -mb-[1px] ${
+                      lightDockTab === 'catalogo'
+                        ? 'border-[#0d6efd] text-[#0d6efd] bg-white font-black'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Car className="w-3.5 h-3.5" />
+                    <span>Catálogo de Carril ({dockVehicles.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLightDockTab('patio')}
+                    className={`py-2.5 px-3 sm:px-4 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border-b-2 -mb-[1px] ${
+                      lightDockTab === 'patio'
+                        ? 'border-[#0d6efd] text-[#0d6efd] bg-white font-black'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Patio e Instalaciones</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLightDockTab('terminos')}
+                    className={`py-2.5 px-3 sm:px-4 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border-b-2 -mb-[1px] ${
+                      lightDockTab === 'terminos'
+                        ? 'border-[#0d6efd] text-[#0d6efd] bg-white font-black'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Gavel className="w-3.5 h-3.5" />
+                    <span>Términos y Condiciones</span>
+                  </button>
+                </div>
+
+                <div className="py-2 text-[11px] font-mono text-slate-500 hidden md:block">
+                  Subasta Oficial Copart Live VB3 • Transmisión Certificada
+                </div>
+              </div>
+
+              {/* Contenido de la Pestaña Activa */}
+              <div className="p-3 sm:p-4">
+                
+                {/* 1. DETALLES EXTENDIDOS DEL LOTE */}
+                {lightDockTab === 'detalles' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div className="space-y-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 md:pr-4">
+                      <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px] flex items-center gap-1.5 text-[#0d6efd]">
+                        <Car className="w-3.5 h-3.5" />
+                        <span>Ficha del Vehículo</span>
+                      </h4>
+                      <div className="space-y-1.5 text-slate-700">
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Lote Oficial:</span>
+                          <span className="font-mono font-bold text-slate-900">#{cleanLotNumber}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">VIN:</span>
+                          <span className="font-mono font-bold text-[#1976d2]">{displayedVin}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Tipo de Título:</span>
+                          <span className="font-bold text-slate-800">{vehicle?.title_type ? `${vehicle.title_type.toUpperCase()} TITLE (P)` : 'CERTIFICATE OF TITLE (P)'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Odómetro:</span>
+                          <span className="font-mono font-bold text-slate-900">{displayedOdometer} Actual</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Carrocería:</span>
+                          <span className="font-bold text-slate-800">{(vehicle as any)?.body_style || '4D SEDAN'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 md:pr-4">
+                      <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px] flex items-center gap-1.5 text-[#0d6efd]">
+                        <Gauge className="w-3.5 h-3.5" />
+                        <span>Mecánica y Transmisión</span>
+                      </h4>
+                      <div className="space-y-1.5 text-slate-700">
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Motor:</span>
+                          <span className="font-bold text-slate-900">{vehicle?.engine || '2.5L 4-Cylinder'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Transmisión:</span>
+                          <span className="font-bold text-slate-800">{vehicle?.transmission || 'Automática'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Tracción (Drive):</span>
+                          <span className="font-bold text-slate-800">{vehicle?.drivetrain || 'Front-wheel Drive'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Combustible:</span>
+                          <span className="font-bold text-slate-800">{vehicle?.fuel || 'Gasolina Regular'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Llaves (Keys):</span>
+                          <span className="font-bold text-emerald-700">{vehicle?.has_keys ? 'YES (Presentes)' : 'NO'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px] flex items-center gap-1.5 text-[#0d6efd]">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Estado y Daños Oficiales</span>
+                      </h4>
+                      <div className="space-y-1.5 text-slate-700">
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Condición de Inicio:</span>
+                          <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            Run and Drive Verified
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Daño Primario:</span>
+                          <span className="font-bold text-slate-800">{vehicle?.primary_damage || 'Front End'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Daño Secundario:</span>
+                          <span className="font-bold text-slate-800">{vehicle?.secondary_damage || 'Minor Dents/Scratches'}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Valor Estimado Retail:</span>
+                          <span className="font-mono font-bold text-emerald-700">${(vehicle?.est_retail_value || 22500).toLocaleString()} USD</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-500 font-medium">Ubicación de Patio:</span>
+                          <span className="font-bold text-slate-800">{vehicle?.location || 'NV - LAS VEGAS (Yard 42)'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. CATÁLOGO COMPLETO DE VEHÍCULOS DEL CARRIL */}
+                {lightDockTab === 'catalogo' && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
+                      <span>Lotes asignados para remate en este carril ({dockVehicles.length} unidades):</span>
+                      <span className="font-bold text-[#0d6efd]">Lane A • Live Stream</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {dockVehicles.map((veh, idx) => {
+                        const isCurrentActive = String(veh.lot_number).trim() === String(vehicle?.lot_number).trim() || veh.id === vehicle?.id;
+                        const thumb = veh.images?.[0]?.url || 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=400&q=80';
+
+                        return (
+                          <div
+                            key={veh.id || idx}
+                            className={`rounded border p-2.5 flex flex-col justify-between transition-all bg-white ${
+                              isCurrentActive
+                                ? 'border-[#0d6efd] ring-2 ring-blue-300 shadow-md'
+                                : 'border-slate-200 hover:border-slate-300 hover:shadow-xs'
+                            }`}
+                          >
+                            <div className="flex gap-2.5 mb-2">
+                              <div className="relative w-20 h-16 rounded overflow-hidden bg-slate-900 shrink-0 border border-slate-200">
+                                <img
+                                  src={thumb}
+                                  alt={veh.model}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=400&q=80';
+                                  }}
+                                  className="w-full h-full object-cover"
+                                />
+                                {isCurrentActive && (
+                                  <span className="absolute top-1 left-1 bg-emerald-600 text-white font-black text-[7.5px] px-1 py-0.2 rounded shadow">
+                                    EN PANTALLA
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="min-w-0 flex-1 text-xs">
+                                <span className="font-bold text-slate-900 block truncate leading-snug">
+                                  {veh.year} {veh.brand} {veh.model}
+                                </span>
+                                <span className="text-[11px] text-[#0d6efd] font-mono font-bold block mt-0.5">
+                                  Lote #{veh.lot_number}
+                                </span>
+                                <span className="text-[10px] text-slate-500 block truncate">
+                                  {veh.primary_damage || 'Front End'} • {veh.odometer?.toLocaleString()} {veh.odometer_unit || 'mi'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                              <span className="font-bold text-emerald-700 font-mono">
+                                ${Number(veh.est_retail_value || 25000).toLocaleString()} USD
+                              </span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                isCurrentActive
+                                  ? 'bg-blue-50 text-[#0d6efd] border border-blue-200'
+                                  : 'bg-slate-100 text-slate-600'
+                              }`}>
+                                {isCurrentActive ? 'Remate Activo' : `En Cola (#${idx + 1})`}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. PATIO E INSTALACIÓN OFICIAL COPART */}
+                {lightDockTab === 'patio' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div className="bg-slate-50 border border-slate-200 rounded p-3 space-y-2">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <span className="font-black text-slate-900 text-sm">{vehicle?.location || 'NV - LAS VEGAS'}</span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-300">
+                          Patio Operativo Oficial
+                        </span>
+                      </div>
+                      <p className="text-slate-600 leading-relaxed text-[11px]">
+                        Instalación autorizada Copart para la recepción, custodia, inspección técnica y despacho de vehículos adjudicados mediante plataforma de subastas en vivo VB3.
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 pt-2 text-[11px]">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Horario de Patio:</span>
+                          <span className="font-bold text-slate-800">Lunes a Viernes 8:00 AM - 5:00 PM</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Plazo de Retiro Libre:</span>
+                          <span className="font-bold text-slate-800">3 Días Hábiles posteriores al pago</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Carga y Despacho:</span>
+                          <span className="font-bold text-slate-800">Montacargas y rampa certificada</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Verificación de Título:</span>
+                          <span className="font-bold text-slate-800">Oficina de Documentación en Sitio</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded p-3 space-y-2">
+                      <span className="font-black text-slate-900 text-sm block border-b border-slate-200 pb-2">
+                        Instrucciones de Despacho y Transporte
+                      </span>
+                      <ul className="space-y-1.5 text-slate-600 text-[11px]">
+                        <li className="flex items-start gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>El comprador adjudicado o su transportista designado debe presentar el Recibo de Pago Oficial sellado por Copart.</span>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>Se autoriza el retiro con grúas de plataforma comerciales registradas con seguro de carga vigente.</span>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>El título oficial se entrega endosado y firmado según las regulaciones del Departamento de Vehículos Motorizados (DMV).</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. TÉRMINOS Y CONDICIONES DE SUBASTA VB3 */}
+                {lightDockTab === 'terminos' && (
+                  <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
+                    <div className="bg-amber-50 border border-amber-200 rounded p-3">
+                      <h4 className="font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4 text-amber-700" />
+                        <span>Cláusula Oficial de Compra "As Is - Where Is"</span>
+                      </h4>
+                      <p className="text-amber-800 text-[11px]">
+                        Todos los vehículos subastados a través de la tecnología Copart VB3 se venden en el estado y lugar en que se encuentran. Cada postor es responsable de revisar las fotografías de alta resolución, número de lote, odómetro y especificaciones antes de confirmar sus posturas en sala.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      <div className="p-2.5 bg-slate-50 border border-slate-200 rounded">
+                        <span className="font-bold text-slate-900 block mb-1">Validez y Vínculo de las Ofertas:</span>
+                        <p className="text-slate-600 text-[11px]">
+                          Toda puja emitida en vivo desde la sala por el broker o el cliente participante mediante su número de paleta autorizado constituye una oferta formal e irrevocable de compra bajo las normativas comerciales de Copart Inc.
+                        </p>
+                      </div>
+                      <div className="p-2.5 bg-slate-50 border border-slate-200 rounded">
+                        <span className="font-bold text-slate-900 block mb-1">Liquidación y Medios de Pago:</span>
+                        <p className="text-slate-600 text-[11px]">
+                          Los lotes adjudicados deben liquidarse mediante transferencia bancaria Wire oficial dentro de las 48 horas hábiles para evitar recargos por demora administrativa de patio.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
             </div>
           </main>
 
